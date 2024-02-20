@@ -34,13 +34,14 @@ module extend_imm
     assign s_j_type = { {12{i_imm[24]}}, i_imm[12:5], i_imm[13], i_imm[23:14], 1'b0 };
 
     // MUX to choose output based on instruction type.
-    // __________________________________
-    // control signal | instuction type |
-    // 00             | I type          |
-    // 01             | S type          |
-    // 10             | B type          |
-    // 11             | J type          |
-    // __________________________________
+    //  ___________________________________
+    // | control signal | instuction type |
+    // |________________|_________________|
+    // | 00             | I type          |
+    // | 01             | S type          |
+    // | 10             | B type          |
+    // | 11             | J type          |
+    // |__________________________________|
     always_comb begin
         if ( control_signal[1] ) begin
             if ( control_signal[0]) begin
