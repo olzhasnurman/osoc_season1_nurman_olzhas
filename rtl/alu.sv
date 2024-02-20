@@ -59,9 +59,14 @@ module alu
     logic signed [ DATA_WIDTH    - 1:0 ] s_srl_out;
     logic signed [ DATA_WIDTH    - 1:0 ] s_sra_out;
 
+    // Flag signals. 
+    logic s_carry_flag_add;
+    logic s_carry_flag_sub;
+    logic s_overflow;
+
     // Arithmetic & Logic Operations.
     assign {s_carry_flag_add, s_add_out}  = $signed(i_src_1) + $signed(i_src_2);
-    assign {s_carrY_flag_sub, s_sub_out}  = $signed(i_src_1) - $signed(i_src_2);
+    assign {s_carry_flag_sub, s_sub_out}  = $signed(i_src_1) - $signed(i_src_2);
 
     assign s_and_out  = i_src_1 & i_src_2;
     assign s_or_out   = i_src_1 | i_src_2;
@@ -76,7 +81,7 @@ module alu
     // Flags. 
     assign o_negative_flag = o_alu_result[DATA_WIDTH - 1];
     assign s_overflow      = (o_alu_result[DATA_WIDTH - 1] ^ i_src_1[DATA_WIDTH - 1]) & 
-                             (i_src_2[DATA_WIDTH - 1] ~^ i_src_1[DATA_WIDTH - 1] ~^ alu_control[0])
+                             (i_src_2[DATA_WIDTH - 1] ~^ i_src_1[DATA_WIDTH - 1] ~^ alu_control[0]);
 
     // ------------
     // Output MUX.
