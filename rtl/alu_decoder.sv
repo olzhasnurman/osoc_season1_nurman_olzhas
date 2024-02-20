@@ -6,10 +6,6 @@
 // -----------------------------------------------------------------------
 
 module alu_decoder 
-// Paramaters.
-#(
-    parameters
-) 
 // Port delerations. 
 (
     // Input interface.
@@ -24,7 +20,7 @@ module alu_decoder
 
     logic [1:0] s_op_func_7;
 
-    assign s_op_func_7 = {i_op_5, i_func_7_5}
+    assign s_op_func_7 = {i_op_5, i_func_7_5};
 
 // | ALU Control | Function |
 // |_____________|__________|
@@ -43,7 +39,7 @@ module alu_decoder
     // ALU decoder logic.
     always_comb begin 
         if ( i_alu_op[1] ) begin
-            case (func_3)
+            case (i_func_3)
                 3'b000: if (s_op_func_7 == 2'b11) begin
                             o_alu_control = 4'b0001; // sub instruciton.
                         end 
