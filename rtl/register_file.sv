@@ -1,4 +1,4 @@
-/* Copyright (c) 2024x Maveric NU. All rights reserved. */
+/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ----------------------------------------------------------------------------
 // This is a register file component of processor based on RISC-V architecture.
@@ -20,7 +20,7 @@ module register_file
     //Input interface. 
     input logic [ ADDR_WIDTH - 1:0 ] i_addr_1,
     input logic [ ADDR_WIDTH - 1:0 ] i_addr_2,
-    input logic [ ADDR_WIDTH - 1:0 ] i_addr_3
+    input logic [ ADDR_WIDTH - 1:0 ] i_addr_3,
     input logic [ DATA_WIDTH - 1:0 ] i_write_data_3,
     
     // Output interface.
