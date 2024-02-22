@@ -18,9 +18,9 @@ module alu_decoder
     output logic [3:0] o_alu_control
 );
 
-    logic [1:0] s_op_func_7;
+    logic s_op_func_7;
 
-    assign s_op_func_7 = {i_op_5, i_func_7_5};
+    assign s_op_func_7 = i_op_5, i_func_7_5;
 
 // | ALU Control | Function |
 // |_____________|__________|
@@ -40,7 +40,7 @@ module alu_decoder
     always_comb begin 
         if ( i_alu_op[1] ) begin
             case (i_func_3)
-                3'b000: if (s_op_func_7 == 2'b11) begin
+                3'b000: if ( s_op_func_7 ) begin
                             o_alu_control = 4'b0001; // sub instruciton.
                         end 
                         else o_alu_control = 4'b0000; // add instruciton.
@@ -53,7 +53,7 @@ module alu_decoder
 
                 3'b100: o_alu_control = 4'b0100; // xor instruction.
 
-                3'b101: if (s_op_func_7 == 2'b11) begin
+                3'b101: if ( s_op_func_7 ) begin
                             o_alu_control = 4'b1001; // sra instruction.
                         end 
                         else o_alu_control = 4'b1000; // srl instruction.  
