@@ -14,14 +14,13 @@ module main_fsm
     // Input interface. 
     input  logic [6:0] i_op,
     input  logic [2:0] i_func_3,
-    input  logic       i_func_7_5,
+    input  logic       i_func_7_5, 
 
     // Output interface.
     output logic [1:0] o_alu_op,
     output logic [1:0] o_result_src,
     output logic [1:0] o_alu_src_1,
     output logic [1:0] o_alu_src_2,
-    output logic [1:0] o_imm_src,
     output logic       o_mem_addr_src,
     output logic       o_reg_write_en,
     output logic       o_pc_update,
@@ -153,7 +152,6 @@ module main_fsm
         o_result_src     = 2'b00;
         o_alu_src_1      = 2'b00;
         o_alu_src_2      = 2'b00;
-        o_imm_src        = 2'b00;
         o_mem_addr_src   = 1'b0;
         o_reg_write_en   = 1'b0;
         o_pc_update      = 1'b0;
@@ -239,7 +237,6 @@ module main_fsm
                 o_result_src     = 2'b00;
                 o_alu_src_1      = 2'b00;
                 o_alu_src_2      = 2'b00;
-                o_imm_src        = 2'b00;
                 o_mem_addr_src   = 1'b0;
                 o_reg_write_en   = 1'b0;
                 o_pc_update      = 1'b0;
