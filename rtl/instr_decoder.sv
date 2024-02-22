@@ -13,8 +13,8 @@ module instr_decoder
 )
 // Ports. 
 (
-    input  [ OP_WIDTH  - 1:0 ] i_op,
-    output [ OUT_WIDTH - 1:0 ] o_imm_src
+    input  logic [ OP_WIDTH  - 1:0 ] i_op,
+    output logic [ OUT_WIDTH - 1:0 ] o_imm_src
 ); 
 
     //Decoder logic.
@@ -41,7 +41,7 @@ module instr_decoder
     */
 
     always_comb begin
-        case (i_op)
+        case ( i_op )
             7'b1101111: o_imm_src = 2'b11; // J type.
             7'b1100011: o_imm_src = 2'b10; // B type.
             7'b0100011: o_imm_src = 2'b01; // S type.
