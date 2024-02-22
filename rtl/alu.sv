@@ -4,22 +4,6 @@
 // This is a Arithmetic Logic Unit (ALU).
 // --------------------------------------
 
-// OPERATIONS.
-// __________________________
-// | ALU Control | Function |
-// |_____________|__________|
-// | 0000        | ADD      |
-// | 0001        | SUB      |
-// | 0010        | AND      |
-// | 0011        | OR       |
-// | 0100        | XOR      |
-// | 0101        | SLL      |
-// | 0110        | SLT      |
-// | 0111        | SLTU     |
-// | 1000        | SRL      |
-// | 1001        | SRA      |
-//___________________________
-
 module alu 
 // Parameters.
 #(
@@ -46,6 +30,18 @@ module alu
     // ---------------
     // Internal nets.
     // ---------------
+    enum logic [3:0] {
+        ADD  = 4'b0000,
+        SUB  = 4'b0001,
+        AND  = 4'b0010,
+        OR   = 4'b0011,
+        XOR  = 4'b0100,
+        SLL  = 4'b0101,
+        SLT  = 4'b0110,
+        SLTU = 4'b0111,
+        SRL  = 4'b1000,
+        SRA  = 4'b1001
+    } t_operation;
 
     // Particular operation optputs.
     logic signed [ DATA_WIDTH    - 1:0 ] s_add_out;
@@ -54,8 +50,7 @@ module alu
     logic signed [ DATA_WIDTH    - 1:0 ] s_or_out;
     logic signed [ DATA_WIDTH    - 1:0 ] s_xor_out;
     logic signed [ DATA_WIDTH    - 1:0 ] s_sll_out;
-    logic signed [ DATA_WIDTH    - 1:0 ] s_slt_out;
-    logic        [ DATA_WIDTH    - 1:0 ] s_sltu_out;
+    logic signed [ DATA_WIDTH    - 1:0 ] s_sltu_out;
     logic signed [ DATA_WIDTH    - 1:0 ] s_srl_out;
     logic signed [ DATA_WIDTH    - 1:0 ] s_sra_out;
 
@@ -72,11 +67,9 @@ module alu
     assign s_or_out   = i_src_1 | i_src_2;
     assign s_xor_out  = i_src_1 ^ i_src_2;
     assign s_sll_out  = i_src_1 << i_src_2[4:0];
-    // NOT FINISHED.
-    assign s_slt_out  = i_src_1 + i_src_2; 
-    assign s_sltu_out = i_src_1 + i_src_2;
-    assign s_srl_out  = i_src_1 + i_src_2;
-    assign s_sra_out  = i_src_1 + i_src_2;
+    assign s_sltu_out = i_src_1 - i_src_2;
+    assign s_srl_out  = i_src_1 >> i_src_2[4:0];
+    assign s_sra_out  = $signed(i_src_1) >>> i_src_2[4:0];
 
     // Flags. 
     assign o_negative_flag = o_alu_result[DATA_WIDTH - 1];
@@ -92,25 +85,25 @@ module alu
         o_overflow_flag = 0;
         o_carry_flag    = 0;
 
-        case (alu_control)
-            4'b0000: begin
+        case ( alu_control )
+            ADD : begin
                 o_alu_result    = s_add_out;
                 o_carry_flag    = s_carry_flag_add;
                 o_overflow_flag = s_overflow;
             end 
-            4'b0001: begin
+            SUB : begin
                 o_alu_result    = s_sub_out;
                 o_carry_flag    = s_carry_flag_sub;
                 o_overflow_flag = s_overflow;
             end 
-            4'b0010: o_alu_result = s_and_out;
-            4'b0011: o_alu_result = s_or_out;
-            4'b0100: o_alu_result = s_xor_out;
-            4'b0101: o_alu_result = s_sll_out;
-            4'b0110: o_alu_result = s_slt_out;
-            4'b0111: o_alu_result = s_sltu_out;
-            4'b1000: o_alu_result = s_srl_out;
-            4'b1001: o_alu_result = s_sra_out;
+            AND : o_alu_result = s_and_out;
+            OR  : o_alu_result = s_or_out;
+            XOR : o_alu_result = s_xor_out;
+            SLL : o_alu_result = s_sll_out;
+            SLT : o_alu_result = { { (DATA_WIDTH - 1) { 1'b0 } }, o_alu_result[DATA_WIDTH - 1] };
+            SLTU: o_alu_result = { { (DATA_WIDTH - 1) { 1'b0 } }, s_sltu_out[DATA_WIDTH - 1] };
+            SRL : o_alu_result = s_srl_out;
+            SRA : o_alu_result = s_sra_out;
             default: begin
                 o_alu_result    = 0;
                 o_overflow_flag = 0;
