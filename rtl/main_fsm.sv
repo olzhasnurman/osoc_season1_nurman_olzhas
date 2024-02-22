@@ -4,10 +4,7 @@
 // This is a main fsm unit that controls all the control signals based on instruction input. 
 // -----------------------------------------------------------------------------------------
 
-module main_fsm  
-#(
-    parameter 
-) 
+module main_fsm   
 (
     // Common clock & reset.
     input  logic       clk,
@@ -23,18 +20,18 @@ module main_fsm
     input  logic       i_overflog_flag,
 
     // Output interface.
-    output logic [3:0] alu_control,
-    output logic [1:0] result_src,
-    output logic [1:0] alu_src_1,
-    output logic [1:0] alu_src_2,
-    output logic [1:0] imm_src,
-    output logic       mem_addr_src,
-    output logic       reg_write_en,
-    output logic       pc_write_en,
-    output logic       mem_write_en,
-    output logic       instr_write_en
+    output logic [1:0] o_alu_op,
+    output logic [1:0] o_result_src,
+    output logic [1:0] o_alu_src_1,
+    output logic [1:0] o_alu_src_2,
+    output logic [1:0] o_imm_src,
+    output logic       o_mem_addr_src,
+    output logic       o_reg_write_en,
+    output logic       o_pc_update,
+    output logic       o_mem_write_en,
+    output logic       o_instr_write_en
 );  
-
+    // States.
     typedef enum logic [3:0] {
         FETCH    = 4'b0000,
         DECODER  = 4'b0001,
@@ -49,19 +46,23 @@ module main_fsm
         BEQ      = 4'b1010
     } t_state;
 
-    typedef enum logic [2:0] {
-        I_Type = 3'b000;
-        S_Type = 3'b001;
-        R_Type = 3'b010;
-        B_Type = 3'b011;
-        J_Type = 3'b100;
-        U_Type = 3'b101;
-    } t_instruction;
-
     t_state PS;
     t_state NS;
 
-    // Instruction deocder signal. 
+    // Instruction type.
+    typedef enum logic [3:0] {
+        I_Type      = 4'b0000,
+        I_Type_ALU  = 4'b0001,
+        I_Type_JALR = 4'b0010,
+        S_Type      = 4'b0011,
+        R_Type      = 4'b0100,
+        B_Type      = 4'b0101,
+        J_Type      = 4'b0110,
+        U_Type_ALU  = 4'b0111,
+        U_Type_LOAD = 4'b1000
+    } t_instruction;
+
+    // Instruction decoder signal. 
     t_instruction instr;
 
     always_comb begin
@@ -95,7 +96,7 @@ module main_fsm
                 NS = PS;
             end 
 
-            DECODE: begin
+            DECODER: begin
                 case (instr)
                     I_Type: NS = MEMADDR;
 
@@ -149,11 +150,28 @@ module main_fsm
 
     // FSM: Ouput logic.
     always_comb begin
+        // Default values. 
+        o_alu_op         = 2'b00;
+        o_result_src     = 2'b00;
+        o_alu_src_1      = 2'b00;
+        o_alu_src_2      = 2'b00;
+        o_imm_src        = 2'b00;
+        o_mem_addr_src   = 1'b0;
+        o_reg_write_en   = 1'b0;
+        o_pc_update      = 1'b0;
+        o_mem_write_en   = 1'b0;
+        o_instr_write_en = 1'b0;
         case ( PS )
             FETCH: begin
-                
+                o_mem_addr_src     = 1'b0;  
+                o_instr_write_en   = 1'b1;
+                o_alu_src_1        = 2'b00;
+                o_alu_src_2        = 2'b10;
+                o_result_src       = 2'b10;
+                o_pc_update        = 1'b1;
+                o_alu_op           = 2'b00;
             end 
-            default: 
+            default: o_alu_op  = 2'b00;
         endcase
     end
     
