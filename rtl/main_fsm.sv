@@ -15,10 +15,6 @@ module main_fsm
     input  logic [6:0] i_op,
     input  logic [2:0] i_func_3,
     input  logic       i_func_7_5,
-    input  logic       i_zero_flag,
-    input  logic       i_negative_flag,
-    input  logic       i_carry_flag,
-    input  logic       i_overflog_flag,
 
     // Output interface.
     output logic [1:0] o_alu_op,
