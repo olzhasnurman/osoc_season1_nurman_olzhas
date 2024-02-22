@@ -9,7 +9,7 @@ module alu_decoder
 // Port delerations. 
 (
     // Input interface.
-    input  logic [6:0] i_alu_op,
+    input  logic [1:0] i_alu_op,
     input  logic [2:0] i_func_3,
     input  logic       i_func_7_5,
     input  logic       i_op_5,
