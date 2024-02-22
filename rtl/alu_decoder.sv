@@ -20,7 +20,7 @@ module alu_decoder
 
     logic s_op_func_7;
 
-    assign s_op_func_7 = i_op_5, i_func_7_5;
+    assign s_op_func_7 = i_op_5 & i_func_7_5;
 
 // | ALU Control | Function |
 // |_____________|__________|
