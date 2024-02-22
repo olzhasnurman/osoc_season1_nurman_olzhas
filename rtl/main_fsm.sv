@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------------------------
 
 module main_fsm   
+// Port decleration. 
 (
     // Common clock & reset.
     input  logic       clk,
@@ -29,12 +30,13 @@ module main_fsm
     output logic       o_reg_write_en,
     output logic       o_pc_update,
     output logic       o_mem_write_en,
-    output logic       o_instr_write_en
+    output logic       o_instr_write_en,
+    output logic       o_branch
 );  
-    // States.
+    // State type.
     typedef enum logic [3:0] {
         FETCH    = 4'b0000,
-        DECODER  = 4'b0001,
+        DECODE   = 4'b0001,
         MEMADDR  = 4'b0010,
         MEMREAD  = 4'b0011,
         MEMWB    = 4'b0100,
@@ -46,6 +48,7 @@ module main_fsm
         BEQ      = 4'b1010
     } t_state;
 
+    // State variables. 
     t_state PS;
     t_state NS;
 
@@ -65,6 +68,7 @@ module main_fsm
     // Instruction decoder signal. 
     t_instruction instr;
 
+    // Instruction decoder. 
     always_comb begin
         case ( i_op )
             7'b0000011: instr = I_Type;
@@ -76,11 +80,14 @@ module main_fsm
             7'b1101111: instr = J_Type;
             7'b0110111: instr = U_Type_ALU;
             7'b0010111: instr = U_Type_LOAD; 
-            default: instr = I_Type;
+            default:    instr = I_Type;
         endcase
     end
 
 
+    // -----------------------------------
+    // FSM 
+    // -----------------------------------
     // FSM: Synchronization.
     always_ff @( posedge clk, negedge arstn ) begin
         if (!arstn) begin
@@ -91,36 +98,31 @@ module main_fsm
 
     // FSM: Next State logic.
     always_comb begin
+        NS = PS;
+
         case ( PS )
             FETCH: begin
-                NS = PS;
+                NS = DECODE;
             end 
 
-            DECODER: begin
-                case (instr)
+            DECODE: begin
+                case ( instr )
                     I_Type: NS = MEMADDR;
-
                     I_Type_ALU: NS = EXECUTEI;
-
                     I_Type_JALR: NS = FETCH; // NOT FINISHED.
-
                     S_Type: NS = MEMADDR;
-
                     R_Type: NS = EXECUTER; 
-
                     B_Type: NS = BEQ;
-
                     J_Type: NS = JAL;
-
                     U_Type_ALU: NS = FETCH; // NOT FINISHED.
-
                     U_Type_LOAD: NS = FETCH; // NOT FINSHED. 
+
                     default: NS = PS; 
                 endcase
             end
 
             MEMADDR: begin
-                case (instr)
+                case ( instr )
                     I_Type: NS = MEMREAD;
                     S_Type: NS = MEMWRITE; 
                     default: NS = PS;
@@ -161,6 +163,8 @@ module main_fsm
         o_pc_update      = 1'b0;
         o_mem_write_en   = 1'b0;
         o_instr_write_en = 1'b0;
+        o_branch         = 1'b0;
+
         case ( PS )
             FETCH: begin
                 o_mem_addr_src     = 1'b0;  
@@ -171,7 +175,82 @@ module main_fsm
                 o_pc_update        = 1'b1;
                 o_alu_op           = 2'b00;
             end 
-            default: o_alu_op  = 2'b00;
+
+            DECODE: begin
+                o_alu_src_1 = 2'b01;
+                o_alu_src_2 = 2'b01;
+                o_alu_op    = 2'b00;
+            end
+
+            MEMADDR: begin
+                o_alu_src_1 = 2'b10;
+                o_alu_src_2 = 2'b01;
+                o_alu_op    = 2'b10;
+            end
+
+            MEMREAD: begin
+                o_result_src   = 2'b00;
+                o_mem_addr_src = 1'b1;
+            end
+
+            MEMWB: begin
+                o_result_src   = 2'b01;
+                o_reg_write_en = 1'b1;
+            end
+
+            MEMWRITE: begin
+                o_result_src = 2'b00;
+                o_mem_addr_src = 1'b1;
+                o_mem_write_en = 1'b1;
+            end
+
+            EXECUTER: begin
+                o_alu_src_1 = 2'b10;
+                o_alu_src_2 = 2'b00;
+                o_alu_op    = 2'b10;
+            end
+
+            ALUWB: begin
+                o_result_src   = 2'b00;
+                o_reg_write_en = 1'b1;
+            end
+
+            EXECUTEI: begin
+                o_alu_src_1 = 2'b10;
+                o_alu_src_2 = 2'b01;
+                o_alu_op    = 2'b10;
+            end
+
+            JAL: begin
+                o_alu_src_1  = 2'b01;
+                o_alu_src_2  = 2'b10;
+                o_alu_op     = 2'b00;
+                o_result_src = 2'b00;
+                o_pc_update  = 1'b1;
+            end
+
+            BEQ: begin
+                o_alu_src_1  = 2'b10;
+                o_alu_src_2  = 2'b00;
+                o_alu_op     = 2'b01;
+                o_result_src = 2'b00;
+                o_branch     = 1'b1;
+            end
+
+
+            default: begin
+                o_alu_op         = 2'b00;
+                o_result_src     = 2'b00;
+                o_alu_src_1      = 2'b00;
+                o_alu_src_2      = 2'b00;
+                o_imm_src        = 2'b00;
+                o_mem_addr_src   = 1'b0;
+                o_reg_write_en   = 1'b0;
+                o_pc_update      = 1'b0;
+                o_mem_write_en   = 1'b0;
+                o_instr_write_en = 1'b0;
+                o_branch         = 1'b0;
+            end
         endcase
     end
     
