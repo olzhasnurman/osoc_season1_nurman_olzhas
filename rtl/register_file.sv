@@ -7,7 +7,7 @@
 module register_file
 // Parameters.
 #(
-    parameter DATA_WIDTH = 32,
+    parameter DATA_WIDTH = 64,
               ADDR_WIDTH = 5,
               REG_DEPTH  = 32
 )
