@@ -9,7 +9,7 @@ module instr_decoder
 // Parameters.
 #(
     parameter OP_WIDTH  = 7,
-              OUT_WIDTH = 2
+              OUT_WIDTH = 3
 )
 // Ports. 
 (
@@ -33,22 +33,24 @@ module instr_decoder
      ___________________________________
     | control signal | instuction type |
     |________________|_________________|
-    | 00             | I type          |
-    | 01             | S type          |
-    | 10             | B type          |
-    | 11             | J type          |
+    | 000            | I type          |
+    | 001            | S type          |
+    | 010            | B type          |
+    | 011            | J type          |
+    | 100            | U type          |
     |__________________________________|
     */
 
     always_comb begin
         case ( i_op )
-            7'b1101111: o_imm_src = 2'b11; // J type.
-            7'b1100011: o_imm_src = 2'b10; // B type.
-            7'b0100011: o_imm_src = 2'b01; // S type.
-            7'b0000011: o_imm_src = 2'b00; // I type.
-            7'b0010011: o_imm_src = 2'b00; // I type.
-            7'b1100111: o_imm_src = 2'b00; // I type. 
-            default:    o_imm_src = 2'b00; // Default = for I type.
+            7'b1101111: o_imm_src = 3'b011; // J type.
+            7'b1100011: o_imm_src = 3'b010; // B type.
+            7'b0100011: o_imm_src = 3'b001; // S type.
+            7'b0010111: o_imm_src = 3'b100; // U type. 
+            7'b0000011: o_imm_src = 3'b000; // I type.
+            7'b0010011: o_imm_src = 3'b000; // I type.
+            7'b1100111: o_imm_src = 3'b000; // I type. 
+            default:    o_imm_src = 3'b000; // Default = for I type.
         endcase
     end
 
