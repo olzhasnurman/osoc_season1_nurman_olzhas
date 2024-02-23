@@ -23,7 +23,7 @@ module control_unit
     output logic [1:0] o_result_src,
     output logic [1:0] o_alu_src_1,
     output logic [1:0] o_alu_src_2,
-    output logic [1:0] o_imm_src,
+    output logic [2:0] o_imm_src,
     output logic       o_mem_addr_src,
     output logic       o_reg_write_en,
     output logic       o_pc_write,
