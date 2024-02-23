@@ -18,10 +18,10 @@ module register_file
     input logic                      write_en_3,
 
     //Input interface. 
-    input logic [ ADDR_WIDTH - 1:0 ] i_addr_1,
-    input logic [ ADDR_WIDTH - 1:0 ] i_addr_2,
-    input logic [ ADDR_WIDTH - 1:0 ] i_addr_3,
-    input logic [ DATA_WIDTH - 1:0 ] i_write_data_3,
+    input logic [ ADDR_WIDTH - 1:0 ]  i_addr_1,
+    input logic [ ADDR_WIDTH - 1:0 ]  i_addr_2,
+    input logic [ ADDR_WIDTH - 1:0 ]  i_addr_3,
+    input logic [ DATA_WIDTH - 1:0 ]  i_write_data_3,
     
     // Output interface.
     output logic [ DATA_WIDTH - 1:0 ] o_read_data_1,
