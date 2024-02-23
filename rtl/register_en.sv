@@ -12,11 +12,11 @@ module register_file
 // Port decleration. 
 (   
     // Common clock & enable signal.
-    input logic clk,
-    input logic write_en,
+    input  logic                      clk,
+    input  logic                      write_en,
 
     //Input interface. 
-    input logic [ DATA_WIDTH - 1:0 ] i_write_data,
+    input  logic [ DATA_WIDTH - 1:0 ] i_write_data,
     
     // Output interface.
     output logic [ DATA_WIDTH - 1:0 ] o_read_data

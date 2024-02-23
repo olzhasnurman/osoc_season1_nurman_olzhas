@@ -7,7 +7,7 @@
 module alu 
 // Parameters.
 #(
-    parameter DATA_WIDTH    = 32,
+    parameter DATA_WIDTH    = 64,
               CONTROL_WIDTH = 4   
 ) 
 // Port decleration.

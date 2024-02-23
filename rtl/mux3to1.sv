@@ -7,7 +7,7 @@
 module mux3to1
 // Parameters. 
 #(
-    parameter DATA_WIDTH = 32
+    parameter DATA_WIDTH = 64
 ) 
 // Port decleration.
 (
