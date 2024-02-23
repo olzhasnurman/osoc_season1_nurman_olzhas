@@ -13,7 +13,7 @@ module extend_imm
 // Port decleration.
 (
     // Control signal. 
-    input  logic [             1:0 ] control_signal,
+    input  logic [             2:0 ] control_signal,
 
     // Input interface.
     input  logic [ IMM_WIDTH - 1:0 ] i_imm,
@@ -26,24 +26,30 @@ module extend_imm
     logic [ OUT_WIDTH - 1:0 ] s_s_type;
     logic [ OUT_WIDTH - 1:0 ] s_b_type;
     logic [ OUT_WIDTH - 1:0 ] s_j_type;
+    logic [ OUT_WIDTH - 1:0 ] s_u_type;
 
     // Sign extend immediate for different instruction types. 
     assign s_i_type = { {52{i_imm[24]}}, i_imm[24:13] };
     assign s_s_type = { {52{i_imm[24]}}, i_imm[24:18], i_imm[4:0] };
     assign s_b_type = { {52{i_imm[24]}}, i_imm[0] , i_imm[23:18], i_imm[4:1], 1'b0 };
     assign s_j_type = { {44{i_imm[24]}}, i_imm[12:5], i_imm[13], i_imm[23:14], 1'b0 };
+    assign s_u_type = { {32{i_imm[24]}}, i_imm[24:5], {12{1'b0}} };
 
     // MUX to choose output based on instruction type.
     //  ___________________________________
     // | control signal | instuction type |
     // |________________|_________________|
-    // | 00             | I type          |
-    // | 01             | S type          |
-    // | 10             | B type          |
-    // | 11             | J type          |
+    // | 000            | I type          |
+    // | 001            | S type          |
+    // | 010            | B type          |
+    // | 011            | J type          |
+    // | 100            | U type          |
     // |__________________________________|
     always_comb begin
-        if ( control_signal[1] ) begin
+        if ( control_signal[2] ) begin
+            o_imm_ext = s_u_type;
+        end
+        else if ( control_signal[1] ) begin
             if ( control_signal[0]) begin
                 o_imm_ext = s_j_type;
             end
