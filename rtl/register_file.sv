@@ -14,8 +14,8 @@ module register_file
 // Port decleration. 
 (   
     // Common clock & enable signal.
-    input logic clk,
-    input logic write_en_3,
+    input logic                      clk,
+    input logic                      write_en_3,
 
     //Input interface. 
     input logic [ ADDR_WIDTH - 1:0 ] i_addr_1,
