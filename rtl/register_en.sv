@@ -4,7 +4,7 @@
 // This is a nonarchitectural register with write enable signal.
 // -------------------------------------------------------------
 
-module register_file
+module register_en
 // Parameters.
 #(
     parameter DATA_WIDTH = 32
