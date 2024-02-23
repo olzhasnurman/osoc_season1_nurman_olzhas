@@ -8,7 +8,7 @@ module extend_imm
 // Parameters.
 #(
     parameter IMM_WIDTH = 25,
-              OUT_WIDTH = 32
+              OUT_WIDTH = 64
 ) 
 // Port decleration.
 (
@@ -28,10 +28,10 @@ module extend_imm
     logic [ OUT_WIDTH - 1:0 ] s_j_type;
 
     // Sign extend immediate for different instruction types. 
-    assign s_i_type = { {20{i_imm[24]}}, i_imm[24:13] };
-    assign s_s_type = { {20{i_imm[24]}}, i_imm[24:18], i_imm[4:0] };
-    assign s_b_type = { {20{i_imm[24]}}, i_imm[0] , i_imm[23:18], i_imm[4:1], 1'b0 };
-    assign s_j_type = { {12{i_imm[24]}}, i_imm[12:5], i_imm[13], i_imm[23:14], 1'b0 };
+    assign s_i_type = { {52{i_imm[24]}}, i_imm[24:13] };
+    assign s_s_type = { {52{i_imm[24]}}, i_imm[24:18], i_imm[4:0] };
+    assign s_b_type = { {52{i_imm[24]}}, i_imm[0] , i_imm[23:18], i_imm[4:1], 1'b0 };
+    assign s_j_type = { {44{i_imm[24]}}, i_imm[12:5], i_imm[13], i_imm[23:14], 1'b0 };
 
     // MUX to choose output based on instruction type.
     //  ___________________________________
