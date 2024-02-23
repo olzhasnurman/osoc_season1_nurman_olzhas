@@ -39,7 +39,7 @@ module top
     logic [1:0] s_result_src;
     logic [1:0] s_alu_src_control_1;
     logic [1:0] s_alu_src_control_2;
-    logic [1:0] s_imm_src;
+    logic [2:0] s_imm_src;
     logic       s_mem_addr_src;
     logic       s_reg_write_en;
     logic       s_pc_write_en;
@@ -71,13 +71,32 @@ module top
     logic [ REG_DATA_WIDTH - 1:0 ] s_reg_data_1;
     logic [ REG_DATA_WIDTH - 1:0 ] s_reg_data_2;
     logic [ REG_DATA_WIDTH - 1:0 ] s_reg_alu_result;
-    logic [ REG_DATA_WIDTH - 1:0 ] s_reg_mem_data;
+    logic [ MEM_DATA_WIDTH - 1:0 ] s_reg_mem_data;
 
     // MUX signals.
-    logic [ REG_DATA_WIDTH - 1:0 ] s_reg_mem_data;
     logic [ REG_DATA_WIDTH - 1:0 ] s_result;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_reg_mem_data_sign_ext;
 
     // Immediate extend unit signals. 
+    logic [                  24:0 ] s_imm;
+    logic [ REG_DATA_WIDTH - 1 :0 ] s_imm_ext;
+
+
+
+    //----------------------------------
+    // Continious assignmnets. 
+    //----------------------------------
+    assign s_imm        = s_reg_instr[31:7];
+    assign s_op         = s_reg_instr[6:0];
+    assign s_func_3     = s_reg_instr[14:12];
+    assign s_func_7_5   = s_reg_instr[30]; 
+    assign s_reg_addr_1 = s_reg_instr[19:15];
+    assign s_reg_addr_2 = s_reg_instr[24:20];
+    assign s_reg_addr_3 = s_reg_instr[11:7];
+
+    assign s_reg_mem_data_sign_ext = { {32{s_reg_mem_data[31]}} , s_reg_mem_data };
+    assign s_reg_write_data_3      = s_result;
+    assign s_mem_write_data        = s_reg_data_2[MEM_DATA_WIDTH - 1:0];
 
 
 
@@ -234,11 +253,11 @@ module top
 
     // 3-to-1 Result Source MUX Instance.
     mux3to1 RESULT_MUX (
-        .control_signal ( s_result_src     ),
-        .i_mux_1        ( s_reg_alu_result ),
-        .i_mux_2        ( s_reg_mem_data   ),
-        .i_mux_3        ( s_alu_result     ),
-        .o_mux          ( s_result         )
+        .control_signal ( s_result_src             ),
+        .i_mux_1        ( s_reg_alu_result         ),
+        .i_mux_2        ( s_reg_mem_data_sign_ext  ), 
+        .i_mux_3        ( s_alu_result             ),
+        .o_mux          ( s_result                 )
     );
 
     // 2-to-1 Memory Address Source MUX Instance.
@@ -247,8 +266,17 @@ module top
         .i_pc_next       ( s_reg_pc       ),
         .i_result        ( s_result       ),
         .o_addr          ( s_mem_addr     )
-    )
+    );
 
+
+    //---------------------------------------
+    // Immiediate Extension Module Instance.
+    //---------------------------------------
+    extend_imm I_EXT (
+        .control_signal ( s_imm_src ),
+        .i_imm          ( s_imm     ),
+        .o_imm_ext      ( s_imm_ext )
+    );
 
     
 endmodule
