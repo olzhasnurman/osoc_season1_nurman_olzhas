@@ -41,7 +41,12 @@ module alu
         SLTU = 4'b0111,
         SRL  = 4'b1000,
         SRA  = 4'b1001,
-        SUBU = 4'b1010
+        SUBU = 4'b1010,
+        ADDW = 4'b1011,
+        SUBW = 4'b1100,
+        SLLW = 4'b1101,
+        SRLW = 4'b1110,
+        SRAW = 4'b1111
     } t_operation;
 
     // Particular operation optputs.
