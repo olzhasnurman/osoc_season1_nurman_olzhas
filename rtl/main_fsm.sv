@@ -40,7 +40,7 @@ module main_fsm
         ALUWB    = 4'b0111,
         EXECUTEI = 4'b1000,
         JAL      = 4'b1001,
-        BEQ      = 4'b1010
+        BRANCH   = 4'b1010
     } t_state;
 
     // State variables. 
@@ -107,7 +107,7 @@ module main_fsm
                     I_Type_JALR: NS = FETCH; // NOT FINISHED.
                     S_Type: NS = MEMADDR;
                     R_Type: NS = EXECUTER; 
-                    B_Type: NS = BEQ;
+                    B_Type: NS = BRANCH;
                     J_Type: NS = JAL;
                     U_Type_ALU: NS = FETCH; // NOT FINISHED.
                     U_Type_LOAD: NS = FETCH; // NOT FINSHED. 
@@ -138,7 +138,7 @@ module main_fsm
 
             JAL: NS = ALUWB;
 
-            BEQ:NS = FETCH;
+            BRANCH: NS = FETCH;
 
             default: NS = PS;
         endcase
@@ -223,7 +223,7 @@ module main_fsm
                 o_pc_update  = 1'b1;
             end
 
-            BEQ: begin
+            BRANCH: begin
                 o_alu_src_1  = 2'b10;
                 o_alu_src_2  = 2'b00;
                 o_alu_op     = 2'b01;
