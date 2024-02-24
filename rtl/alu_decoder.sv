@@ -66,7 +66,10 @@ module alu_decoder
         end
         else 
             if ( i_alu_op[0] ) begin
-                o_alu_control = 4'b0001; // SUB for B type instructions: beq, bne, bge and etc.
+                case ( i_func_3[2:1])
+                    2'b11:   o_alu_control = 4'b1010; // SUBU for B type instructions: gltu, bgeu.
+                    default: o_alu_control = 4'b0001; // SUB  for B type instructions: beq, bne, bge, blt.
+                endcase
             end
             else o_alu_control = 4'b0000; // ADD for I type instruction: lw, sw.
     end

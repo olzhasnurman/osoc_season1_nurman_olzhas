@@ -17,6 +17,7 @@ module control_unit
     input  logic [2:0] i_func_3,
     input  logic       i_func_7_5, 
     input  logic       i_zero_flag,
+    input  logic       i_negative_flag,
 
     // Output interface.
     output logic [3:0] o_alu_control,
@@ -31,11 +32,26 @@ module control_unit
     output logic       o_instr_write_en
 ); 
 
+    logic       s_instr_branch;
     logic       s_branch;
     logic       s_pc_update;
     logic [1:0] s_alu_op;
 
-    assign pc_write = s_pc_update | ( s_branch & i_zero_flag );
+    assign pc_write = s_pc_update | ( s_branch );
+
+    // Branch type decoder. 
+    always_comb begin : BRANCH_TYPE
+        case ( i_func_3 )
+            3'b000: s_branch = s_instr_branch & i_zero_flag;        // BEQ instruction.
+            3'b001: s_branch = s_instr_branch & (~i_zero_flag);     // BNE instruction.
+            3'b100: s_branch = s_instr_branch & i_negative_flag;    // BLT instruction.
+            3'b101: s_branch = s_instr_branch & (~i_negative_flag); // BGE instruction.
+            3'b110: s_branch = s_instr_branch & i_negative_flag;    // BLTU instruction. i_negative_flag calculation is different in ALU.
+            3'b111: s_branch = s_instr_branch & (~i_negative_flag); // BGEU instruction. i_negative_flag calculation is different in ALU.
+
+            default: s_branch = 1'b0;
+        endcase
+    end
 
 
     // --------------------Modulle Instantiations------------------
@@ -55,7 +71,7 @@ module control_unit
         .o_pc_update      ( s_pc_update      ),
         .o_mem_write_en   ( o_mem_write_en   ),
         .o_instr_write_en ( o_instr_write_en ),
-        .o_branch         ( s_branch         ) 
+        .o_branch         ( s_instr_branch   ) 
     );
 
 
