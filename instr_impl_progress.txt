@@ -37,11 +37,11 @@ _____________________________               _____________________________
 | lui   | NO  | NO   | U    |
 | ______|_____|______|______|
 | beq   | YES | NO   | B    |
-| bne   | NO  | NO   |      |
-| blt   | NO  | NO   |      |
-| bge   | NO  | NO   |      |
-| bltu  | NO  | NO   |      |
-| bgeu  | NO  | NO   |      |
+| bne   | YES | NO   |      |
+| blt   | YES | NO   |      |
+| bge   | YES | NO   |      |
+| bltu  | YES | NO   |      |
+| bgeu  | YES | NO   |      |
 |_______|_____|______|______|
 | jalr  | NO  | NO   | I    |
 |_______|_____|______|______|
