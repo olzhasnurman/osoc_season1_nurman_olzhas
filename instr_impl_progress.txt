@@ -1,0 +1,57 @@
+_____________________________               _____________________________
+| INSTR | RTL | Test | Type |               | INSTR | RTL | Test | Type |
+|_______|_____|______|______|               |_______|_____|______|______|
+| lb    | NO  | NO   | I    |               | ld    | NO  | NO   | I    |
+| lh    | NO  | NO   |      |               | lwu   | NO  | NO   |      |
+| lw    | YES | NO   |      |               | addiw | NO  | NO   |      |
+| lbu   | NO  | NO   |      |               | slliw | NO  | NO   |      |
+| lhu   | NO  | NO   |      |               | srliw | NO  | NO   |      |
+|_______|_____|______|      |               | sraiw | NO  | NO   |      |
+| addi  | YES | NO   |      |               |_______|_____|______|______|
+| slli  | YES | NO   |      |               | sd    | NO  | NO   | S    |
+| slti  | YES | NO   |      |               |_______|_____|______|______|
+| sltiu | YES | NO   |      |               | addw  | NO  | NO   | R    |
+| xori  | YES | NO   |      |               | subW  | NO  | NO   |      |
+| srli  | YES | NO   |      |               | sllw  | NO  | NO   |      |
+| srai  | YES | NO   |      |               | srlw  | NO  | NO   |      |
+| ori   | YES | NO   |      |               | sraw  | NO  | NO   |      |
+| andi  | YES | NO   |      |               |_______|_____|______|______|
+|_______|_____|______|______|               
+| auipc | NO  | NO   | U    |               
+| ______|_____|______|______|               ________________________             
+| sb    | NO  | NO   | S    |               | INSTR   | RTL | TEST |                
+| sh    | NO  | NO   |      |               |_________|_____|______|
+| sw    | YES | NO   |      |               | fence   | NO  | NO   |
+|_______|_____|______|______|               | fence.i | NO  | NO   |
+| add   | YES | NO   | R    |               | ecall   | NO  | NO   |
+| sub   | YES | NO   |      |               | ebreak  | NO  | NO   |
+| sll   | YES | NO   |      |               |_________|_____|______|
+| slt   | YES | NO   |      |               
+| sltu  | YES | NO   |      |
+| xor   | YES | NO   |      |
+| srl   | YES | NO   |      |
+| sra   | YES | NO   |      |
+| or    | YES | NO   |      |
+| and   | YES | NO   |      |
+|_______|_____|______|______|
+| lui   | NO  | NO   | U    |
+| ______|_____|______|______|
+| beq   | YES | NO   | B    |
+| bne   | NO  | NO   |      |
+| blt   | NO  | NO   |      |
+| bge   | NO  | NO   |      |
+| bltu  | NO  | NO   |      |
+| bgeu  | NO  | NO   |      |
+|_______|_____|______|______|
+| jalr  | NO  | NO   | I    |
+|_______|_____|______|______|
+| jal   | YES | NO   | J    |
+|_______|_____|______|______|
+| csrrw | NO  | NO   | I    |
+| csrrs | NO  | NO   |      |
+| csrrc | NO  | NO   |      |
+| csrrwi| NO  | NO   |      |
+| csrrsi| NO  | NO   |      |
+| csrrci| NO  | NO   |      |
+|_______|_____|______|______|
+
