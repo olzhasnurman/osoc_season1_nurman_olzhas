@@ -40,19 +40,20 @@ module alu
         SLT  = 4'b0110,
         SLTU = 4'b0111,
         SRL  = 4'b1000,
-        SRA  = 4'b1001
+        SRA  = 4'b1001,
+        SUBU = 4'b1010
     } t_operation;
 
     // Particular operation optputs.
-    logic signed [ DATA_WIDTH    - 1:0 ] s_add_out;
-    logic signed [ DATA_WIDTH    - 1:0 ] s_sub_out;
-    logic signed [ DATA_WIDTH    - 1:0 ] s_and_out;
-    logic signed [ DATA_WIDTH    - 1:0 ] s_or_out;
-    logic signed [ DATA_WIDTH    - 1:0 ] s_xor_out;
-    logic signed [ DATA_WIDTH    - 1:0 ] s_sll_out;
-    logic signed [ DATA_WIDTH    - 1:0 ] s_sltu_out;
-    logic signed [ DATA_WIDTH    - 1:0 ] s_srl_out;
-    logic signed [ DATA_WIDTH    - 1:0 ] s_sra_out;
+    logic signed [ DATA_WIDTH - 1:0 ] s_add_out;
+    logic signed [ DATA_WIDTH - 1:0 ] s_sub_out;
+    logic signed [ DATA_WIDTH - 1:0 ] s_and_out;
+    logic signed [ DATA_WIDTH - 1:0 ] s_or_out;
+    logic signed [ DATA_WIDTH - 1:0 ] s_xor_out;
+    logic signed [ DATA_WIDTH - 1:0 ] s_sll_out;
+    logic signed [ DATA_WIDTH - 1:0 ] s_srl_out;
+    logic signed [ DATA_WIDTH - 1:0 ] s_sra_out;
+    logic signed [ DATA_WIDTH - 1:0 ] s_subu_out;
 
     // Flag signals. 
     logic s_carry_flag_add;
@@ -67,7 +68,7 @@ module alu
     assign s_or_out   = i_src_1 | i_src_2;
     assign s_xor_out  = i_src_1 ^ i_src_2;
     assign s_sll_out  = i_src_1 << i_src_2[4:0];
-    assign s_sltu_out = i_src_1 - i_src_2;
+    assign s_subu_out = i_src_1 - i_src_2;
     assign s_srl_out  = i_src_1 >> i_src_2[4:0];
     assign s_sra_out  = $signed(i_src_1) >>> i_src_2[4:0];
 
@@ -96,14 +97,15 @@ module alu
                 o_carry_flag    = s_carry_flag_sub;
                 o_overflow_flag = s_overflow;
             end 
-            AND : o_alu_result = s_and_out;
-            OR  : o_alu_result = s_or_out;
-            XOR : o_alu_result = s_xor_out;
-            SLL : o_alu_result = s_sll_out;
-            SLT : o_alu_result = { { (DATA_WIDTH - 1) { 1'b0 } }, o_alu_result[DATA_WIDTH - 1] };
-            SLTU: o_alu_result = { { (DATA_WIDTH - 1) { 1'b0 } }, s_sltu_out[DATA_WIDTH - 1] };
-            SRL : o_alu_result = s_srl_out;
-            SRA : o_alu_result = s_sra_out;
+            AND  : o_alu_result = s_and_out;
+            OR   : o_alu_result = s_or_out;
+            XOR  : o_alu_result = s_xor_out;
+            SLL  : o_alu_result = s_sll_out;
+            SLT  : o_alu_result = { { (DATA_WIDTH - 1) { 1'b0 } }, s_sub_out[DATA_WIDTH - 1] };
+            SLTU : o_alu_result = { { (DATA_WIDTH - 1) { 1'b0 } }, s_subu_out[DATA_WIDTH - 1] };
+            SRL  : o_alu_result = s_srl_out;
+            SRA  : o_alu_result = s_sra_out;
+            SUBU : o_alu_result = s_subu_out;
             default: begin
                 o_alu_result    = 0;
                 o_overflow_flag = 0;
