@@ -14,6 +14,7 @@ module register_en
     // Common clock & enable signal.
     input  logic                      clk,
     input  logic                      write_en,
+    input  logic                      arstn,
 
     //Input interface. 
     input  logic [ DATA_WIDTH - 1:0 ] i_write_data,
@@ -23,8 +24,9 @@ module register_en
 );
 
     // Write logic.
-    always_ff @( posedge clk ) begin 
-        if ( write_en ) begin
+    always_ff @( posedge clk, negedge arstn ) begin 
+        if ( ~arstn ) o_read_data <= '0;
+        else if ( write_en ) begin
             o_read_data <= i_write_data;
         end
     end

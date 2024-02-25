@@ -114,6 +114,7 @@ module top
         .i_func_3         ( s_func_3            ),
         .i_func_7_5       ( s_func_7_5          ),
         .i_zero_flag      ( s_zero_flag         ),
+        .i_negative_flag  (s_negative_flag      ),
         .o_alu_control    ( s_alu_control       ),
         .o_result_src     ( s_result_src        ),
         .o_alu_src_1      ( s_alu_src_control_1 ),
@@ -179,6 +180,7 @@ module top
     register_en # (.DATA_WIDTH (MEM_DATA_WIDTH)) INSTR_REG (
         .clk          ( clk              ),
         .write_en     ( s_instr_write_en ),
+        .arstn        ( arstn            ),
         .i_write_data ( s_mem_read_data  ),
         .o_read_data  ( s_reg_instr      )
     );
@@ -187,6 +189,7 @@ module top
     register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) PC_REG (
         .clk          ( clk           ),
         .write_en     ( s_pc_write_en ),
+        .arstn        ( arstn         ),
         .i_write_data ( s_result      ),
         .o_read_data  ( s_reg_pc      )
     ); 
@@ -195,6 +198,7 @@ module top
     register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) OLD_PC_REG (
         .clk          ( clk              ),
         .write_en     ( s_instr_write_en ),
+        .arstn        ( arstn            ),
         .i_write_data ( s_reg_pc         ),
         .o_read_data  ( s_reg_old_pc     )
     ); 
@@ -202,6 +206,7 @@ module top
     // R1 Register Instance.
     register R1 (
         .clk          ( clk               ),
+        .arstn        ( arstn             ),
         .i_write_data ( s_reg_read_data_1 ),
         .o_read_data  ( s_reg_data_1      )
     );
@@ -209,6 +214,7 @@ module top
     // R2 Register Instance.
     register R2 (
         .clk          ( clk               ),
+        .arstn        ( arstn             ),
         .i_write_data ( s_reg_read_data_2 ),
         .o_read_data  ( s_reg_data_2      )
     );
@@ -216,6 +222,7 @@ module top
     // ALU Result Register Instance.
     register REG_ALU_RESULT (
         .clk          ( clk              ),
+        .arstn        ( arstn            ),
         .i_write_data ( s_alu_result     ),
         .o_read_data  ( s_reg_alu_result )
     );
@@ -223,6 +230,7 @@ module top
     // Memory Data Register. 
     register # (.DATA_WIDTH (MEM_DATA_WIDTH)) MEM_DATA (
         .clk          ( clk             ),
+        .arstn        ( arstn           ),
         .i_write_data ( s_mem_read_data ),
         .o_read_data  ( s_reg_mem_data  )
     );
