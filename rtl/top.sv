@@ -80,7 +80,10 @@ module top
 
     // Immediate extend unit signals. 
     logic [                  24:0 ] s_imm;
-    logic [ REG_DATA_WIDTH - 1 :0 ] s_imm_ext;
+    logic [ REG_DATA_WIDTH  - 1:0 ] s_imm_ext;
+
+    // LOAD instruction mux unit signal.
+    logic [ MEM_DATA_WIDTH - 1:0] s_mem_load_data;
 
 
 
@@ -265,7 +268,7 @@ module top
     mux3to1 RESULT_MUX (
         .control_signal ( s_result_src     ),
         .i_mux_1        ( s_reg_alu_result ),
-        .i_mux_2        ( s_reg_mem_data   ), 
+        .i_mux_2        ( s_mem_load_data  ), 
         .i_mux_3        ( s_alu_result     ),
         .o_mux          ( s_result         )
     );
@@ -286,6 +289,15 @@ module top
         .control_signal ( s_imm_src ),
         .i_imm          ( s_imm     ),
         .o_imm_ext      ( s_imm_ext )
+    );
+
+    //------------------------------
+    // LOAD Instruction mux. 
+    //------------------------------
+    load_mux LOAD_MUX (
+        .i_func_3 ( s_func_3        ),
+        .i_data   ( s_reg_mem_data  ),
+        .o_data   ( s_mem_load_data )
     );
 
     
