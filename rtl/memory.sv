@@ -3,7 +3,7 @@
 // -------------------------------------------------------------------------------------------
 // This is a instruction and data memory component of processor based on RISC-V architecture.
 // -------------------------------------------------------------------------------------------
-
+/* verilator lint_off WIDTH */
 module memory
 // Parameters.
 #(
@@ -26,7 +26,7 @@ module memory
 );
 
     // Register block.
-    logic [ DATA - 1:0 ] mem [ MEM_DEPTH - 1:0 ];
+    logic [ DATA_WIDTH - 1:0 ] mem [ MEM_DEPTH - 1:0 ];
 
     // Write logic.
     always_ff @( posedge clk ) begin 
