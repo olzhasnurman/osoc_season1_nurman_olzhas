@@ -37,7 +37,7 @@ module control_unit
     logic       s_pc_update;
     logic [1:0] s_alu_op;
 
-    assign pc_write = s_pc_update | ( s_branch );
+    assign o_pc_write = s_pc_update | ( s_branch );
 
     // Branch type decoder. 
     always_comb begin : BRANCH_TYPE
