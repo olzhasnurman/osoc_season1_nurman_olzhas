@@ -281,11 +281,13 @@ module top
 
     // 2-to-1 Memory Address Source MUX Instance.
     mux2to1 MEM_ADDR_MUX (
-        .control_signal  ( s_mem_addr_src ),
-        .i_pc_next       ( s_reg_pc       ),
-        .i_result        ( s_result       ),
-        .o_addr          ( s_mem_addr     )
+        .control_signal ( s_mem_addr_src ),
+        .i_mux_1        ( s_reg_pc       ),
+        .i_mux_2        ( s_result       ),
+        .o_addr         ( s_mem_addr     )
     );
+
+    
 
 
     //---------------------------------------

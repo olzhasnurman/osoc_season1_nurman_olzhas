@@ -119,7 +119,7 @@ module main_fsm
                     R_Type_W   : NS = EXECUTER;
                     B_Type     : NS = BRANCH;
                     J_Type     : NS = JAL;
-                    U_Type_ALU : NS = FETCH; // NOT FINISHED.
+                    U_Type_ALU : NS = ALUWB;
                     U_Type_LOAD: NS = FETCH; // NOT FINISHED. 
                     FENCE_Type : NS = FETCH; // NOT FINISHED.
                     E_Type     : NS = FETCH; // NOT FINISHED.
