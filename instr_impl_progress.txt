@@ -9,9 +9,9 @@ _____________________________               _____________________________
 |_______|_____|______|      |               | sraiw | YES | NO   |      |
 | addi  | YES | NO   |      |               |_______|_____|______|______|
 | slli  | YES | NO   |      |               | sd    | YES | NO   | S    |
-| slti  | NO  | NO   |      |               |_______|_____|______|______|
-| sltiu | NO  | NO   |      |               | addw  | YES | NO   | R    |
-| xori  | YES | NO   |      |               | subw  | NO  | NO   |      |
+| slti  | YES | NO   |      |               |_______|_____|______|______|
+| sltiu | YES | NO   |      |               | addw  | YES | NO   | R    |
+| xori  | YES | NO   |      |               | subw  | YES | NO   |      |
 | srli  | YES | NO   |      |               | sllw  | YES | NO   |      |
 | srai  | YES | NO   |      |               | srlw  | YES | NO   |      |
 | ori   | YES | NO   |      |               | sraw  | YES | NO   |      |
@@ -24,10 +24,10 @@ _____________________________               _____________________________
 | sw    | YES | NO   |      |               | fence   | NO  | NO   |
 |_______|_____|______|______|               | ecall   | NO  | NO   |
 | add   | YES | NO   | R    |               | ebreak  | NO  | NO   |
-| sub   | NO  | NO   |      |               |_________|_____|______|
+| sub   | YES | NO   |      |               |_________|_____|______|
 | sll   | YES | NO   |      |               
-| slt   | NO  | NO   |      |               
-| sltu  | NO  | NO   |      |
+| slt   | YES | NO   |      |               
+| sltu  | YES | NO   |      |
 | xor   | YES | NO   |      |
 | srl   | YES | NO   |      |
 | sra   | YES | NO   |      |
