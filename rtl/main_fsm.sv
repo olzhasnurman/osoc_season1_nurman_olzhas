@@ -113,10 +113,10 @@ module main_fsm
                     I_Type     : NS = MEMADDR;
                     I_Type_ALU : NS = EXECUTEI;
                     I_Type_JALR: NS = MEMADDR;
-                    I_Type_IW  : NS = FETCH; // NOT FINISHED. 
+                    I_Type_IW  : NS = EXECUTEI; 
                     S_Type     : NS = MEMADDR;
                     R_Type     : NS = EXECUTER; 
-                    R_Type_W   : NS = FETCH; // NOT FINISHED.
+                    R_Type_W   : NS = EXECUTER;
                     B_Type     : NS = BRANCH;
                     J_Type     : NS = JAL;
                     U_Type_ALU : NS = FETCH; // NOT FINISHED.
