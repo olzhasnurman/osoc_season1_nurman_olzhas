@@ -55,14 +55,13 @@ module main_fsm
         I_Type_IW   = 4'b0011,
         S_Type      = 4'b0100,
         R_Type      = 4'b0101,
-        R_Type_W    = 4'b0110
+        R_Type_W    = 4'b0110,
         B_Type      = 4'b0111,
         J_Type      = 4'b1000,
         U_Type_ALU  = 4'b1001,
         U_Type_LOAD = 4'b1010,
         FENCE_Type  = 4'b1011,
-        E_Type      = 4'b1100,
-        CSR_Type    = 4'b1101
+        E_Type      = 4'b1100
     } t_instruction;
 
     // Instruction decoder signal. 
@@ -74,7 +73,7 @@ module main_fsm
             7'b0000011: instr = I_Type;
             7'b0010011: instr = I_Type_ALU;
             7'b1100111: instr = I_Type_JALR;
-            7'b0010011: instr = I_Type_IW;
+            7'b0011011: instr = I_Type_IW;
             7'b0100011: instr = S_Type;
             7'b0110011: instr = R_Type;
             7'b0111011: instr = R_Type_W;
@@ -84,7 +83,6 @@ module main_fsm
             7'b0010111: instr = U_Type_LOAD; 
             7'b0001111: instr = FENCE_Type;
             7'b1110011: instr = E_Type;
-            7'b1110011: instr = CSR_Type;
             default:    instr = I_Type;
         endcase
     end
@@ -125,7 +123,6 @@ module main_fsm
                     U_Type_LOAD: NS = FETCH; // NOT FINISHED. 
                     FENCE_Type : NS = FETCH; // NOT FINISHED.
                     E_Type     : NS = FETCH; // NOT FINISHED.
-                    CSR_Type   : NS = FETCH; // NOT FINISHED. 
 
                     default: NS = PS; 
                 endcase
