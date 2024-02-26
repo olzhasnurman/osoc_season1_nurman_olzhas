@@ -31,6 +31,8 @@ module top
     logic s_overflow_flag;
     logic s_negative_flag;
     logic s_carry_flag;
+    logic s_slt_flag;
+    logic s_sltu_flag;
 
     // Control unit signals. 
     logic [6:0] s_op;
@@ -117,7 +119,9 @@ module top
         .i_func_3         ( s_func_3            ),
         .i_func_7_5       ( s_func_7_5          ),
         .i_zero_flag      ( s_zero_flag         ),
-        .i_negative_flag  (s_negative_flag      ),
+        .i_negative_flag  ( s_negative_flag     ),
+        .i_slt_flag       ( s_slt_flag          ),
+        .i_sltu_flag      ( s_sltu_flag         ),
         .o_alu_control    ( s_alu_control       ),
         .o_result_src     ( s_result_src        ),
         .o_alu_src_1      ( s_alu_src_control_1 ),
@@ -172,7 +176,9 @@ module top
         .o_overflow_flag ( s_overflow_flag  ),
         .o_zero_flag     ( s_zero_flag      ),
         .o_negative_flag ( s_negative_flag  ),
-        .o_carry_flag    ( s_carry_flag     )
+        .o_carry_flag    ( s_carry_flag     ),
+        .o_slt_flag      ( s_slt_flag       ),
+        .o_sltu_flag     ( s_sltu_flag      )
     );
 
 

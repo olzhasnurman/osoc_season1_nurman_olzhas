@@ -18,6 +18,8 @@ module control_unit
     input  logic       i_func_7_5, 
     input  logic       i_zero_flag,
     input  logic       i_negative_flag,
+    input  logic       i_slt_flag,
+    input  logic       i_sltu_flag,
 
     // Output interface.
     output logic [3:0] o_alu_control,
@@ -44,10 +46,10 @@ module control_unit
         case ( i_func_3 )
             3'b000: s_branch = s_instr_branch & i_zero_flag;        // BEQ instruction.
             3'b001: s_branch = s_instr_branch & (~i_zero_flag);     // BNE instruction.
-            3'b100: s_branch = s_instr_branch & i_negative_flag;    // BLT instruction.
-            3'b101: s_branch = s_instr_branch & (~i_negative_flag); // BGE instruction.
-            3'b110: s_branch = s_instr_branch & i_negative_flag;    // BLTU instruction. i_negative_flag calculation is different in ALU.
-            3'b111: s_branch = s_instr_branch & (~i_negative_flag); // BGEU instruction. i_negative_flag calculation is different in ALU.
+            3'b100: s_branch = s_instr_branch & i_slt_flag;    // BLT instruction.
+            3'b101: s_branch = s_instr_branch & (~i_slt_flag); // BGE instruction.
+            3'b110: s_branch = s_instr_branch & i_sltu_flag;    // BLTU instruction. i_negative_flag calculation is different in ALU.
+            3'b111: s_branch = s_instr_branch & (~i_sltu_flag); // BGEU instruction. i_negative_flag calculation is different in ALU.
 
             default: s_branch = 1'b0;
         endcase
