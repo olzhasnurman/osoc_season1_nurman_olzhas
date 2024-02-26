@@ -3,18 +3,18 @@ _____________________________               _____________________________
 |_______|_____|______|______|               |_______|_____|______|______|
 | lb    | YES | NO   | I    |               | ld    | YES | NO   | I    |
 | lh    | YES | NO   |      |               | lwu   | YES | NO   |      |
-| lw    | YES | NO   |      |               | addiw | NO  | NO   |      |
-| lbu   | YES | NO   |      |               | slliw | NO  | NO   |      |
-| lhu   | YES | NO   |      |               | srliw | NO  | NO   |      |
-|_______|_____|______|      |               | sraiw | NO  | NO   |      |
+| lw    | YES | NO   |      |               | addiw | YES | NO   |      |
+| lbu   | YES | NO   |      |               | slliw | YES | NO   |      |
+| lhu   | YES | NO   |      |               | srliw | YES | NO   |      |
+|_______|_____|______|      |               | sraiw | YES | NO   |      |
 | addi  | YES | NO   |      |               |_______|_____|______|______|
 | slli  | YES | NO   |      |               | sd    | YES | NO   | S    |
-| slti  | YES | NO   |      |               |_______|_____|______|______|
-| sltiu | YES | NO   |      |               | addw  | NO  | NO   | R    |
-| xori  | YES | NO   |      |               | subW  | NO  | NO   |      |
-| srli  | YES | NO   |      |               | sllw  | NO  | NO   |      |
-| srai  | YES | NO   |      |               | srlw  | NO  | NO   |      |
-| ori   | YES | NO   |      |               | sraw  | NO  | NO   |      |
+| slti  | NO  | NO   |      |               |_______|_____|______|______|
+| sltiu | NO  | NO   |      |               | addw  | YES | NO   | R    |
+| xori  | YES | NO   |      |               | subw  | NO  | NO   |      |
+| srli  | YES | NO   |      |               | sllw  | YES | NO   |      |
+| srai  | YES | NO   |      |               | srlw  | YES | NO   |      |
+| ori   | YES | NO   |      |               | sraw  | YES | NO   |      |
 | andi  | YES | NO   |      |               |_______|_____|______|______|
 |_______|_____|______|______|               
 | auipc | NO  | NO   | U    |               
@@ -22,12 +22,12 @@ _____________________________               _____________________________
 | sb    | YES | NO   | S    |               | INSTR   | RTL | TEST |                
 | sh    | YES | NO   |      |               |_________|_____|______|
 | sw    | YES | NO   |      |               | fence   | NO  | NO   |
-|_______|_____|______|______|               | fence.i | NO  | NO   |
-| add   | YES | NO   | R    |               | ecall   | NO  | NO   |
-| sub   | YES | NO   |      |               | ebreak  | NO  | NO   |
-| sll   | YES | NO   |      |               |_________|_____|______|
-| slt   | YES | NO   |      |               
-| sltu  | YES | NO   |      |
+|_______|_____|______|______|               | ecall   | NO  | NO   |
+| add   | YES | NO   | R    |               | ebreak  | NO  | NO   |
+| sub   | NO  | NO   |      |               |_________|_____|______|
+| sll   | YES | NO   |      |               
+| slt   | NO  | NO   |      |               
+| sltu  | NO  | NO   |      |
 | xor   | YES | NO   |      |
 | srl   | YES | NO   |      |
 | sra   | YES | NO   |      |
@@ -43,7 +43,7 @@ _____________________________               _____________________________
 | bltu  | YES | NO   |      |
 | bgeu  | YES | NO   |      |
 |_______|_____|______|______|
-| jalr  | NO  | NO   | I    |
+| jalr  | YES | NO   | I    |
 |_______|_____|______|______|
 | jal   | YES | NO   | J    |
 |_______|_____|______|______|
