@@ -68,8 +68,8 @@ module alu
     logic [ DATA_WIDTH - 1:0 ] s_srl_out;
     logic [ DATA_WIDTH - 1:0 ] s_sra_out;
 
-    logic slt;
-    logic sltu;
+    logic less_than;
+    logic less_than_u;
 
     // ALU word operation outputs.
     logic [ WORD_WIDTH - 1:0 ] s_addw_out;
@@ -91,14 +91,14 @@ module alu
     // ALU regular & immediate operations. 
     assign {s_carry_flag_add, s_add_out}  = i_src_1 + i_src_2;
     assign {s_carry_flag_sub, s_sub_out}  = $signed(i_src_1) - $signed(i_src_2);
-    assign s_and_out  = i_src_1 & i_src_2;
-    assign s_or_out   = i_src_1 | i_src_2;
-    assign s_xor_out  = i_src_1 ^ i_src_2;
-    assign s_sll_out  = i_src_1 << i_src_2[4:0];
-    assign s_srl_out  = i_src_1 >> i_src_2[4:0];
-    assign s_sra_out  = $signed(i_src_1) >>> i_src_2[4:0];
-    assign slt  = $signed(i_src_1) < $signed(i_src_2);
-    assign sltu = i_src_1 < i_src_2;
+    assign s_and_out   = i_src_1 & i_src_2;
+    assign s_or_out    = i_src_1 | i_src_2;
+    assign s_xor_out   = i_src_1 ^ i_src_2;
+    assign s_sll_out   = i_src_1 << i_src_2[4:0];
+    assign s_srl_out   = i_src_1 >> i_src_2[4:0];
+    assign s_sra_out   = $signed(i_src_1) >>> i_src_2[4:0];
+    assign less_than   = $signed(i_src_1) < $signed(i_src_2);
+    assign less_than_u = i_src_1 < i_src_2;
 
     // ALU word operations.
     assign s_addw_out = i_src_1[31:0] + i_src_2[31:0];
@@ -111,8 +111,9 @@ module alu
     assign o_negative_flag = o_alu_result[DATA_WIDTH - 1];
     assign s_overflow      = (o_alu_result[DATA_WIDTH - 1] ^ i_src_1[DATA_WIDTH - 1]) & 
                              (i_src_2[DATA_WIDTH - 1] ~^ i_src_1[DATA_WIDTH - 1] ~^ alu_control[0]);
-    assign o_slt_flag  = slt;
-    assign o_sltu_flag = sltu;
+    
+    assign o_slt_flag  = less_than;
+    assign o_sltu_flag = less_than_u;
 
     // ------------
     // Output MUX.
@@ -138,8 +139,8 @@ module alu
             OR   : o_alu_result = s_or_out;
             XOR  : o_alu_result = s_xor_out;
             SLL  : o_alu_result = s_sll_out;
-            SLT  : o_alu_result = { { (DATA_WIDTH - 1) { 1'b0 } }, slt };
-            SLTU : o_alu_result = { { (DATA_WIDTH - 1) { 1'b0 } }, sltu };
+            SLT  : o_alu_result = { { (DATA_WIDTH - 1) { 1'b0 } }, less_than };
+            SLTU : o_alu_result = { { (DATA_WIDTH - 1) { 1'b0 } }, less_than_u };
             SRL  : o_alu_result = s_srl_out;
             SRA  : o_alu_result = s_sra_out;
 
