@@ -22,7 +22,7 @@ module control_unit
     input  logic       i_sltu_flag,
 
     // Output interface.
-    output logic [3:0] o_alu_control,
+    output logic [4:0] o_alu_control,
     output logic [1:0] o_result_src,
     output logic [1:0] o_alu_src_1,
     output logic [1:0] o_alu_src_2,

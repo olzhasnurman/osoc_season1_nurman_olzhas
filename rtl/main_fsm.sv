@@ -192,7 +192,7 @@ module main_fsm
             MEMADDR: begin
                 o_alu_src_1 = 2'b10;
                 o_alu_src_2 = 2'b01;
-                o_alu_op    = 2'b10;
+                o_alu_op    = 2'b00;
             end
 
             MEMREAD: begin
@@ -214,7 +214,11 @@ module main_fsm
             EXECUTER: begin
                 o_alu_src_1 = 2'b10;
                 o_alu_src_2 = 2'b00;
-                o_alu_op    = 2'b10;
+                case ( instr )
+                    R_Type  : o_alu_op = 2'b10;
+                    R_Type_W: o_alu_op = 2'b11;
+                    default:  o_alu_op = 2'b10;
+                endcase
             end
 
             ALUWB: begin
@@ -225,7 +229,11 @@ module main_fsm
             EXECUTEI: begin
                 o_alu_src_1 = 2'b10;
                 o_alu_src_2 = 2'b01;
-                o_alu_op    = 2'b10;
+                case ( instr )
+                    I_Type_ALU: o_alu_op = 2'b10;
+                    I_Type_IW : o_alu_op = 2'b11;
+                    default:    o_alu_op = 2'b10;
+                endcase
             end
 
             JAL: begin

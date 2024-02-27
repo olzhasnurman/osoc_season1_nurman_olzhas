@@ -38,7 +38,7 @@ module top
     logic [6:0] s_op;
     logic [2:0] s_func_3;
     logic       s_func_7_5;
-    logic [3:0] s_alu_control;
+    logic [4:0] s_alu_control;
     logic [1:0] s_result_src;
     logic [1:0] s_alu_src_control_1;
     logic [1:0] s_alu_src_control_2;
