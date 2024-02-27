@@ -158,7 +158,7 @@ module alu
             SRA  : o_alu_result = s_sra_out;
 
             SLLI : o_alu_result = s_slli_out;
-            SRLI : o_alu_result = s_srli_out
+            SRLI : o_alu_result = s_srli_out;
             SRAI : o_alu_result = s_srai_out;
 
             ADDW : o_alu_result = { { 32{s_addw_out[31]} }, s_addw_out };
@@ -175,5 +175,6 @@ module alu
                 o_carry_flag    = 0;
             end 
         endcase
+
     end   
 endmodule
