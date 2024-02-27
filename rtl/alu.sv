@@ -9,7 +9,7 @@ module alu
 #(
     parameter DATA_WIDTH    = 64,
               WORD_WIDTH    = 32,
-              CONTROL_WIDTH = 4   
+              CONTROL_WIDTH = 5   
 ) 
 // Port decleration.
 (
@@ -33,23 +33,29 @@ module alu
     // ---------------
     // Oprations.
     // ---------------
-    enum logic [3:0] {
-        ADD   = 4'b0000,
-        SUB   = 4'b0001,
-        AND   = 4'b0010,
-        OR    = 4'b0011,
-        XOR   = 4'b0100,
-        SLL   = 4'b0101,
-        SLT   = 4'b0110,
-        SLTU  = 4'b0111,
-        SRL   = 4'b1000,
-        SRA   = 4'b1001,
-        ADDW  = 4'b1010,
-        SUBW  = 4'b1011,
-        SLLW  = 4'b1100,
-        SRLW  = 4'b1101,
-        SRAW  = 4'b1110,
-        ADDIW = 4'b1111
+    enum logic [4:0] {
+        ADD   = 5'b00000,
+        SUB   = 5'b00001,
+        AND   = 5'b00010,
+        OR    = 5'b00011,
+        XOR   = 5'b00100,
+        SLL   = 5'b00101,
+        SLT   = 5'b00110,
+        SLTU  = 5'b00111,
+        SRL   = 5'b01000,
+        SRA   = 5'b01001,
+
+        SLLI  = 5'b01010,
+        SRLI  = 5'b01011,
+        SRAI  = 5'b01100,
+
+        ADDW  = 5'b01101,
+        SUBW  = 5'b01110,
+        SLLW  = 5'b01111,
+        SRLW  = 5'b10000,
+        SRAW  = 5'b10001,
+
+        ADDIW = 5'b10010
     } t_operation;
 
 
@@ -67,6 +73,9 @@ module alu
     logic [ DATA_WIDTH - 1:0 ] s_sll_out;
     logic [ DATA_WIDTH - 1:0 ] s_srl_out;
     logic [ DATA_WIDTH - 1:0 ] s_sra_out;
+    logic [ DATA_WIDTH - 1:0 ] s_slli_out;
+    logic [ DATA_WIDTH - 1:0 ] s_srli_out;
+    logic [ DATA_WIDTH - 1:0 ] s_srai_out;
 
     logic less_than;
     logic less_than_u;
@@ -97,6 +106,10 @@ module alu
     assign s_sll_out   = i_src_1 << i_src_2[4:0];
     assign s_srl_out   = i_src_1 >> i_src_2[4:0];
     assign s_sra_out   = $signed(i_src_1) >>> i_src_2[4:0];
+    assign s_slli_out   = i_src_1 << i_src_2[5:0];
+    assign s_srli_out   = i_src_1 >> i_src_2[5:0];
+    assign s_srai_out   = $signed(i_src_1) >>> i_src_2[5:0];
+
     assign less_than   = $signed(i_src_1) < $signed(i_src_2);
     assign less_than_u = i_src_1 < i_src_2;
 
@@ -143,6 +156,10 @@ module alu
             SLTU : o_alu_result = { { (DATA_WIDTH - 1) { 1'b0 } }, less_than_u };
             SRL  : o_alu_result = s_srl_out;
             SRA  : o_alu_result = s_sra_out;
+
+            SLLI : o_alu_result = s_slli_out;
+            SRLI : o_alu_result = s_srli_out
+            SRAI : o_alu_result = s_srai_out;
 
             ADDW : o_alu_result = { { 32{s_addw_out[31]} }, s_addw_out };
             SUBW : o_alu_result = { { 32{s_subw_out[31]} }, s_subw_out };
