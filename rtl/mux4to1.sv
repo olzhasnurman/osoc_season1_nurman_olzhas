@@ -4,7 +4,7 @@
 // This is a 4-to-1 mux module to choose Result Src.
 // ---------------------------------------------------
 
-module mux3to1
+module mux4to1
 // Parameters. 
 #(
     parameter DATA_WIDTH = 64

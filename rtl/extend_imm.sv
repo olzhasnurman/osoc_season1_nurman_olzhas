@@ -52,7 +52,7 @@ module extend_imm
             3'b010: o_imm_ext = s_b_type;
             3'b011: o_imm_ext = s_j_type;
             3'b100: o_imm_ext = s_u_type;
-            default: 
+            default: o_imm_ext = s_i_type;
         endcase
     end
 
