@@ -270,12 +270,13 @@ module top
         .o_mux          ( s_alu_src_data_2    )
     );
 
-    // 3-to-1 Result Source MUX Instance.
-    mux3to1 RESULT_MUX (
+    // 4-to-1 Result Source MUX Instance.
+    mux4to1 RESULT_MUX (
         .control_signal ( s_result_src     ),
         .i_mux_1        ( s_reg_alu_result ),
         .i_mux_2        ( s_mem_load_data  ), 
         .i_mux_3        ( s_alu_result     ),
+        .i_mux_4        ( s_imm_ext        ),
         .o_mux          ( s_result         )
     );
 

@@ -40,7 +40,8 @@ module main_fsm
         ALUWB    = 4'b0111,
         EXECUTEI = 4'b1000,
         JAL      = 4'b1001,
-        BRANCH   = 4'b1010
+        BRANCH   = 4'b1010,
+        LOADI    = 4'b1011
     } t_state;
 
     // State variables. 
@@ -120,7 +121,7 @@ module main_fsm
                     B_Type     : NS = BRANCH;
                     J_Type     : NS = JAL;
                     U_Type_ALU : NS = ALUWB;
-                    U_Type_LOAD: NS = FETCH; // NOT FINISHED. 
+                    U_Type_LOAD: NS = LOADI; 
                     FENCE_Type : NS = FETCH; // NOT FINISHED.
                     E_Type     : NS = FETCH; // NOT FINISHED.
 
@@ -152,6 +153,8 @@ module main_fsm
             JAL: NS = ALUWB;
 
             BRANCH: NS = FETCH;
+            
+            LOADI: NS = FETCH;
 
             default: NS = PS;
         endcase
@@ -250,6 +253,11 @@ module main_fsm
                 o_alu_op     = 2'b01;
                 o_result_src = 2'b00;
                 o_branch     = 1'b1;
+            end
+
+            LOADI: begin
+                o_result_src   = 2'b11;
+                o_reg_write_en = 1'b1; 
             end
 
 
