@@ -46,21 +46,14 @@ module extend_imm
     // | 100            | U type          |
     // |__________________________________|
     always_comb begin
-        if ( control_signal[2] ) begin
-            o_imm_ext = s_u_type;
-        end
-        else if ( control_signal[1] ) begin
-            if ( control_signal[0]) begin
-                o_imm_ext = s_j_type;
-            end
-            else o_imm_ext = s_b_type;
-        end
-        else begin
-            if ( control_signal[0] ) begin
-                o_imm_ext = s_s_type;
-            end
-            else o_imm_ext = s_i_type;
-        end
+        case ( control_signal )
+            3'b000: o_imm_ext = s_i_type;
+            3'b001: o_imm_ext = s_s_type;
+            3'b010: o_imm_ext = s_b_type;
+            3'b011: o_imm_ext = s_j_type;
+            3'b100: o_imm_ext = s_u_type;
+            default: 
+        endcase
     end
 
     
