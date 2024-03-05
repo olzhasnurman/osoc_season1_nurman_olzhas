@@ -87,7 +87,10 @@ module instr_cache_fsm
             ALLOCATE: begin
                 o_stall          = 1'b1;
                 o_start_read     = 1'b1;
-                o_instr_write_en = 1'b1;
+                if ( i_r_last ) begin
+                    o_instr_write_en = 1'b1;
+                end
+                else o_instr_write_en = 1'b0;
             end
             default: begin
                 o_stall          = 1'b0;
