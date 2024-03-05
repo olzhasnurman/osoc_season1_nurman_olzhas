@@ -11,19 +11,15 @@ module instr_cache_fsm
     input  logic arstn,
 
     // Input Interface.
-    input  logic i_start,
-    input  logic i_valid,
-    input  logic i_tag_match,
+    input  logic i_start_check,
+    input  logic i_hit,
     input  logic i_r_last,
 
     // Output Interface.
     output logic o_stall,
+    output logic o_instr_write_en,
     output logic o_start_read
 );
-
-    logic s_cache_hit;
-
-    assign s_cache_hit = i_valid & i_tag_match;
 
     //------------------------------
     // FSM.
@@ -52,12 +48,12 @@ module instr_cache_fsm
         NS = PS;
 
         case ( PS )
-            IDLE: if ( i_start ) begin
+            IDLE: if ( i_start_check ) begin
                 NS = COMPARE_TAG;
             end
 
             COMPARE_TAG: begin
-                if ( s_cache_hit ) begin
+                if ( i_hit ) begin
                     NS = IDLE;
                 end
                 else NS = ALLOCATE;
@@ -77,22 +73,26 @@ module instr_cache_fsm
         
         case ( PS )
             IDLE: begin
-                o_stall      = 1'b1;
-                o_start_read = 1'b0;
+                o_stall          = 1'b1;
+                o_start_read     = 1'b0;
+                o_instr_write_en = 1'b0;
             end 
 
             COMPARE_TAG: begin
-                o_stall      = ~s_cache_hit;
-                o_start_read = 1'b0;
+                o_stall          = ~i_hit;
+                o_start_read     = 1'b0;
+                o_instr_write_en = 1'b0;
             end
 
             ALLOCATE: begin
-                o_stall      = 1'b1;
-                o_start_read = 1'b1;
+                o_stall          = 1'b1;
+                o_start_read     = 1'b1;
+                o_instr_write_en = 1'b1;
             end
             default: begin
-                o_stall      = 1'b0;
-                o_start_read = 1'b0;
+                o_stall          = 1'b0;
+                o_start_read     = 1'b0;
+                o_instr_write_en = 1'b0;
             end
         endcase
     end

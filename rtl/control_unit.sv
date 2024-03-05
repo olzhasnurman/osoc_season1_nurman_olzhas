@@ -20,6 +20,8 @@ module control_unit
     input  logic       i_negative_flag,
     input  logic       i_slt_flag,
     input  logic       i_sltu_flag,
+    input  logic       i_instr_hit,
+    input  logic       i_read_last,
 
     // Output interface.
     output logic [4:0] o_alu_control,
@@ -30,14 +32,19 @@ module control_unit
     output logic       o_mem_addr_src,
     output logic       o_reg_write_en,
     output logic       o_pc_write,
+    output logic       o_instr_write_en,
     output logic       o_mem_write_en,
-    output logic       o_instr_write_en
+    output logic       o_instr_cache_write_en,
+    output logic       o_start_read
 ); 
 
     logic       s_instr_branch;
     logic       s_branch;
     logic       s_pc_update;
     logic [1:0] s_alu_op;
+    
+    logic s_stall;
+    logic s_start_instr_cache;
 
     assign o_pc_write = s_pc_update | ( s_branch );
 
@@ -55,25 +62,41 @@ module control_unit
         endcase
     end
 
+    //-------------------------------------
+    // Modulle Instantiations.
+    //-------------------------------------
 
-    // --------------------Modulle Instantiations------------------
-    // Main fsm module instance. 
+    // Main FSM module instance. 
     main_fsm M_FSM (
-        .clk              ( clk              ),
-        .arstn            ( arstn            ),
-        .i_op             ( i_op             ),
-        .i_func_3         ( i_func_3         ),
-        .i_func_7_5       ( i_func_7_5       ), 
-        .o_alu_op         ( s_alu_op         ),
-        .o_result_src     ( o_result_src     ),
-        .o_alu_src_1      ( o_alu_src_1      ),
-        .o_alu_src_2      ( o_alu_src_2      ),
-        .o_mem_addr_src   ( o_mem_addr_src   ),
-        .o_reg_write_en   ( o_reg_write_en   ),
-        .o_pc_update      ( s_pc_update      ),
-        .o_mem_write_en   ( o_mem_write_en   ),
-        .o_instr_write_en ( o_instr_write_en ),
-        .o_branch         ( s_instr_branch   ) 
+        .clk              ( clk                 ),
+        .arstn            ( arstn               ),
+        .i_op             ( i_op                ),
+        .i_func_3         ( i_func_3            ),
+        .i_func_7_5       ( i_func_7_5          ), 
+        .i_stall          ( s_stall             ),
+        .o_alu_op         ( s_alu_op            ),
+        .o_result_src     ( o_result_src        ),
+        .o_alu_src_1      ( o_alu_src_1         ),
+        .o_alu_src_2      ( o_alu_src_2         ),
+        .o_mem_addr_src   ( o_mem_addr_src      ),
+        .o_reg_write_en   ( o_reg_write_en      ),
+        .o_pc_update      ( s_pc_update         ),
+        .o_mem_write_en   ( o_mem_write_en      ),
+        .o_instr_write_en ( o_instr_write_en    ),
+        .o_start_cache    ( s_start_instr_cache ),
+        .o_branch         ( s_instr_branch      ) 
+    );
+
+    // Instruction cache FSM.
+    instr_cache_fsm I_C_FSM (
+    .clk              ( clk                    ),
+    .arstn            ( arstn                  ),
+    .i_start_check    ( s_start_instr_cache    ),
+    .i_hit            ( i_instr_hit            ),
+    .i_r_last         ( i_read_last            ),
+    .o_stall          ( s_stall                ),
+    .o_instr_write_en ( o_instr_cache_write_en ),
+    .o_start_read     ( o_start_read           )
     );
 
 
