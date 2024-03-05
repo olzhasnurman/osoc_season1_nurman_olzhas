@@ -15,6 +15,7 @@ module main_fsm
     input  logic [6:0] i_op,
     input  logic [2:0] i_func_3,
     input  logic       i_func_7_5, 
+    input  logic       i_stall,
 
     // Output interface.
     output logic [1:0] o_alu_op,
@@ -26,6 +27,7 @@ module main_fsm
     output logic       o_pc_update,
     output logic       o_mem_write_en,
     output logic       o_instr_write_en,
+    output logic       o_start_cache,
     output logic       o_branch
 );  
     // State type.
@@ -106,7 +108,10 @@ module main_fsm
 
         case ( PS )
             FETCH: begin
-                NS = DECODE;
+                if ( i_stall ) begin
+                    NS = PS;
+                end
+                else NS = DECODE;
             end 
 
             DECODE: begin
@@ -173,16 +178,25 @@ module main_fsm
         o_pc_update      = 1'b0;
         o_mem_write_en   = 1'b0;
         o_instr_write_en = 1'b0;
+        o_start_cache    = 1'b0;
         o_branch         = 1'b0;
 
         case ( PS )
             FETCH: begin
+                if ( i_stall ) begin
+                    o_instr_write_en   = 1'b0;
+                    o_pc_update        = 1'b0;
+                end
+                else begin
+                    o_instr_write_en   = 1'b1;
+                    o_pc_update        = 1'b1;      
+                end
+                
+                o_start_cache      = 1'b1;
                 o_mem_addr_src     = 1'b0;  
-                o_instr_write_en   = 1'b1;
                 o_alu_src_1        = 2'b00;
                 o_alu_src_2        = 2'b10;
                 o_result_src       = 2'b10;
-                o_pc_update        = 1'b1;
                 o_alu_op           = 2'b00;
             end 
 
