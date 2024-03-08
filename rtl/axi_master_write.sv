@@ -47,83 +47,46 @@ module axi_master
     // Write Channel: Response. Ignored B_ID for now.
     input  logic [                    1:0 ] B_RESP, // Optional.
     input  logic                            B_VALID,
-    output logic                            B_READY,
-
-    // Read Channel: Address. Ignored AR_ID for now.
-    input  logic                            AR_READY,
-    output logic                            AR_VALID,
-    output logic [                    7:0 ] AR_LEN,   // Optional.
-    output logic [                    2:0 ] AR_SIZE,  // Optional.
-    output logic [                    1:0 ] AR_BURST, // Optional.
-    output logic [ AXI_ADDR_WIDTH   - 1:0 ] AR_ADDR,
-    output logic [                    2:0 ] AR_PROT,
-
-    // Read Channel: Data. Ignored R_ID for now.
-    input  logic [ AXI_DATA_WIDTH   - 1:0 ] R_DATA,
-    input  logic [                    1:0 ] R_RESP, // Optional.
-    input  logic                            R_LAST, // Optional.
-    input  logic                            R_VALID,
-    output logic                            R_READY
+    output logic                            B_READY
 );
-
-    typedef enum logic [1:0] {
-        IDLE    = 2'b00,
-        ADDRESS = 
-    } t_state;
 
     //------------------------
     // Write FSM.
     //------------------------
     
+    // FSM: States
+    typedef enum logic [1:0] {
+        IDLE    = 2'b00,
+        ADDRESS = 
+    } t_state;
+
+    t_state PS;
+    t_state NS;
+    
     // FSM: State Synchronization 
     always_ff @( posedge clk, negedge arstn ) begin
         if ( ~arstn ) begin
-            W_PS <= IDLE;
+            PS <= IDLE;
         end
-        else W_PS <= W_NS;
+        else PS <= NS;
     end
 
     // FSM: Next State Logic.
     always_comb begin
-        W_NS = W_PS;
+        NS = PS;
 
-        case ( W_PS )
+        case ( PS )
             IDLE: begin
-                if ( i_start_write ) W_NS = 
+                if ( i_start_write ) NS = 
             end 
             default: 
         endcase
     end
 
     // FSM: Output Logic.
-
-
-
-    //------------------------
-    // Read FSM.
-    //------------------------
-    
-    // FSM: State Synchronization 
-    always_ff @( posedge clk, negedge arstn ) begin 
-        if ( ~arstn ) begin
-            R_PS <= IDLE;
-        end
-        else R_PS <= R_NS;
-    end
-
-    // FSM: Next State Logic.
     always_comb begin
-        R_NS = R_PS;
-
-        case ( R_PS )
-            IDLE: begin
-                if ( i_start_read ) R_NS = 
-            end 
-            default: 
-        endcase
+        
     end
-
-    // FSM: Output Logic.
 
     
 endmodule
