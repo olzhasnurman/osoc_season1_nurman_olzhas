@@ -18,21 +18,31 @@ module top
 // Port declerations. 
 (
     //Clock & Reset signals. 
-    input logic clk,
-    input logic arstn,
-    input logic i_read_last,        // NEEDS TO BE CONNECTED TO AXI 
-    input logic [511:0] i_instr_axi // NEEDS TO BE CONNECTED TO AXI
+    input  logic         clk,
+    input  logic         arstn,
+    input  logic         i_read_last_axi,   // NEEDS TO BE CONNECTED TO AXI 
+    input  logic [511:0] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
+    input  logic         i_b_resp_axi,      // NEEDS TO BE CONNECTED TO AXI
+    output logic         o_start_read_axi,  // NEEDS TO BE CONNECTED TO AXI
+    output logic         o_start_write_axi, // NEEDS TO BE CONNECTED TO AXI
+    output logic [511:0] o_data_write_axi   // NEEDS TO BE CONNECTED TO AXI
 );
 
     //------------------------
     // INTERNAL NETS.
     //------------------------
 
-    // Instruction cache.
+    // Instruction cache signals.
     logic s_instr_cache_we;
     logic s_instr_hit;
-    logic s_start_read;
     logic [31:0] s_instr_read;
+
+    // Data cache signals.
+    logic s_data_hit;
+    logic s_data_dirty;
+    logic s_data_block_write_en;
+    logic s_data_valid_update;
+    logic s_data_lru_update;
 
     // ALU flags.
     logic s_zero_flag;
@@ -120,30 +130,37 @@ module top
     //---------------------------
     // Control Unit Instance.
     //---------------------------
-    control_unit CU  (
-        .clk                    ( clk                 ), 
-        .arstn                  ( arstn               ),
-        .i_op                   ( s_op                ),
-        .i_func_3               ( s_func_3            ),
-        .i_func_7_5             ( s_func_7_5          ),
-        .i_zero_flag            ( s_zero_flag         ),
-        .i_negative_flag        ( s_negative_flag     ),
-        .i_slt_flag             ( s_slt_flag          ),
-        .i_sltu_flag            ( s_sltu_flag         ),
-        .i_instr_hit            ( s_instr_hit         ),
-        .i_read_last            ( i_read_last         ),
-        .o_alu_control          ( s_alu_control       ),
-        .o_result_src           ( s_result_src        ),
-        .o_alu_src_1            ( s_alu_src_control_1 ),
-        .o_alu_src_2            ( s_alu_src_control_2 ),
-        .o_imm_src              ( s_imm_src           ),
-        .o_mem_addr_src         ( s_mem_addr_src      ),
-        .o_reg_write_en         ( s_reg_write_en      ),
-        .o_pc_write             ( s_pc_write_en       ),
-        .o_mem_write_en         ( s_mem_write_en      ),
-        .o_instr_write_en       ( s_instr_write_en    ),
-        .o_instr_cache_write_en ( s_instr_cache_we    ),
-        .o_start_read           ( s_start_read        )
+    control_unit CU (
+        .clk                    ( clk                   ), 
+        .arstn                  ( arstn                 ),
+        .i_op                   ( s_op                  ),
+        .i_func_3               ( s_func_3              ),
+        .i_func_7_5             ( s_func_7_5            ),
+        .i_zero_flag            ( s_zero_flag           ),
+        .i_negative_flag        ( s_negative_flag       ),
+        .i_slt_flag             ( s_slt_flag            ),
+        .i_sltu_flag            ( s_sltu_flag           ),
+        .i_instr_hit            ( s_instr_hit           ),
+        .i_read_last_axi        ( i_read_last_axi       ),
+        .i_data_hit             ( s_data_hit            ),
+        .i_data_dirty           ( s_data_dirty          ),
+        .i_b_resp_axi           ( i_b_resp_axi          ),
+        .o_alu_control          ( s_alu_control         ),
+        .o_result_src           ( s_result_src          ),
+        .o_alu_src_1            ( s_alu_src_control_1   ),
+        .o_alu_src_2            ( s_alu_src_control_2   ),
+        .o_imm_src              ( s_imm_src             ),
+        .o_mem_addr_src         ( s_mem_addr_src        ),
+        .o_reg_write_en         ( s_reg_write_en        ),
+        .o_pc_write             ( s_pc_write_en         ),
+        .o_instr_write_en       ( s_instr_write_en      ),
+        .o_mem_write_en         ( s_mem_write_en        ),
+        .o_instr_cache_write_en ( s_instr_cache_we      ),
+        .o_start_read_axi       ( o_start_read_axi      ),
+        .o_block_write_en       ( s_data_block_write_en ),
+        .o_data_valid_update    ( s_data_valid_update   ),
+        .o_data_lru_update      ( s_data_lru_update     ),
+        .o_start_write_axi      ( o_start_write_axi     ) 
     );
 
 
@@ -175,13 +192,30 @@ module top
         .o_read_instr ( s_mem_read_instr )
     );
 
+    // Data Cache.
+    data_cache D_CACHE (
+        .clk            ( clk                   ),
+        .arstn          ( arstn                 ),
+        .write_en       ( s_mem_write_en        ),
+        .valid_update   ( s_data_valid_update   ),
+        .lru_update     ( s_data_lru_update     ),
+        .block_write_en ( s_data_block_write_en ),
+        .i_data_addr    ( s_mem_addr            ),
+        .i_data         ( s_mem_write_data      ),
+        .i_data_block   ( i_data_read_axi       ),
+        .o_data         ( s_mem_read_data       ),
+        .o_data_block   ( o_data_write_axi      ),
+        .o_hit          ( s_data_hit            ),
+        .o_dirty        ( s_data_dirty          )
+    );
+
     // Instruction Cache.
     instr_cache I_CACHE (
         .clk          ( clk              ),
         .write_en     ( s_instr_cache_we ),
         .arstn        ( arstn            ),
         .i_instr_addr ( s_mem_addr       ),
-        .i_inst       ( i_instr_axi      ),
+        .i_inst       ( i_data_read_axi  ),
         .o_instr      ( s_instr_read     ),
         .o_hit        ( s_instr_hit      )
     );
