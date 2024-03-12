@@ -196,46 +196,46 @@ module data_cache
                 // SH Instruction.
                 2'b01: begin
                     case ( s_word_offset )
-                        4'b0000: data_mem[ s_index ][ match ][ 31 :0   ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b0001: data_mem[ s_index ][ match ][ 63 :32  ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b0010: data_mem[ s_index ][ match ][ 95 :64  ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b0011: data_mem[ s_index ][ match ][ 127:96  ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b0100: data_mem[ s_index ][ match ][ 159:128 ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b0101: data_mem[ s_index ][ match ][ 191:160 ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b0110: data_mem[ s_index ][ match ][ 223:192 ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b0111: data_mem[ s_index ][ match ][ 255:224 ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b1000: data_mem[ s_index ][ match ][ 287:256 ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b1001: data_mem[ s_index ][ match ][ 319:288 ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b1010: data_mem[ s_index ][ match ][ 351:320 ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b1011: data_mem[ s_index ][ match ][ 383:352 ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b1100: data_mem[ s_index ][ match ][ 415:384 ][ 15:0 ] <= i_data[ 15:0 ]; 
-                        4'b1101: data_mem[ s_index ][ match ][ 447:416 ][ 15:0 ] <= i_data[ 15:0 ];
-                        4'b1110: data_mem[ s_index ][ match ][ 479:448 ][ 15:0 ] <= i_data[ 15:0 ];
-                        4'b1111: data_mem[ s_index ][ match ][ 511:480 ][ 15:0 ] <= i_data[ 15:0 ];
-                        default: data_mem[ s_index ][ match ][ 31:0    ][ 15:0 ] <= '0;
+                        4'b0000: data_mem[ s_index ][ match ][ 15 :0   ] <= i_data[ 15:0 ]; 
+                        4'b0001: data_mem[ s_index ][ match ][ 47 :32  ] <= i_data[ 15:0 ]; 
+                        4'b0010: data_mem[ s_index ][ match ][ 79 :64  ] <= i_data[ 15:0 ]; 
+                        4'b0011: data_mem[ s_index ][ match ][ 111:96  ] <= i_data[ 15:0 ]; 
+                        4'b0100: data_mem[ s_index ][ match ][ 143:128 ] <= i_data[ 15:0 ]; 
+                        4'b0101: data_mem[ s_index ][ match ][ 175:160 ] <= i_data[ 15:0 ]; 
+                        4'b0110: data_mem[ s_index ][ match ][ 207:192 ] <= i_data[ 15:0 ]; 
+                        4'b0111: data_mem[ s_index ][ match ][ 239:224 ] <= i_data[ 15:0 ]; 
+                        4'b1000: data_mem[ s_index ][ match ][ 271:256 ] <= i_data[ 15:0 ]; 
+                        4'b1001: data_mem[ s_index ][ match ][ 303:288 ] <= i_data[ 15:0 ]; 
+                        4'b1010: data_mem[ s_index ][ match ][ 335:320 ] <= i_data[ 15:0 ]; 
+                        4'b1011: data_mem[ s_index ][ match ][ 367:352 ] <= i_data[ 15:0 ]; 
+                        4'b1100: data_mem[ s_index ][ match ][ 399:384 ] <= i_data[ 15:0 ]; 
+                        4'b1101: data_mem[ s_index ][ match ][ 431:416 ] <= i_data[ 15:0 ];
+                        4'b1110: data_mem[ s_index ][ match ][ 463:448 ] <= i_data[ 15:0 ];
+                        4'b1111: data_mem[ s_index ][ match ][ 495:480 ] <= i_data[ 15:0 ];
+                        default: data_mem[ s_index ][ match ][ 31:0    ] <= '0;
                     endcase
                 end
 
                 // SB Instruction.
                 2'b00: begin
                     case ( s_word_offset )
-                        4'b0000: data_mem[ s_index ][ match ][ 31 :0   ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b0001: data_mem[ s_index ][ match ][ 63 :32  ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b0010: data_mem[ s_index ][ match ][ 95 :64  ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b0011: data_mem[ s_index ][ match ][ 127:96  ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b0100: data_mem[ s_index ][ match ][ 159:128 ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b0101: data_mem[ s_index ][ match ][ 191:160 ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b0110: data_mem[ s_index ][ match ][ 223:192 ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b0111: data_mem[ s_index ][ match ][ 255:224 ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b1000: data_mem[ s_index ][ match ][ 287:256 ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b1001: data_mem[ s_index ][ match ][ 319:288 ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b1010: data_mem[ s_index ][ match ][ 351:320 ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b1011: data_mem[ s_index ][ match ][ 383:352 ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b1100: data_mem[ s_index ][ match ][ 415:384 ][ 7:0 ] <= i_data[ 7:0 ]; 
-                        4'b1101: data_mem[ s_index ][ match ][ 447:416 ][ 7:0 ] <= i_data[ 7:0 ];
-                        4'b1110: data_mem[ s_index ][ match ][ 479:448 ][ 7:0 ] <= i_data[ 7:0 ];
-                        4'b1111: data_mem[ s_index ][ match ][ 511:480 ][ 7:0 ] <= i_data[ 7:0 ];
-                        default: data_mem[ s_index ][ match ][ 31:0    ][ 7:0 ] <= '0;
+                        4'b0000: data_mem[ s_index ][ match ][ 7  :0   ] <= i_data[ 7:0 ]; 
+                        4'b0001: data_mem[ s_index ][ match ][ 39 :32  ] <= i_data[ 7:0 ]; 
+                        4'b0010: data_mem[ s_index ][ match ][ 71 :64  ] <= i_data[ 7:0 ]; 
+                        4'b0011: data_mem[ s_index ][ match ][ 103:96  ] <= i_data[ 7:0 ]; 
+                        4'b0100: data_mem[ s_index ][ match ][ 135:128 ] <= i_data[ 7:0 ]; 
+                        4'b0101: data_mem[ s_index ][ match ][ 167:160 ] <= i_data[ 7:0 ]; 
+                        4'b0110: data_mem[ s_index ][ match ][ 199:192 ] <= i_data[ 7:0 ]; 
+                        4'b0111: data_mem[ s_index ][ match ][ 231:224 ] <= i_data[ 7:0 ]; 
+                        4'b1000: data_mem[ s_index ][ match ][ 263:256 ] <= i_data[ 7:0 ]; 
+                        4'b1001: data_mem[ s_index ][ match ][ 295:288 ] <= i_data[ 7:0 ]; 
+                        4'b1010: data_mem[ s_index ][ match ][ 327:320 ] <= i_data[ 7:0 ]; 
+                        4'b1011: data_mem[ s_index ][ match ][ 359:352 ] <= i_data[ 7:0 ]; 
+                        4'b1100: data_mem[ s_index ][ match ][ 391:384 ] <= i_data[ 7:0 ]; 
+                        4'b1101: data_mem[ s_index ][ match ][ 423:416 ] <= i_data[ 7:0 ];
+                        4'b1110: data_mem[ s_index ][ match ][ 455:448 ] <= i_data[ 7:0 ];
+                        4'b1111: data_mem[ s_index ][ match ][ 487:480 ] <= i_data[ 7:0 ];
+                        default: data_mem[ s_index ][ match ][ 7  :0    ] <= '0;
                     endcase
                 end
             endcase
