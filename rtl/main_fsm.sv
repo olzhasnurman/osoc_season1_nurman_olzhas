@@ -26,11 +26,11 @@ module main_fsm
     output logic       o_mem_addr_src,
     output logic       o_reg_write_en,
     output logic       o_pc_update,
-    output logic       o_mem_write_en,
-    output logic       o_instr_write_en,
+    output logic       o_mem_write_en,   //
+    output logic       o_instr_write_en, 
     output logic       o_start_i_cache,
-    output logic       o_start_d_cache,
-    output logic       o_write_state,
+    output logic       o_start_d_cache,  // 
+    output logic       o_write_state,    // 
     output logic       o_branch
 );  
     // State type.
@@ -146,11 +146,21 @@ module main_fsm
                 endcase
             end
 
-            MEMREAD: NS = MEMWB;
+            MEMREAD: begin
+                if ( i_stall_data ) begin
+                    NS = PS;
+                end
+                else NS = MEMWB;
+            end
 
             MEMWB: NS = FETCH;
 
-            MEMWRITE: NS = FETCH;
+            MEMWRITE: begin
+                if ( i_stall_data ) begin
+                    NS = PS;
+                end
+                else NS = FETCH;
+            end
 
             EXECUTER: NS = ALUWB;
 
@@ -181,8 +191,10 @@ module main_fsm
         o_pc_update      = 1'b0;
         o_mem_write_en   = 1'b0;
         o_instr_write_en = 1'b0;
-        o_start_i_cache    = 1'b0;
+        o_start_i_cache  = 1'b0;
         o_branch         = 1'b0;
+        o_start_d_cache  = 1'b0;
+        o_write_state    = 1'b0;
 
         case ( PS )
             FETCH: begin
@@ -195,7 +207,7 @@ module main_fsm
                     o_pc_update        = 1'b1;      
                 end
                 
-                o_start_i_cache      = 1'b1;
+                o_start_i_cache    = 1'b1;
                 o_mem_addr_src     = 1'b0;  
                 o_alu_src_1        = 2'b00;
                 o_alu_src_2        = 2'b10;
@@ -216,8 +228,12 @@ module main_fsm
             end
 
             MEMREAD: begin
-                o_result_src   = 2'b00;
-                o_mem_addr_src = 1'b1;
+                o_result_src    = 2'b00;
+                o_mem_addr_src  = 1'b1;
+                o_start_d_cache = 1'b1;
+                o_alu_src_1     = 2'b10;
+                o_alu_src_2     = 2'b01;
+                o_alu_op        = 2'b00;
             end
 
             MEMWB: begin
@@ -226,9 +242,20 @@ module main_fsm
             end
 
             MEMWRITE: begin
-                o_result_src = 2'b00;
-                o_mem_addr_src = 1'b1;
-                o_mem_write_en = 1'b1;
+                if ( i_stall_data ) begin
+                    o_mem_write_en = 1'b0;
+                end
+                else begin
+                    o_mem_write_en = 1'b1;     
+                end
+
+                o_start_d_cache = 1'b1;
+                o_result_src    = 2'b00;
+                o_mem_addr_src  = 1'b1;
+                o_write_state   = 1'b1;
+                o_alu_src_1     = 2'b10;
+                o_alu_src_2     = 2'b01;
+                o_alu_op        = 2'b00;
             end
 
             EXECUTER: begin
@@ -288,7 +315,10 @@ module main_fsm
                 o_pc_update      = 1'b0;
                 o_mem_write_en   = 1'b0;
                 o_instr_write_en = 1'b0;
+                o_start_i_cache  = 1'b0;
                 o_branch         = 1'b0;
+                o_start_d_cache  = 1'b0;
+                o_write_state    = 1'b0;
             end
         endcase
     end

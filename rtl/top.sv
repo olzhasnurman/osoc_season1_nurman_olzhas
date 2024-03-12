@@ -119,7 +119,7 @@ module top
     assign s_reg_addr_3 = s_reg_instr[11:7];
  
     assign s_reg_write_data_3 = s_result;
-    assign s_mem_write_data   = s_reg_data_2[MEM_DATA_WIDTH - 1:0];
+    assign s_mem_write_data   = s_reg_data_2;
 
 
 
@@ -203,6 +203,7 @@ module top
         .i_data_addr    ( s_mem_addr            ),
         .i_data         ( s_mem_write_data      ),
         .i_data_block   ( i_data_read_axi       ),
+        .i_store_type   ( s_func_3[1:0]         ),
         .o_data         ( s_mem_read_data       ),
         .o_data_block   ( o_data_write_axi      ),
         .o_hit          ( s_data_hit            ),

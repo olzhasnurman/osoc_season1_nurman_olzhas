@@ -65,7 +65,7 @@ module control_unit
 
     assign o_pc_write       = s_pc_update | ( s_branch );
 
-    assign o_start_read_axi = s_start_read_data | s_start_instr_cache;
+    assign o_start_read_axi = s_start_read_data | s_start_read_instr;
 
     // Branch type decoder. 
     always_comb begin : BRANCH_TYPE

@@ -7,12 +7,13 @@
 module data_cache 
 #(
     parameter SET_COUNT   = 256,
-              WORD_COUNT  = 8,
-              WORD_SIZE   = 64,
+              WORD_COUNT  = 16,
+              WORD_SIZE   = 32,
               BLOCK_WIDTH = 512,
               TAG_WIDTH   = 50,
               N           = 4,
-              ADDR_WIDTH  = 64
+              ADDR_WIDTH  = 64,
+              REG_WIDTH   = 64
 ) 
 (
     // Control signals.
@@ -25,11 +26,12 @@ module data_cache
     
     // Input Interface.
     input  logic [ ADDR_WIDTH  - 1:0 ] i_data_addr,
-    input  logic [ WORD_SIZE   - 1:0 ] i_data,
+    input  logic [ REG_WIDTH   - 1:0 ] i_data,
     input  logic [ BLOCK_WIDTH - 1:0 ] i_data_block,
+    input  logic [               1:0 ] i_store_type,
 
     // Output Interface.
-    output logic [ WORD_SIZE   - 1:0 ] o_data,
+    output logic [ REG_WIDTH   - 1:0 ] o_data,
     output logic [ BLOCK_WIDTH - 1:0 ] o_data_block,
     output logic                       o_hit,
     output logic                       o_dirty
@@ -38,7 +40,7 @@ module data_cache
     //-------------------------
     // Local Parameters.
     //-------------------------
-    localparam WORD_OFFSET_W  = $clog2( WORD_COUNT  ); // 3 bit.
+    localparam WORD_OFFSET_W  = $clog2( WORD_COUNT  ); // 4 bit.
     localparam BLOCK_NUMBER_W = $clog2( SET_COUNT );   // 8 bit.
     localparam BYTE_OFFSET_W  = $clog2( WORD_SIZE/8 ); // 2 bit.
 
@@ -61,6 +63,8 @@ module data_cache
     logic [ TAG_MSB         - TAG_LSB        :0 ] s_tag;
 
     logic [ $clog2( N ) - 1:0 ] s_lru;
+    logic [           N - 1:0 ] s_lru_found;
+    logic [           N - 1:0 ] s_hit;
 
 
 
@@ -70,7 +74,6 @@ module data_cache
     assign s_tag_in      = i_data_addr[ TAG_MSB        :TAG_LSB         ];
     assign s_index       = i_data_addr[ INDEX_MSB      :INDEX_LSB       ]; 
     assign s_word_offset = i_data_addr[ WORD_OFFSET_MSB:WORD_OFFSET_LSB ];
-
 
 
     //-------------------------------------
@@ -96,30 +99,42 @@ module data_cache
     //------------------------------
 
     // Check for hit.
-    integer i;
     logic [ $clog2 (N) - 1:0 ] match;
     always_comb begin
-        for ( i = 0; i < N; i++) begin
-            if ( valid_mem[ i ][ s_index ] & ( tag_mem [ s_index ][ i ] == s_tag_in ) ) begin
-                match = i[ $clog2 (N) - 1:0 ];
-                o_hit = 1'b1;
-            end
-            else begin
-                match = '0;
-                o_hit = 1'b0;
-            end
+        s_hit[0] = valid_mem[ 0 ][ s_index ] & ( tag_mem [ s_index ][ 0 ] == s_tag_in );
+        s_hit[1] = valid_mem[ 1 ][ s_index ] & ( tag_mem [ s_index ][ 1 ] == s_tag_in );
+        s_hit[2] = valid_mem[ 2 ][ s_index ] & ( tag_mem [ s_index ][ 2 ] == s_tag_in );
+        s_hit[3] = valid_mem[ 3 ][ s_index ] & ( tag_mem [ s_index ][ 3 ] == s_tag_in );
+
+        o_hit = | s_hit;
+
+        if ( o_hit ) begin
+            case ( s_hit )
+                4'b0001: match = 2'b00;
+                4'b0010: match = 2'b01;
+                4'b0100: match = 2'b10;
+                4'b1000: match = 2'b11;
+                default: match = 2'b00;
+            endcase  
+            
         end
+        else match = '0;
     end
 
     // Find LRU.
-    integer k;
     always_comb begin
-        for ( k = 0; k < N; k++ ) begin
-            if ( lru_mem[k][ s_index ] == 2'b00 ) begin
-                s_lru = k[ $clog2 (N) - 1:0 ];
-            end
-            else s_lru = '0;
-        end
+        s_lru_found[0] = lru_mem[0][ s_index ] == 2'b00;
+        s_lru_found[1] = lru_mem[1][ s_index ] == 2'b00;
+        s_lru_found[2] = lru_mem[2][ s_index ] == 2'b00;
+        s_lru_found[3] = lru_mem[3][ s_index ] == 2'b00;
+
+        case ( s_lru_found )
+            4'b0001: s_lru = 2'b00;
+            4'b0010: s_lru = 2'b01;
+            4'b0100: s_lru = 2'b10;
+            4'b1000: s_lru = 2'b11;
+            default: s_lru = 2'b00;
+        endcase  
     end
 
 
@@ -131,17 +146,100 @@ module data_cache
     // Write data logic.
     always_ff @( posedge clk ) begin
         if ( write_en ) begin
-            case ( s_word_offset )
-                3'b000:  data_mem[ s_index ][ match ][ 63 :0   ] <= i_data; 
-                3'b001:  data_mem[ s_index ][ match ][ 127:64  ] <= i_data; 
-                3'b010:  data_mem[ s_index ][ match ][ 191:128 ] <= i_data; 
-                3'b011:  data_mem[ s_index ][ match ][ 255:192 ] <= i_data;  
-                3'b100:  data_mem[ s_index ][ match ][ 319:256 ] <= i_data; 
-                3'b101:  data_mem[ s_index ][ match ][ 383:320 ] <= i_data; 
-                3'b110:  data_mem[ s_index ][ match ][ 447:384 ] <= i_data;
-                3'b111:  data_mem[ s_index ][ match ][ 511:448 ] <= i_data;
-                default: data_mem[ s_index ][ match ][ 63:0    ] <= '0;
-            endcase   
+            case ( i_store_type )
+                // SD Instruction.
+                2'b11: begin
+                    case ( s_word_offset )
+                        4'b0000: data_mem[ s_index ][ match ][ 63 :0   ] <= i_data; 
+                        4'b0001: data_mem[ s_index ][ match ][ 95 :32  ] <= i_data; 
+                        4'b0010: data_mem[ s_index ][ match ][ 127:64  ] <= i_data; 
+                        4'b0011: data_mem[ s_index ][ match ][ 159:96  ] <= i_data; 
+                        4'b0100: data_mem[ s_index ][ match ][ 191:128 ] <= i_data; 
+                        4'b0101: data_mem[ s_index ][ match ][ 223:160 ] <= i_data; 
+                        4'b0110: data_mem[ s_index ][ match ][ 255:192 ] <= i_data; 
+                        4'b0111: data_mem[ s_index ][ match ][ 287:224 ] <= i_data; 
+                        4'b1000: data_mem[ s_index ][ match ][ 319:256 ] <= i_data; 
+                        4'b1001: data_mem[ s_index ][ match ][ 351:288 ] <= i_data;
+                        4'b1010: data_mem[ s_index ][ match ][ 383:320 ] <= i_data; 
+                        4'b1011: data_mem[ s_index ][ match ][ 415:352 ] <= i_data; 
+                        4'b1100: data_mem[ s_index ][ match ][ 447:384 ] <= i_data; 
+                        4'b1101: data_mem[ s_index ][ match ][ 479:416 ] <= i_data;
+                        4'b1110: data_mem[ s_index ][ match ][ 511:448 ] <= i_data;
+                        4'b1111: data_mem[ s_index ][ match ][ 511:480 ] <= i_data[31:0]; //NOT FINISHED.
+                        default: data_mem[ s_index ][ match ][ 31:0    ] <= '0;
+                    endcase                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                end
+
+                // SW Instruction.
+                2'b10: begin
+                    case ( s_word_offset )
+                        4'b0000: data_mem[ s_index ][ match ][ 31 :0   ] <= i_data[ 31:0 ]; 
+                        4'b0001: data_mem[ s_index ][ match ][ 63 :32  ] <= i_data[ 31:0 ]; 
+                        4'b0010: data_mem[ s_index ][ match ][ 95 :64  ] <= i_data[ 31:0 ]; 
+                        4'b0011: data_mem[ s_index ][ match ][ 127:96  ] <= i_data[ 31:0 ]; 
+                        4'b0100: data_mem[ s_index ][ match ][ 159:128 ] <= i_data[ 31:0 ]; 
+                        4'b0101: data_mem[ s_index ][ match ][ 191:160 ] <= i_data[ 31:0 ]; 
+                        4'b0110: data_mem[ s_index ][ match ][ 223:192 ] <= i_data[ 31:0 ]; 
+                        4'b0111: data_mem[ s_index ][ match ][ 255:224 ] <= i_data[ 31:0 ]; 
+                        4'b1000: data_mem[ s_index ][ match ][ 287:256 ] <= i_data[ 31:0 ]; 
+                        4'b1001: data_mem[ s_index ][ match ][ 319:288 ] <= i_data[ 31:0 ]; 
+                        4'b1010: data_mem[ s_index ][ match ][ 351:320 ] <= i_data[ 31:0 ]; 
+                        4'b1011: data_mem[ s_index ][ match ][ 383:352 ] <= i_data[ 31:0 ]; 
+                        4'b1100: data_mem[ s_index ][ match ][ 415:384 ] <= i_data[ 31:0 ]; 
+                        4'b1101: data_mem[ s_index ][ match ][ 447:416 ] <= i_data[ 31:0 ];
+                        4'b1110: data_mem[ s_index ][ match ][ 479:448 ] <= i_data[ 31:0 ];
+                        4'b1111: data_mem[ s_index ][ match ][ 511:480 ] <= i_data[ 31:0 ];
+                        default: data_mem[ s_index ][ match ][ 31:0    ] <= '0;
+                    endcase    
+                end 
+
+                // SH Instruction.
+                2'b01: begin
+                    case ( s_word_offset )
+                        4'b0000: data_mem[ s_index ][ match ][ 31 :0   ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b0001: data_mem[ s_index ][ match ][ 63 :32  ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b0010: data_mem[ s_index ][ match ][ 95 :64  ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b0011: data_mem[ s_index ][ match ][ 127:96  ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b0100: data_mem[ s_index ][ match ][ 159:128 ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b0101: data_mem[ s_index ][ match ][ 191:160 ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b0110: data_mem[ s_index ][ match ][ 223:192 ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b0111: data_mem[ s_index ][ match ][ 255:224 ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b1000: data_mem[ s_index ][ match ][ 287:256 ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b1001: data_mem[ s_index ][ match ][ 319:288 ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b1010: data_mem[ s_index ][ match ][ 351:320 ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b1011: data_mem[ s_index ][ match ][ 383:352 ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b1100: data_mem[ s_index ][ match ][ 415:384 ][ 15:0 ] <= i_data[ 15:0 ]; 
+                        4'b1101: data_mem[ s_index ][ match ][ 447:416 ][ 15:0 ] <= i_data[ 15:0 ];
+                        4'b1110: data_mem[ s_index ][ match ][ 479:448 ][ 15:0 ] <= i_data[ 15:0 ];
+                        4'b1111: data_mem[ s_index ][ match ][ 511:480 ][ 15:0 ] <= i_data[ 15:0 ];
+                        default: data_mem[ s_index ][ match ][ 31:0    ][ 15:0 ] <= '0;
+                    endcase
+                end
+
+                // SB Instruction.
+                2'b00: begin
+                    case ( s_word_offset )
+                        4'b0000: data_mem[ s_index ][ match ][ 31 :0   ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b0001: data_mem[ s_index ][ match ][ 63 :32  ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b0010: data_mem[ s_index ][ match ][ 95 :64  ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b0011: data_mem[ s_index ][ match ][ 127:96  ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b0100: data_mem[ s_index ][ match ][ 159:128 ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b0101: data_mem[ s_index ][ match ][ 191:160 ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b0110: data_mem[ s_index ][ match ][ 223:192 ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b0111: data_mem[ s_index ][ match ][ 255:224 ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b1000: data_mem[ s_index ][ match ][ 287:256 ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b1001: data_mem[ s_index ][ match ][ 319:288 ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b1010: data_mem[ s_index ][ match ][ 351:320 ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b1011: data_mem[ s_index ][ match ][ 383:352 ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b1100: data_mem[ s_index ][ match ][ 415:384 ][ 7:0 ] <= i_data[ 7:0 ]; 
+                        4'b1101: data_mem[ s_index ][ match ][ 447:416 ][ 7:0 ] <= i_data[ 7:0 ];
+                        4'b1110: data_mem[ s_index ][ match ][ 479:448 ][ 7:0 ] <= i_data[ 7:0 ];
+                        4'b1111: data_mem[ s_index ][ match ][ 511:480 ][ 7:0 ] <= i_data[ 7:0 ];
+                        default: data_mem[ s_index ][ match ][ 31:0    ][ 7:0 ] <= '0;
+                    endcase
+                end
+            endcase
+
         end
         else if ( block_write_en ) begin
             data_mem[ s_index ][ s_lru ] <= i_data_block;
@@ -150,7 +248,7 @@ module data_cache
     end
 
     // Modify dirty bit. 
-    always_ff @( posedge clk ) begin
+    always_ff @( posedge clk, negedge arstn ) begin
         if ( ~ arstn ) begin
             // For 4-way set associative cache.
             dirty_mem [ 0 ] <= '0;
@@ -167,7 +265,7 @@ module data_cache
     end
 
     // Write valid bit. 
-    always_ff @( posedge clk ) begin
+    always_ff @( posedge clk, negedge arstn ) begin
         if ( ~ arstn ) begin
             // For 4-way set associative cache.
             valid_mem [ 0 ] <= '0;
@@ -181,7 +279,7 @@ module data_cache
     end
 
     // Write LRU set.
-    always_ff @( posedge clk ) begin
+    always_ff @( posedge clk, negedge arstn ) begin
         if ( ~arstn ) begin
             lru_set <= '0;
         end
@@ -190,7 +288,7 @@ module data_cache
         end
     end
 
-    // Write LRU. NOT FINISHED.
+    // Write LRU.
     integer j;
     always_ff @( posedge clk ) begin
         if ( ~ lru_set[ s_index ] ) begin
@@ -202,12 +300,10 @@ module data_cache
         end
         else if ( lru_update ) begin
             if ( o_hit ) begin
+                lru_mem[ match ][ s_index ] <= 2'b11;
                 for ( j = 0; j < N; j++ ) begin
-                    if ( j[ $clog2 (N) - 1:0 ] == match ) begin
-                        lru_mem[ match ][ s_index ] <= 2'b11;
-                    end
-                    else if ( j > match ) begin
-                        lru_mem[ j ][ s_index ] <= lru_mem[ j ][ s_index ] - 2'b01;                        
+                    if ( lru_mem[ j ][ s_index ] > lru_mem[ match ][ s_index ] ) begin
+                        lru_mem[ j ][ s_index ] <= lru_mem[ j ][ s_index ] - 2'b01;
                     end
                 end
             end
@@ -223,20 +319,28 @@ module data_cache
     // Read word.
     always_comb begin
         case ( s_word_offset )
-            3'b000:  o_data =  data_mem[ s_index ][ match ][ 63 :0   ]; 
-            3'b001:  o_data =  data_mem[ s_index ][ match ][ 127:64  ]; 
-            3'b010:  o_data =  data_mem[ s_index ][ match ][ 191:128 ]; 
-            3'b011:  o_data =  data_mem[ s_index ][ match ][ 255:192 ];  
-            3'b100:  o_data =  data_mem[ s_index ][ match ][ 319:256 ]; 
-            3'b101:  o_data =  data_mem[ s_index ][ match ][ 383:320 ]; 
-            3'b110:  o_data =  data_mem[ s_index ][ match ][ 447:384 ];
-            3'b111:  o_data =  data_mem[ s_index ][ match ][ 511:448 ];
+            4'b0000: o_data = data_mem[ s_index ][ match ][ 63 :0   ]; 
+            4'b0001: o_data = data_mem[ s_index ][ match ][ 95 :32  ]; 
+            4'b0010: o_data = data_mem[ s_index ][ match ][ 127:64  ]; 
+            4'b0011: o_data = data_mem[ s_index ][ match ][ 159:96  ]; 
+            4'b0100: o_data = data_mem[ s_index ][ match ][ 191:128 ]; 
+            4'b0101: o_data = data_mem[ s_index ][ match ][ 223:160 ]; 
+            4'b0110: o_data = data_mem[ s_index ][ match ][ 255:192 ]; 
+            4'b0111: o_data = data_mem[ s_index ][ match ][ 287:224 ]; 
+            4'b1000: o_data = data_mem[ s_index ][ match ][ 319:256 ]; 
+            4'b1001: o_data = data_mem[ s_index ][ match ][ 351:288 ]; 
+            4'b1010: o_data = data_mem[ s_index ][ match ][ 383:320 ]; 
+            4'b1011: o_data = data_mem[ s_index ][ match ][ 415:352 ]; 
+            4'b1100: o_data = data_mem[ s_index ][ match ][ 447:384 ]; 
+            4'b1101: o_data = data_mem[ s_index ][ match ][ 479:416 ];
+            4'b1110: o_data = data_mem[ s_index ][ match ][ 511:448 ];
+            4'b1111: o_data = { { 32{1'b0}} , data_mem[ s_index ][ match ][ 511:480 ] }; // NOT FINISHED.
             default: o_data = '0;
         endcase
     end
 
     //Read dirty bit.
-    assign o_dirty = dirty_mem[ match ][ s_index ];
+    assign o_dirty      = dirty_mem[ match ][ s_index ];
     assign o_data_block = data_mem[ s_index ][ match ];
 
     
