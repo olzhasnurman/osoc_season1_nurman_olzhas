@@ -16,6 +16,7 @@ module register_file
     // Common clock & enable signal.
     input  logic                      clk,
     input  logic                      write_en_3,
+    input  logic                      arstn,
 
     //Input interface. 
     input  logic [ ADDR_WIDTH - 1:0 ] i_addr_1,
@@ -33,8 +34,12 @@ module register_file
 
     // Write logic.
     always_ff @( posedge clk ) begin 
+        if ( ~arstn ) begin
+            mem[0] <= '0;
+        end
         if ( write_en_3 ) begin
             mem[i_addr_3] <= i_write_data_3;
+            mem[ 0 ] <= '0;
         end
     end
 

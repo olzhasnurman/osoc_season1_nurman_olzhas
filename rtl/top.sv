@@ -173,6 +173,7 @@ module top
     register_file REG_FILE (
         .clk            ( clk                ),
         .write_en_3     ( s_reg_write_en     ),
+        .arstn          ( arstn              ),
         .i_addr_1       ( s_reg_addr_1       ),
         .i_addr_2       ( s_reg_addr_2       ),
         .i_addr_3       ( s_reg_addr_3       ),
