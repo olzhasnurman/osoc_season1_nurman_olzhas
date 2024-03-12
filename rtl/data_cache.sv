@@ -6,7 +6,7 @@
 
 module data_cache 
 #(
-    parameter SET_COUNT   = 256,
+    parameter SET_COUNT   = 32,
               WORD_COUNT  = 16,
               WORD_SIZE   = 32,
               BLOCK_WIDTH = 512,
