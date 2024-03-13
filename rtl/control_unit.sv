@@ -45,7 +45,8 @@ module control_unit
     output logic       o_data_lru_update,
     output logic       o_start_write_axi,
     output logic       o_addr_write_en,
-    output logic       o_partial_store
+    output logic       o_partial_store,
+    output logic       o_mem_reg_we
 
 ); 
 
@@ -112,7 +113,8 @@ module control_unit
         .o_write_state    ( s_write_state       ),
         .o_branch         ( s_instr_branch      ),
         .o_addr_write_en  ( o_addr_write_en     ),
-        .o_partial_store  ( o_partial_store     ) 
+        .o_partial_store  ( o_partial_store     ),
+        .o_mem_reg_we     ( o_mem_reg_we        )
     );
 
     // Instruction cache FSM.

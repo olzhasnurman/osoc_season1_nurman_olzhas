@@ -98,6 +98,7 @@ module top
     logic [ REG_DATA_WIDTH  - 1:0 ] s_reg_data_2;
     logic [ REG_DATA_WIDTH  - 1:0 ] s_reg_alu_result;
     logic [ MEM_DATA_WIDTH  - 1:0 ] s_reg_mem_data;
+    logic                           s_reg_mem_we;
 
     // MUX signals.
     logic [ REG_DATA_WIDTH - 1:0 ] s_result;
@@ -165,7 +166,8 @@ module top
         .o_data_lru_update      ( s_data_lru_update     ),
         .o_start_write_axi      ( o_start_write_axi     ),
         .o_addr_write_en        ( s_addr_write_en       ),
-        .o_partial_store        ( s_partial_st_state    ) 
+        .o_partial_store        ( s_partial_st_state    ),
+        .o_mem_reg_we           ( s_reg_mem_we          )
     );
 
 
@@ -297,6 +299,7 @@ module top
     register_mem MEM_DATA (
         .clk          ( clk                ),
         .arstn        ( arstn              ),
+        .write_en     ( s_reg_mem_we       ),
         .i_partial_ld ( s_partial_st_state ),
         .i_write_data ( s_mem_read_data    ),
         .o_read_data  ( s_reg_mem_data     )

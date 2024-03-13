@@ -34,7 +34,8 @@ module main_fsm
     output logic       o_write_state,
     output logic       o_branch,
     output logic       o_addr_write_en, //
-    output logic       o_partial_store   // 
+    output logic       o_partial_store, // 
+    output logic       o_mem_reg_we
 );  
     // State type.
     typedef enum logic [3:0] {
@@ -222,6 +223,7 @@ module main_fsm
         o_start_d_cache  = 1'b0;
         o_write_state    = 1'b0;
         o_partial_store  = 1'b0;
+        o_mem_reg_we     = 1'b0;
 
         case ( PS )
             FETCH: begin
@@ -257,20 +259,23 @@ module main_fsm
 
             MEMREAD: begin
                 o_result_src    = 2'b00;
+                o_mem_addr_src  = 1'b1;
                 o_start_d_cache = 1'b1;
                 o_alu_op        = 2'b00;
 
                 if ( i_stall_data ) begin
                     o_addr_write_en = 1'b1;
+                    o_mem_reg_we    = 1'b0;
                     o_alu_src_1     = 2'b10;
                     o_alu_src_2     = 2'b01;
                 end
                 else begin
                     o_addr_write_en = 1'b0;
+                    o_mem_reg_we    = 1'b1;
 
                     if ( i_partial_store ) begin
-                        o_alu_src_1 = 2'b01;
-                        o_alu_src_2 = 2'b10;
+                        o_alu_src_1  = 2'b01;
+                        o_alu_src_2  = 2'b10;
                     end
                     else begin
                         o_alu_src_1 = 2'b10;
@@ -286,7 +291,14 @@ module main_fsm
                 o_alu_src_1     = 2'b01;
                 o_alu_src_2     = 2'b10;
                 o_alu_op        = 2'b00;
-                o_partial_store = 1'b1;
+                if ( i_stall_data ) begin
+                    o_partial_store = 1'b0;
+                    o_mem_reg_we    = 1'b0;
+                end
+                else begin
+                    o_partial_store = 1'b1;
+                    o_mem_reg_we    = 1'b1;
+                end 
             end
 
             MEMWB: begin
@@ -406,6 +418,7 @@ module main_fsm
                 o_start_d_cache  = 1'b0;
                 o_write_state    = 1'b0;
                 o_partial_store  = 1'b0;
+                o_mem_reg_we     = 1'b0;
             end
         endcase
     end
