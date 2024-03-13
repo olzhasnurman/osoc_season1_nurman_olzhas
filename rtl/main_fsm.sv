@@ -16,7 +16,8 @@ module main_fsm
     input  logic [2:0] i_func_3,
     input  logic       i_func_7_5, 
     input  logic       i_stall_instr,
-    input  logic       i_stall_data, 
+    input  logic       i_stall_data,
+    input  logic       i_partial_rw, //
 
     // Output interface.
     output logic [1:0] o_alu_op,
@@ -26,27 +27,31 @@ module main_fsm
     output logic       o_mem_addr_src,
     output logic       o_reg_write_en,
     output logic       o_pc_update,
-    output logic       o_mem_write_en,   //
+    output logic       o_mem_write_en,
     output logic       o_instr_write_en, 
     output logic       o_start_i_cache,
-    output logic       o_start_d_cache,  // 
-    output logic       o_write_state,    // 
-    output logic       o_branch
+    output logic       o_start_d_cache, 
+    output logic       o_write_state,
+    output logic       o_branch,
+    output logic       o_addr_write_en, //
+    output logic       o_partial_rw     // 
 );  
     // State type.
     typedef enum logic [3:0] {
-        FETCH    = 4'b0000,
-        DECODE   = 4'b0001,
-        MEMADDR  = 4'b0010,
-        MEMREAD  = 4'b0011,
-        MEMWB    = 4'b0100,
-        MEMWRITE = 4'b0101,
-        EXECUTER = 4'b0110,
-        ALUWB    = 4'b0111,
-        EXECUTEI = 4'b1000,
-        JAL      = 4'b1001,
-        BRANCH   = 4'b1010,
-        LOADI    = 4'b1011
+        FETCH      = 4'b0000,
+        DECODE     = 4'b0001,
+        MEMADDR    = 4'b0010,
+        MEMREAD    = 4'b0011,
+        MEMWB      = 4'b0100,
+        MEMWRITE   = 4'b0101,
+        EXECUTER   = 4'b0110,
+        ALUWB      = 4'b0111,
+        EXECUTEI   = 4'b1000,
+        JAL        = 4'b1001,
+        BRANCH     = 4'b1010,
+        LOADI      = 4'b1011,
+        MEMWRITE_D = 4'b1100,
+        MEMREAD_D  = 4'b1101
     } t_state;
 
     // State variables. 
@@ -150,12 +155,32 @@ module main_fsm
                 if ( i_stall_data ) begin
                     NS = PS;
                 end
+                else if ( i_partial_rw ) begin
+                    NS = MEMREAD_D;
+                end
+                else NS = MEMWB;
+            end
+
+            MEMREAD_D: begin
+                if ( i_stall_data ) begin
+                    NS = PS;
+                end
                 else NS = MEMWB;
             end
 
             MEMWB: NS = FETCH;
 
             MEMWRITE: begin
+                if ( i_stall_data ) begin
+                    NS = PS;
+                end
+                else if ( i_partial_rw ) begin
+                    NS = MEMWRITE_D;
+                end 
+                else NS = FETCH;
+            end
+
+            MEMWRITE_D: begin
                 if ( i_stall_data ) begin
                     NS = PS;
                 end
@@ -191,10 +216,12 @@ module main_fsm
         o_pc_update      = 1'b0;
         o_mem_write_en   = 1'b0;
         o_instr_write_en = 1'b0;
+        o_addr_write_en  = 1'b0;
         o_start_i_cache  = 1'b0;
         o_branch         = 1'b0;
         o_start_d_cache  = 1'b0;
         o_write_state    = 1'b0;
+        o_partial_rw     = 1'b0;
 
         case ( PS )
             FETCH: begin
@@ -204,6 +231,7 @@ module main_fsm
                 end
                 else begin
                     o_instr_write_en   = 1'b1;
+                    o_addr_write_en    = 1'b1;
                     o_pc_update        = 1'b1;      
                 end
                 
@@ -236,6 +264,15 @@ module main_fsm
                 o_alu_op        = 2'b00;
             end
 
+            MEMREAD_D: begin  // NOT FINISHED.
+                o_result_src    = 2'b00;
+                o_mem_addr_src  = 1'b1;
+                o_start_d_cache = 1'b1;
+                o_alu_src_1     = 2'b10;
+                o_alu_src_2     = 2'b01;
+                o_alu_op        = 2'b00;
+            end
+
             MEMWB: begin
                 o_result_src   = 2'b01;
                 o_reg_write_en = 1'b1;
@@ -243,19 +280,51 @@ module main_fsm
 
             MEMWRITE: begin
                 if ( i_stall_data ) begin
-                    o_mem_write_en = 1'b0;
+                    o_mem_write_en  = 1'b0;
+                    o_addr_write_en = 1'b1;
+                    o_alu_src_1     = 2'b10;
+                    o_alu_src_2     = 2'b01;
                 end
                 else begin
-                    o_mem_write_en = 1'b1;     
-                end
+                    o_mem_write_en  = 1'b1;
+                    o_addr_write_en = 1'b0;
 
+                    if ( i_partial_rw ) begin
+                        o_alu_src_1 = 2'b01;
+                        o_alu_src_2 = 2'b10;
+                    end
+                    else begin
+                        o_alu_src_1 = 2'b10;
+                        o_alu_src_2 = 2'b01;      
+                    end
+                end
+                
                 o_start_d_cache = 1'b1;
                 o_result_src    = 2'b00;
                 o_mem_addr_src  = 1'b1;
                 o_write_state   = 1'b1;
-                o_alu_src_1     = 2'b10;
-                o_alu_src_2     = 2'b01;
+                o_alu_op    = 2'b00;
+                
+            end
+
+            MEMWRITE_D: begin
+                if ( i_stall_data ) begin
+                    o_mem_write_en = 1'b0;
+                end
+                else begin
+                    o_mem_write_en = 1'b1;
+                end
+
+                o_partial_rw    = 1'b1;
+                o_start_d_cache = 1'b1;
+                o_result_src    = 2'b00;
+                o_mem_addr_src  = 1'b1;
+                o_write_state   = 1'b1;
+                o_alu_src_1     = 2'b01;
+                o_alu_src_2     = 2'b10;
                 o_alu_op        = 2'b00;
+                
+
             end
 
             EXECUTER: begin
@@ -315,10 +384,12 @@ module main_fsm
                 o_pc_update      = 1'b0;
                 o_mem_write_en   = 1'b0;
                 o_instr_write_en = 1'b0;
+                o_addr_write_en  = 1'b0;
                 o_start_i_cache  = 1'b0;
                 o_branch         = 1'b0;
                 o_start_d_cache  = 1'b0;
                 o_write_state    = 1'b0;
+                o_partial_rw     = 1'b0;
             end
         endcase
     end

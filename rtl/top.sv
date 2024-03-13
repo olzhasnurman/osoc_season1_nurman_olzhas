@@ -43,6 +43,8 @@ module top
     logic s_data_block_write_en;
     logic s_data_valid_update;
     logic s_data_lru_update;
+    logic s_partial_rw;
+    logic s_partial_rw_state;
 
     // ALU flags.
     logic s_zero_flag;
@@ -66,10 +68,10 @@ module top
     logic       s_pc_write_en;
     logic       s_mem_write_en;
     logic       s_instr_write_en;
+    logic       s_addr_write_en;
 
     // Memory signals.
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_mem_addr;
-    logic [ MEM_DATA_WIDTH  - 1:0 ] s_mem_write_data;
     logic [ MEM_DATA_WIDTH  - 1:0 ] s_mem_read_data;
     logic [ MEM_INSTR_WIDTH - 1:0 ] s_mem_read_instr;
 
@@ -79,12 +81,13 @@ module top
     logic [ REG_ADDR_WIDTH - 1:0 ] s_reg_addr_3;
     logic [ REG_DATA_WIDTH - 1:0 ] s_reg_read_data_1;
     logic [ REG_DATA_WIDTH - 1:0 ] s_reg_read_data_2;
-    logic [ REG_DATA_WIDTH - 1:0 ] s_reg_write_data_3;
 
     // ALU signals.
     logic [ REG_DATA_WIDTH - 1:0 ] s_alu_src_data_1;
     logic [ REG_DATA_WIDTH - 1:0 ] s_alu_src_data_2;
+    /* verilator lint_off UNOPTFLAT */
     logic [ REG_DATA_WIDTH - 1:0 ] s_alu_result;
+    /* verilator lint_on UNOPTFLAT */
 
     // Registered signals. 
     logic [ MEM_INSTR_WIDTH - 1:0 ] s_reg_instr;
@@ -118,8 +121,6 @@ module top
     assign s_reg_addr_2 = s_reg_instr[24:20];
     assign s_reg_addr_3 = s_reg_instr[11:7];
  
-    assign s_reg_write_data_3 = s_result;
-    assign s_mem_write_data   = s_reg_data_2;
 
 
 
@@ -145,6 +146,7 @@ module top
         .i_data_hit             ( s_data_hit            ),
         .i_data_dirty           ( s_data_dirty          ),
         .i_b_resp_axi           ( i_b_resp_axi          ),
+        .i_partial_rw           ( s_partial_rw          ),
         .o_alu_control          ( s_alu_control         ),
         .o_result_src           ( s_result_src          ),
         .o_alu_src_1            ( s_alu_src_control_1   ),
@@ -160,7 +162,9 @@ module top
         .o_block_write_en       ( s_data_block_write_en ),
         .o_data_valid_update    ( s_data_valid_update   ),
         .o_data_lru_update      ( s_data_lru_update     ),
-        .o_start_write_axi      ( o_start_write_axi     ) 
+        .o_start_write_axi      ( o_start_write_axi     ),
+        .o_addr_write_en        ( s_addr_write_en       ),
+        .o_partial_rw           ( s_partial_rw_state    ) 
     );
 
 
@@ -171,26 +175,15 @@ module top
 
     // Register File Instance.
     register_file REG_FILE (
-        .clk            ( clk                ),
-        .write_en_3     ( s_reg_write_en     ),
-        .arstn          ( arstn              ),
-        .i_addr_1       ( s_reg_addr_1       ),
-        .i_addr_2       ( s_reg_addr_2       ),
-        .i_addr_3       ( s_reg_addr_3       ),
-        .i_write_data_3 ( s_reg_write_data_3 ),
-        .o_read_data_1  ( s_reg_read_data_1  ),
-        .o_read_data_2  ( s_reg_read_data_2  )
-    );
-
-    // Memory Unit Instance. 
-    memory MEM (
-        .clk          ( clk              ),
-        .write_en     ( s_mem_write_en   ),
-        .i_store_type ( s_func_3[1:0]    ),
-        .i_addr       ( s_mem_addr       ),
-        .i_write_data ( s_mem_write_data ),
-        .o_read_data  ( s_mem_read_data  ),
-        .o_read_instr ( s_mem_read_instr )
+        .clk            ( clk               ),
+        .write_en_3     ( s_reg_write_en    ),
+        .arstn          ( arstn             ),
+        .i_addr_1       ( s_reg_addr_1      ),
+        .i_addr_2       ( s_reg_addr_2      ),
+        .i_addr_3       ( s_reg_addr_3      ),
+        .i_write_data_3 ( s_result          ),
+        .o_read_data_1  ( s_reg_read_data_1 ),
+        .o_read_data_2  ( s_reg_read_data_2 )
     );
 
     // Data Cache.
@@ -202,13 +195,15 @@ module top
         .lru_update     ( s_data_lru_update     ),
         .block_write_en ( s_data_block_write_en ),
         .i_data_addr    ( s_mem_addr            ),
-        .i_data         ( s_mem_write_data      ),
+        .i_data         ( s_reg_data_2          ),
         .i_data_block   ( i_data_read_axi       ),
         .i_store_type   ( s_func_3[1:0]         ),
+        .i_partial_rw   ( s_partial_rw_state    ),
         .o_data         ( s_mem_read_data       ),
         .o_data_block   ( o_data_write_axi      ),
         .o_hit          ( s_data_hit            ),
-        .o_dirty        ( s_data_dirty          )
+        .o_dirty        ( s_data_dirty          ),
+        .o_partial_rw   ( s_partial_rw          )
     );
 
     // Instruction Cache.
@@ -266,11 +261,11 @@ module top
 
     // Old PC Register Instance.
     register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) OLD_PC_REG (
-        .clk          ( clk              ),
-        .write_en     ( s_instr_write_en ),
-        .arstn        ( arstn            ),
-        .i_write_data ( s_reg_pc         ),
-        .o_read_data  ( s_reg_old_pc     )
+        .clk          ( clk             ),
+        .write_en     ( s_addr_write_en ),
+        .arstn        ( arstn           ),
+        .i_write_data ( s_mem_addr      ),
+        .o_read_data  ( s_reg_old_pc    )
     ); 
 
     // R1 Register Instance.

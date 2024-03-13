@@ -6,7 +6,7 @@
 
 module instr_cache 
 #(
-    parameter BLOCK_COUNT   = 32,
+    parameter BLOCK_COUNT   = 256,
               WORD_COUNT    = 16,
               WORD_SIZE     = 32,
               BLOCK_WIDTH   = 512,

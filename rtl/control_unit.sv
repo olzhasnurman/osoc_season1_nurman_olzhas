@@ -25,6 +25,7 @@ module control_unit
     input  logic       i_data_hit,
     input  logic       i_data_dirty,
     input  logic       i_b_resp_axi,
+    input  logic       i_partial_rw,
 
     // Output interface.
     output logic [4:0] o_alu_control,
@@ -42,7 +43,9 @@ module control_unit
     output logic       o_block_write_en,
     output logic       o_data_valid_update,
     output logic       o_data_lru_update,
-    output logic       o_start_write_axi
+    output logic       o_start_write_axi,
+    output logic       o_addr_write_en,
+    output logic       o_partial_rw
 
 ); 
 
@@ -94,6 +97,7 @@ module control_unit
         .i_func_7_5       ( i_func_7_5          ), 
         .i_stall_instr    ( s_stall_instr       ),
         .i_stall_data     ( s_stall_data        ),
+        .i_partial_rw     ( i_partial_rw        ),
         .o_alu_op         ( s_alu_op            ),
         .o_result_src     ( o_result_src        ),
         .o_alu_src_1      ( o_alu_src_1         ),
@@ -106,7 +110,9 @@ module control_unit
         .o_start_i_cache  ( s_start_instr_cache ),
         .o_start_d_cache  ( s_start_data_cache  ),
         .o_write_state    ( s_write_state       ),
-        .o_branch         ( s_instr_branch      ) 
+        .o_branch         ( s_instr_branch      ),
+        .o_addr_write_en  ( o_addr_write_en     ),
+        .o_partial_rw     ( o_partial_rw        ) 
     );
 
     // Instruction cache FSM.
