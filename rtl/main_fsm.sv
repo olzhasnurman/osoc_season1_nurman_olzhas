@@ -17,7 +17,7 @@ module main_fsm
     input  logic       i_func_7_5, 
     input  logic       i_stall_instr,
     input  logic       i_stall_data,
-    input  logic       i_partial_rw, //
+    input  logic       i_partial_store, //
 
     // Output interface.
     output logic [1:0] o_alu_op,
@@ -34,7 +34,7 @@ module main_fsm
     output logic       o_write_state,
     output logic       o_branch,
     output logic       o_addr_write_en, //
-    output logic       o_partial_rw     // 
+    output logic       o_partial_store   // 
 );  
     // State type.
     typedef enum logic [3:0] {
@@ -155,7 +155,7 @@ module main_fsm
                 if ( i_stall_data ) begin
                     NS = PS;
                 end
-                else if ( i_partial_rw ) begin
+                else if ( i_partial_store ) begin
                     NS = MEMREAD_D;
                 end
                 else NS = MEMWB;
@@ -174,7 +174,7 @@ module main_fsm
                 if ( i_stall_data ) begin
                     NS = PS;
                 end
-                else if ( i_partial_rw ) begin
+                else if ( i_partial_store ) begin
                     NS = MEMWRITE_D;
                 end 
                 else NS = FETCH;
@@ -221,7 +221,7 @@ module main_fsm
         o_branch         = 1'b0;
         o_start_d_cache  = 1'b0;
         o_write_state    = 1'b0;
-        o_partial_rw     = 1'b0;
+        o_partial_store  = 1'b0;
 
         case ( PS )
             FETCH: begin
@@ -257,20 +257,36 @@ module main_fsm
 
             MEMREAD: begin
                 o_result_src    = 2'b00;
-                o_mem_addr_src  = 1'b1;
                 o_start_d_cache = 1'b1;
-                o_alu_src_1     = 2'b10;
-                o_alu_src_2     = 2'b01;
                 o_alu_op        = 2'b00;
+
+                if ( i_stall_data ) begin
+                    o_addr_write_en = 1'b1;
+                    o_alu_src_1     = 2'b10;
+                    o_alu_src_2     = 2'b01;
+                end
+                else begin
+                    o_addr_write_en = 1'b0;
+
+                    if ( i_partial_store ) begin
+                        o_alu_src_1 = 2'b01;
+                        o_alu_src_2 = 2'b10;
+                    end
+                    else begin
+                        o_alu_src_1 = 2'b10;
+                        o_alu_src_2 = 2'b01;      
+                    end
+                end
             end
 
-            MEMREAD_D: begin  // NOT FINISHED.
+            MEMREAD_D: begin 
                 o_result_src    = 2'b00;
                 o_mem_addr_src  = 1'b1;
                 o_start_d_cache = 1'b1;
-                o_alu_src_1     = 2'b10;
-                o_alu_src_2     = 2'b01;
+                o_alu_src_1     = 2'b01;
+                o_alu_src_2     = 2'b10;
                 o_alu_op        = 2'b00;
+                o_partial_store = 1'b1;
             end
 
             MEMWB: begin
@@ -289,7 +305,7 @@ module main_fsm
                     o_mem_write_en  = 1'b1;
                     o_addr_write_en = 1'b0;
 
-                    if ( i_partial_rw ) begin
+                    if ( i_partial_store ) begin
                         o_alu_src_1 = 2'b01;
                         o_alu_src_2 = 2'b10;
                     end
@@ -315,7 +331,7 @@ module main_fsm
                     o_mem_write_en = 1'b1;
                 end
 
-                o_partial_rw    = 1'b1;
+                o_partial_store = 1'b1;
                 o_start_d_cache = 1'b1;
                 o_result_src    = 2'b00;
                 o_mem_addr_src  = 1'b1;
@@ -389,7 +405,7 @@ module main_fsm
                 o_branch         = 1'b0;
                 o_start_d_cache  = 1'b0;
                 o_write_state    = 1'b0;
-                o_partial_rw     = 1'b0;
+                o_partial_store  = 1'b0;
             end
         endcase
     end

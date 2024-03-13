@@ -43,8 +43,9 @@ module top
     logic s_data_block_write_en;
     logic s_data_valid_update;
     logic s_data_lru_update;
-    logic s_partial_rw;
-    logic s_partial_rw_state;
+    logic s_partial_st;
+    logic s_partial_st_state;
+    logic s_partial_ld_state;
 
     // ALU flags.
     logic s_zero_flag;
@@ -146,7 +147,7 @@ module top
         .i_data_hit             ( s_data_hit            ),
         .i_data_dirty           ( s_data_dirty          ),
         .i_b_resp_axi           ( i_b_resp_axi          ),
-        .i_partial_rw           ( s_partial_rw          ),
+        .i_partial_store        ( s_partial_st          ),
         .o_alu_control          ( s_alu_control         ),
         .o_result_src           ( s_result_src          ),
         .o_alu_src_1            ( s_alu_src_control_1   ),
@@ -164,7 +165,7 @@ module top
         .o_data_lru_update      ( s_data_lru_update     ),
         .o_start_write_axi      ( o_start_write_axi     ),
         .o_addr_write_en        ( s_addr_write_en       ),
-        .o_partial_rw           ( s_partial_rw_state    ) 
+        .o_partial_store        ( s_partial_st_state    ) 
     );
 
 
@@ -198,12 +199,12 @@ module top
         .i_data         ( s_reg_data_2          ),
         .i_data_block   ( i_data_read_axi       ),
         .i_store_type   ( s_func_3[1:0]         ),
-        .i_partial_rw   ( s_partial_rw_state    ),
+        .i_partial_st   ( s_partial_st_state    ),
         .o_data         ( s_mem_read_data       ),
         .o_data_block   ( o_data_write_axi      ),
         .o_hit          ( s_data_hit            ),
         .o_dirty        ( s_data_dirty          ),
-        .o_partial_rw   ( s_partial_rw          )
+        .o_partial_st   ( s_partial_st          )
     );
 
     // Instruction Cache.
@@ -296,7 +297,7 @@ module top
     register_mem MEM_DATA (
         .clk          ( clk                ),
         .arstn        ( arstn              ),
-        .i_partial_rw ( s_partial_rw_state ),
+        .i_partial_ld ( s_partial_st_state ),
         .i_write_data ( s_mem_read_data    ),
         .o_read_data  ( s_reg_mem_data     )
     );

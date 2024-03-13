@@ -29,14 +29,14 @@ module data_cache
     input  logic [ REG_WIDTH   - 1:0 ] i_data,
     input  logic [ BLOCK_WIDTH - 1:0 ] i_data_block,
     input  logic [               1:0 ] i_store_type,
-    input  logic                       i_partial_rw, //
+    input  logic                       i_partial_st, //
 
     // Output Interface.
     output logic [ REG_WIDTH   - 1:0 ] o_data,
     output logic [ BLOCK_WIDTH - 1:0 ] o_data_block,
     output logic                       o_hit,
     output logic                       o_dirty,
-    output logic                       o_partial_rw //
+    output logic                       o_partial_st //
 
 );  
     //-------------------------
@@ -77,7 +77,7 @@ module data_cache
     assign s_index       = i_data_addr[ INDEX_MSB      :INDEX_LSB       ]; 
     assign s_word_offset = i_data_addr[ WORD_OFFSET_MSB:WORD_OFFSET_LSB ];
 
-    assign o_partial_rw = (i_store_type == 2'b11) & (s_word_offset == 4'b1111);
+    assign o_partial_st = (i_store_type == 2'b11) & (s_word_offset == 4'b1111);
 
 
     //-------------------------------------
@@ -155,7 +155,7 @@ module data_cache
                 2'b11: begin
                     case ( s_word_offset )
                         4'b0000: begin
-                            if ( i_partial_rw ) begin
+                            if ( i_partial_st ) begin
                                 data_mem[ s_index ][ s_match ][ 31 :0 ] <= i_data[ 63:32 ];
                             end
                             else data_mem[ s_index ][ s_match ][ 63 :0 ] <= i_data; 
