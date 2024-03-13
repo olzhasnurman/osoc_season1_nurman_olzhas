@@ -174,7 +174,7 @@ module data_cache
                         4'b1100: data_mem[ s_index ][ s_match ][ 447:384 ] <= i_data; 
                         4'b1101: data_mem[ s_index ][ s_match ][ 479:416 ] <= i_data;
                         4'b1110: data_mem[ s_index ][ s_match ][ 511:448 ] <= i_data;
-                        4'b1111: data_mem[ s_index ][ s_match ][ 511:480 ] <= i_data[31:0]; //NOT FINISHED.
+                        4'b1111: data_mem[ s_index ][ s_match ][ 511:480 ] <= i_data[31:0];
                         default: data_mem[ s_index ][ s_match ][ 31:0    ] <= '0;
                     endcase                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
                 end
@@ -328,9 +328,7 @@ module data_cache
     // Read word.
     always_comb begin
         case ( s_word_offset )
-            4'b0000: begin
-                    o_data = data_mem[ s_index ][ s_match ][ 63 :0 ];  
-            end
+            4'b0000: o_data = data_mem[ s_index ][ s_match ][ 63 :0   ]; 
             4'b0001: o_data = data_mem[ s_index ][ s_match ][ 95 :32  ]; 
             4'b0010: o_data = data_mem[ s_index ][ s_match ][ 127:64  ]; 
             4'b0011: o_data = data_mem[ s_index ][ s_match ][ 159:96  ]; 
@@ -345,7 +343,7 @@ module data_cache
             4'b1100: o_data = data_mem[ s_index ][ s_match ][ 447:384 ]; 
             4'b1101: o_data = data_mem[ s_index ][ s_match ][ 479:416 ];
             4'b1110: o_data = data_mem[ s_index ][ s_match ][ 511:448 ];
-            4'b1111: o_data = data_mem[ s_index ][ s_match ][ 511:448 ]; // NOT FINISHED.
+            4'b1111: o_data = data_mem[ s_index ][ s_match ][ 511:448 ];
             default: o_data = '0;
         endcase
     end

@@ -293,11 +293,12 @@ module top
     );
 
     // Memory Data Register. 
-    register # (.DATA_WIDTH (MEM_DATA_WIDTH)) MEM_DATA (
-        .clk          ( clk             ),
-        .arstn        ( arstn           ),
-        .i_write_data ( s_mem_read_data ),
-        .o_read_data  ( s_reg_mem_data  )
+    register_mem MEM_DATA (
+        .clk          ( clk                ),
+        .arstn        ( arstn              ),
+        .i_partial_rw ( s_partial_rw_state ),
+        .i_write_data ( s_mem_read_data    ),
+        .o_read_data  ( s_reg_mem_data     )
     );
 
 
