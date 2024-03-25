@@ -19,7 +19,7 @@ module top
 (
     //Clock & Reset signals. 
     input  logic         clk,
-    input  logic         arstn,
+    input  logic         i_arstn,
     input  logic         i_read_last_axi,   // NEEDS TO BE CONNECTED TO AXI 
     input  logic [511:0] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
     input  logic         i_b_resp_axi,      // NEEDS TO BE CONNECTED TO AXI
@@ -31,6 +31,9 @@ module top
     //------------------------
     // INTERNAL NETS.
     //------------------------
+
+    // Reset signal.
+    logic arstn;
 
     // Instruction cache signals.
     logic s_instr_cache_we;
@@ -125,10 +128,19 @@ module top
  
 
 
-
     //-----------------------------------
     // LOWER LEVEL MODULE INSTANTIATIONS.
     //-----------------------------------
+
+    //------------------------------
+    // Reset Synchronizer Instance.
+    //------------------------------
+    reset_sync RST_SYNC (
+        .clk   ( clk     ),
+        .arstn ( i_arstn ),
+        .rstn  ( arstn   )
+    );
+
 
     //---------------------------
     // Control Unit Instance.
