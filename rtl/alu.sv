@@ -99,16 +99,16 @@ module alu
     
     // ALU regular & immediate operations. 
     assign {s_carry_flag_add, s_add_out}  = i_src_1 + i_src_2;
-    assign {s_carry_flag_sub, s_sub_out}  = $signed(i_src_1) - $signed(i_src_2);
+    assign s_sub_out  = $unsigned($signed(i_src_1) - $signed(i_src_2));
     assign s_and_out   = i_src_1 & i_src_2;
     assign s_or_out    = i_src_1 | i_src_2;
     assign s_xor_out   = i_src_1 ^ i_src_2;
     assign s_sll_out   = i_src_1 << i_src_2[4:0];
     assign s_srl_out   = i_src_1 >> i_src_2[4:0];
-    assign s_sra_out   = $signed(i_src_1) >>> i_src_2[4:0];
+    assign s_sra_out   = $unsigned($signed(i_src_1) >>> i_src_2[4:0]);
     assign s_slli_out   = i_src_1 << i_src_2[5:0];
     assign s_srli_out   = i_src_1 >> i_src_2[5:0];
-    assign s_srai_out   = $signed(i_src_1) >>> i_src_2[5:0];
+    assign s_srai_out   = $unsigned($signed(i_src_1) >>> i_src_2[5:0]);
 
     assign less_than   = $signed(i_src_1) < $signed(i_src_2);
     assign less_than_u = i_src_1 < i_src_2;
@@ -117,7 +117,7 @@ module alu
     assign s_addw_out = i_src_1[31:0] + i_src_2[31:0];
     assign s_subw_out = i_src_1[31:0] - i_src_2[31:0]; 
     assign s_srlw_out = i_src_1[31:0] >> i_src_2[4:0];
-    assign s_sraw_out = $signed(i_src_1[31:0]) >>> i_src_2[4:0];
+    assign s_sraw_out = $unsigned($signed(i_src_1[31:0]) >>> i_src_2[4:0]);
 
 
     // Flags. 
