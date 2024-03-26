@@ -210,9 +210,9 @@ module axi_slave
 
     // Address increment.
     always_ff @( posedge clk ) begin 
-        if ( NS == READ) begin
+        if ( AR_VALID & AR_READY & ( PS == IDLE )) begin
            R_LAST <= 1'b0;
-           o_addr <= AR_ADDR; 
+           o_addr <= AR_ADDR;  
         end
         else begin
             if ( R_READY ) begin
@@ -224,9 +224,6 @@ module axi_slave
                     R_LAST <= 1'b0;
                     o_addr <= o_addr + 'b100;
                 end
-            end
-            else if ( !W_LAST ) begin
-                o_addr <= o_addr + 'b100;
             end
             else begin
                 R_LAST <= 1'b0;

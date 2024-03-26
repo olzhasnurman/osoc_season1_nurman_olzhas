@@ -74,8 +74,8 @@ module axi_master
     //-------------------------
     // Internal signals.
     //-------------------------
-    logic                      s_fifo_we;
-    logic [ DATA_WIDTH - 1:0 ] s_fifo_out;
+    logic                          s_fifo_we;
+    logic [ DATA_WIDTH     - 1:0 ] s_fifo_out;
 
     logic s_shift;
     logic [ DATA_WIDTH - 1:0 ]s_data;
@@ -242,7 +242,7 @@ module axi_master
     //-------------------------------------
     always_ff @( posedge clk ) begin
         if ( s_fifo_we ) begin
-            s_fifo_out <= { R_DATA , s_fifo_out[ DATA_WIDTH - 33:0 ]};
+            s_fifo_out <= { R_DATA , s_fifo_out[ DATA_WIDTH - 1:32 ]};
         end
     end
 

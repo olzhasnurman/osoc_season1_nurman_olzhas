@@ -26,6 +26,7 @@ module top
     output logic         o_start_read_axi,  // NEEDS TO BE CONNECTED TO AXI
     output logic         o_start_write_axi, // NEEDS TO BE CONNECTED TO AXI
     output logic         o_access,          // JUST FOR SIMULATION
+    output logic [ MEM_ADDR_WIDTH - 1:0 ] o_addr, // JUST FOR SIMULATION
     output logic [511:0] o_data_write_axi   // NEEDS TO BE CONNECTED TO AXI
 );
 
@@ -381,6 +382,10 @@ module top
         .i_data   ( s_reg_mem_data  ),
         .o_data   ( s_mem_load_data )
     );
+
+
+    // FOR SIMULATION. 
+    assign o_addr = s_mem_addr;
 
     
 endmodule

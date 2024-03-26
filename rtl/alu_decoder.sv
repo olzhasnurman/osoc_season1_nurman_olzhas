@@ -71,6 +71,7 @@ module alu_decoder
                 endcase 
             
             default: o_alu_control = 5'b00000; // Default.
+            // PROBLEM: SUBW IS NOT CONSIDERED
 
         endcase
     end

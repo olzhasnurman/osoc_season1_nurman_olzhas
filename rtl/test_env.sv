@@ -50,6 +50,7 @@ module test_env
         .o_start_read_axi  ( s_start_read     ),
         .o_start_write_axi ( s_start_write    ),
         .o_access          ( s_access         ),
+        .o_addr            ( s_addr_cache     ),
         .o_data_write_axi  ( s_data_cache_out )
     );
 

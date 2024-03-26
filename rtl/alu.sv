@@ -115,7 +115,7 @@ module alu
 
     // ALU word operations.
     assign s_addw_out = i_src_1[31:0] + i_src_2[31:0];
-    assign s_subw_out = i_src_1[31:0] - i_src_2[31:0]; 
+    assign s_subw_out = $unsigned($signed(i_src_1[31:0]) -  $signed(i_src_2[31:0])); 
     assign s_srlw_out = i_src_1[31:0] >> i_src_2[4:0];
     assign s_sraw_out = $unsigned($signed(i_src_1[31:0]) >>> i_src_2[4:0]);
 
