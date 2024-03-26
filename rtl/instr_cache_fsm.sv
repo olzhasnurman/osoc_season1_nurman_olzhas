@@ -70,6 +70,11 @@ module instr_cache_fsm
 
     // FSM: Output Logic.
     always_comb begin
+
+        // Default values.
+        o_stall          = 1'b0;
+        o_start_read     = 1'b0;
+        o_instr_write_en = 1'b0;
         
         case ( PS )
             IDLE: begin

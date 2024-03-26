@@ -141,6 +141,14 @@ module axi_slave
     // FSM: Output Logic.
     always_comb begin
         
+        // Default values.
+        R_VALID = 1'b0;
+        AR_READY = 1'b0;
+        s_count_start = 1'b0;
+        o_write_en = 1'b0;
+        B_RESP = 2'b11;
+        B_VALID = 1'b0;
+        
         case ( PS )
             IDLE: begin
                 AR_READY = 1'b1;
@@ -189,7 +197,7 @@ module axi_slave
             s_count_done <= 1'b0;
         end
         else if ( s_count_start ) begin
-            if ( s_count < AR_LEN ) begin
+            if ( s_count < (AR_LEN - 'd2) ) begin
                 s_count <= s_count + 'b1;
                 s_count_done <= 1'b0;
             end
@@ -202,22 +210,28 @@ module axi_slave
 
     // Address increment.
     always_ff @( posedge clk ) begin 
-        if ( R_READY ) begin
-            if ( s_count_done ) begin
-                R_LAST <= 1'b1;
-                o_addr <= o_addr;
+        if ( NS == READ) begin
+           R_LAST <= 1'b0;
+           o_addr <= AR_ADDR; 
+        end
+        else begin
+            if ( R_READY ) begin
+                if ( s_count_done ) begin
+                    R_LAST <= 1'b1;
+                    o_addr <= o_addr;
+                end
+                else begin
+                    R_LAST <= 1'b0;
+                    o_addr <= o_addr + 'b100;
+                end
+            end
+            else if ( !W_LAST ) begin
+                o_addr <= o_addr + 'b100;
             end
             else begin
                 R_LAST <= 1'b0;
-                o_addr <= o_addr + 'b100;
-            end
-        end
-        else if ( !W_LAST ) begin
-            o_addr <= o_addr + 'b100;
-        end
-        else begin
-            R_LAST <= 1'b0;
-            o_addr <= o_addr;
+                o_addr <= o_addr;
+            end  
         end
     end
     

@@ -163,7 +163,15 @@ module axi_master
 
     // FSM: Output Logic.
     always_comb begin
+
+        // Default values.
+        s_fifo_we = 1'b0;
+        R_READY = 1'b0;
+        W_VALID = 1'b0;
         AR_VALID = 1'b0;
+        AW_VALID = 1'b0;
+        B_READY  = 1'b0;
+        o_b_resp_axi = 1'b0;
         
         case ( PS )
             IDLE: begin
@@ -258,7 +266,7 @@ module axi_master
             s_count_done <= 1'b0;
         end
         else if ( s_count_start ) begin
-            if ( s_count < AR_LEN ) begin
+            if ( s_count < (AR_LEN - 'd2) ) begin
                 s_count <= s_count + 'b1;
                 s_count_done <= 1'b0;
             end
