@@ -12,19 +12,47 @@ module axi_master
 ) 
 (
     // Control signals.
-    input logic                          clk,
-    input logic                          arstn,
+    input logic clk,
+    input logic arstn,
 
     // Input interface.
     input logic [ AXI_ADDR_WIDTH - 1:0 ] i_addr,
+    input logic [ DATA_WIDTH     - 1:0 ] i_data,
+    input logic                          i_start_write,
     input logic                          i_start_read,
 
     // Output interface. 
     output logic [ DATA_WIDTH    - 1:0 ] o_data,
-    output logic                         o_valid,
+    output logic                         o_read_last_axi,
+    output logic                         o_b_resp_axi,
 
     //--------------------------------------
-    // AXI Interface signals.
+    // AXI Interface signals: WRITE
+    //--------------------------------------
+
+    // Write Channel: Address. Ignored AW_ID for now.
+    input  logic                            AW_READY,
+    output logic                            AW_VALID,
+    output logic [                    2:0 ] AW_PROT,
+    output logic [ AXI_ADDR_WIDTH   - 1:0 ] AW_ADDR,
+    output logic [                    7:0 ] AW_LEN,   // Optional.
+    output logic [                    2:0 ] AW_SIZE,  // Optional.
+    output logic [                    1:0 ] AW_BURST, // Optional.
+
+    // Write Channel: Data.
+    input  logic                            W_READY,
+    output logic [ AXI_DATA_WIDTH   - 1:0 ] W_DATA,
+    output logic [ AXI_DATA_WIDTH/8 - 1:0 ] W_STRB, // Optional.
+    output logic                            W_LAST,
+    output logic                            W_VALID,
+
+    // Write Channel: Response. Ignored B_ID for now.
+    input  logic [                    1:0 ] B_RESP, // Optional.
+    input  logic                            B_VALID,
+    output logic                            B_READY,
+
+    //--------------------------------------
+    // AXI Interface signals: READ
     //--------------------------------------
 
     // Read Channel: Address. Ignored AR_ID for now.
@@ -49,14 +77,23 @@ module axi_master
     logic                      s_fifo_we;
     logic [ DATA_WIDTH - 1:0 ] s_fifo_out;
 
+    logic s_shift;
+    logic [ DATA_WIDTH - 1:0 ]s_data;
+    logic s_count_start;
+    logic s_count_done;
+    logic [7:0] s_count;
+
     //-------------------------
     // Continious assignments.
     //-------------------------
     assign AR_ADDR  = i_addr;
     assign AR_LEN   = 8'd16;  // 16 in case of 512 bit data out size.
-    assign AR_SIZE  = 3'b101; // 32 bit.
+    assign AR_SIZE  = 3'b010; // 32 bit / 4 bytes. 
     assign AR_BURST = 2'b01;  // Incrementing Burst.
     assign AR_PROT  = 3'b100; // Random value. NOT FINAL VALUE.
+
+    assign AW_ADDR = i_addr;
+    assign o_read_last_axi = R_LAST;
 
 
     //-------------------------
@@ -65,8 +102,10 @@ module axi_master
 
     // FSM: States.
     typedef enum logic [1:0] {
-        IDLE = 2'b00,
-        READ = 2'b10
+        IDLE  = 2'b00,
+        READ  = 2'b10,
+        WRITE = 2'b01,
+        RESP  = 2'b11
     } t_state;
 
     t_state PS;
@@ -91,15 +130,33 @@ module axi_master
                         NS = READ;
                     end
                 end
+                else if ( i_start_write ) begin
+                    if ( AW_VALID & AW_READY ) begin
+                        NS = WRITE;
+                    end
+                end
             end 
 
             READ: begin
-                if (R_VALID & R_READY) begin
+                if (R_VALID & R_READY ) begin
                     if ( R_LAST ) begin
                         NS = IDLE;
                     end
                 end
             end
+
+            WRITE: begin
+                if ( W_READY & W_VALID ) begin
+                    if ( W_LAST ) begin
+                        NS = RESP;
+                    end
+                end
+            end
+
+            RESP: if ( B_VALID & B_READY & ( B_RESP == 2'b00 )) begin
+                NS = IDLE;
+            end
+
             default: NS = PS;
         endcase
     end
@@ -111,6 +168,15 @@ module axi_master
             IDLE: begin
                 if ( i_start_read ) begin
                     AR_VALID = 1'b1;
+                end
+                else if ( i_start_write ) begin
+                    AW_VALID = 1'b1;
+                    s_shift = 1'b1;
+                end
+                
+                
+                else begin 
+                    AR_VALID = 1'b0;
                 end
             end
 
@@ -126,7 +192,38 @@ module axi_master
                 else s_fifo_we = 1'b0;
             end
 
-            default: s_fifo_we = 1'b0;
+            WRITE: begin
+                if ( i_start_write ) begin
+                    W_VALID = 1'b1;
+                    if ( W_LAST ) begin
+                        s_shift = 1'b0;
+                    end
+                    else s_shift = 1'b1;
+                end
+                else begin
+                    W_VALID = 1'b0;
+                    s_shift = 1'b0;
+                end
+            end
+
+            RESP: begin
+                B_READY = 1'b1;
+                if ( B_READY & B_VALID ) begin
+                    if ( B_RESP == 2'b00 ) begin
+                        o_b_resp_axi = 1'b1;
+                    end
+                end
+            end
+
+            default: begin
+                s_fifo_we = 1'b0;
+                R_READY = 1'b0;
+                W_VALID = 1'b0;
+                AR_VALID = 1'b0;
+                AW_VALID = 1'b0;
+                B_READY  = 1'b0;
+                o_b_resp_axi = 1'b0;
+            end 
         endcase
     end
 
@@ -138,6 +235,45 @@ module axi_master
         if ( s_fifo_we ) begin
             s_fifo_out <= { R_DATA , s_fifo_out[ DATA_WIDTH - 33:0 ]};
         end
+    end
+
+    //----------------------------------
+    // Shift register.
+    //----------------------------------
+    always_ff @( posedge clk ) begin
+        if ( AW_VALID ) begin
+            s_data <= i_data;
+            W_DATA <= i_data[31:0];
+        end
+        if ( s_shift ) begin
+            { s_data, W_DATA } <= { 64'b0 ,s_data[511:32] };
+        end
+    end
+
+    // Counter.
+    always_ff @( posedge clk, posedge AW_VALID ) begin
+        if ( AW_VALID ) begin 
+            s_count <= '0;
+            s_count_done <= 1'b0;
+        end
+        else if ( s_count_start ) begin
+            if ( s_count < AR_LEN ) begin
+                s_count <= s_count + 'b1;
+                s_count_done <= 1'b0;
+            end
+            else begin
+                s_count <= s_count;
+                s_count_done <= 1'b1;
+            end
+        end
+    end
+
+    // Address increment.
+    always_ff @( posedge clk ) begin 
+        if ( s_count_done ) begin
+            W_LAST <= 1'b1;
+        end
+        else W_LAST <= 1'b0;
     end
 
     assign o_data = s_fifo_out;
