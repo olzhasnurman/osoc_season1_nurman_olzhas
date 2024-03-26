@@ -5,7 +5,7 @@
 // ------------------------------------------------------------
 
 
-module moduleName 
+module axi_top 
 #(
     parameter AXI_ADDR_WIDTH = 64,
               AXI_DATA_WIDTH = 32,
@@ -22,13 +22,13 @@ module moduleName
     output logic                          o_we_mem,
 
     // Cache interface. 
-    input  logic i_addr_cache,
-    input  logic i_data_cache,
-    input  logic i_start_write,
-    input  logic i_start_read,
-    output logic o_data_cache,
-    output logic o_read_last_axi,
-    output logic o_b_resp_axi 
+    input  logic [ AXI_ADDR_WIDTH - 1:0 ] i_addr_cache,
+    input  logic [ DATA_WIDTH     - 1:0 ] i_data_cache,
+    input  logic                          i_start_write,
+    input  logic                          i_start_read,
+    output logic [ DATA_WIDTH     - 1:0 ] o_data_cache,
+    output logic                          o_read_last_axi,
+    output logic                          o_b_resp_axi 
 );
 
 
@@ -38,45 +38,45 @@ module moduleName
     //--------------------------------------
 
     // Write Channel: Address. Ignored AW_ID for now.
-    logic                            AW_READY,
-    logic                            AW_VALID,
-    logic [                    2:0 ] AW_PROT,
-    logic [ AXI_ADDR_WIDTH   - 1:0 ] AW_ADDR,
-    logic [                    7:0 ] AW_LEN,   
-    logic [                    2:0 ] AW_SIZE,  
-    logic [                    1:0 ] AW_BURST, 
+    logic                            AW_READY;
+    logic                            AW_VALID;
+    logic [                    2:0 ] AW_PROT;
+    logic [ AXI_ADDR_WIDTH   - 1:0 ] AW_ADDR;
+    logic [                    7:0 ] AW_LEN;
+    logic [                    2:0 ] AW_SIZE;
+    logic [                    1:0 ] AW_BURST; 
 
     // Write Channel: Data.
-    logic                            W_READY,
-    logic [ AXI_DATA_WIDTH   - 1:0 ] W_DATA,
-    logic [ AXI_DATA_WIDTH/8 - 1:0 ] W_STRB, 
-    logic                            W_LAST,
-    logic                            W_VALID,
+    logic                            W_READY;
+    logic [ AXI_DATA_WIDTH   - 1:0 ] W_DATA;
+    logic [ AXI_DATA_WIDTH/8 - 1:0 ] W_STRB;
+    logic                            W_LAST;
+    logic                            W_VALID;
 
     // Write Channel: Response. Ignored B_ID for now.
-    logic [                    1:0 ] B_RESP, 
-    logic                            B_VALID,
-    logic                            B_READY,
+    logic [                    1:0 ] B_RESP;
+    logic                            B_VALID;
+    logic                            B_READY;
 
     //--------------------------------------
     // AXI Interface signals: READ
     //--------------------------------------
 
     // Read Channel: Address. Ignored AR_ID for now.
-    logic                            AR_READY,
-    logic                            AR_VALID,
-    logic [                    7:0 ] AR_LEN,   
-    logic [                    2:0 ] AR_SIZE,  
-    logic [                    1:0 ] AR_BURST, 
-    logic [ AXI_ADDR_WIDTH   - 1:0 ] AR_ADDR,
-    logic [                    2:0 ] AR_PROT,
+    logic                            AR_READY;
+    logic                            AR_VALID;
+    logic [                    7:0 ] AR_LEN;
+    logic [                    2:0 ] AR_SIZE;
+    logic [                    1:0 ] AR_BURST; 
+    logic [ AXI_ADDR_WIDTH   - 1:0 ] AR_ADDR;
+    logic [                    2:0 ] AR_PROT;
 
     // Read Channel: Data. Ignored R_ID for now.
-    logic [ AXI_DATA_WIDTH   - 1:0 ] R_DATA,
-    logic [                    1:0 ] R_RESP, 
-    logic                            R_LAST, 
-    logic                            R_VALID,
-    logic                            R_READY
+    logic [ AXI_DATA_WIDTH   - 1:0 ] R_DATA;
+    logic [                    1:0 ] R_RESP;
+    logic                            R_LAST;
+    logic                            R_VALID;
+    logic                            R_READY;
 
 
     //-----------------------------------

@@ -163,6 +163,7 @@ module axi_master
 
     // FSM: Output Logic.
     always_comb begin
+        AR_VALID = 1'b0;
         
         case ( PS )
             IDLE: begin

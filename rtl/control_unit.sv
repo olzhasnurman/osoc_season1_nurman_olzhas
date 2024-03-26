@@ -46,6 +46,7 @@ module control_unit
     output logic       o_start_write_axi,
     output logic       o_addr_write_en,
     output logic       o_partial_store,
+    output logic       o_access, // Just for simulation.
     output logic       o_mem_reg_we
 
 ); 
@@ -70,6 +71,7 @@ module control_unit
     assign o_pc_write       = s_pc_update | ( s_branch );
 
     assign o_start_read_axi = s_start_read_data | s_start_read_instr;
+    assign o_access = s_start_read_data;
 
     // Branch type decoder. 
     always_comb begin : BRANCH_TYPE

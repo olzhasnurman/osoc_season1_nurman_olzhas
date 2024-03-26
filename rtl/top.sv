@@ -25,6 +25,7 @@ module top
     input  logic         i_b_resp_axi,      // NEEDS TO BE CONNECTED TO AXI
     output logic         o_start_read_axi,  // NEEDS TO BE CONNECTED TO AXI
     output logic         o_start_write_axi, // NEEDS TO BE CONNECTED TO AXI
+    output logic         o_access,          // JUST FOR SIMULATION
     output logic [511:0] o_data_write_axi   // NEEDS TO BE CONNECTED TO AXI
 );
 
@@ -179,6 +180,7 @@ module top
         .o_start_write_axi      ( o_start_write_axi     ),
         .o_addr_write_en        ( s_addr_write_en       ),
         .o_partial_store        ( s_partial_st_state    ),
+        .o_access               ( o_access              ),
         .o_mem_reg_we           ( s_reg_mem_we          )
     );
 

@@ -29,7 +29,7 @@ module alu_decoder
             2'b01: o_alu_control = 5'b00001; // SUB  for B type instructions: beq, bne.
 
             // I & R Type.
-            2'b010: 
+            2'b10: 
                 case (i_func_3)
                     3'b000: if ( s_op_func_7 == 2'b11 ) o_alu_control = 5'b00001; // sub instruciton.
                             else                        o_alu_control = 5'b00000; // add instruciton.
