@@ -62,8 +62,12 @@ module alu_decoder
             // I & R Type W.
             2'b11: 
                 case ( i_func_3 )
-                    3'b000: if ( i_op_5 ) o_alu_control = 5'b01101; // ADDW
-                            else          o_alu_control = 5'b10010; // ADDIW
+                    3'b000: 
+                        case ( s_op_func_7 )
+                            2'b11:   o_alu_control = 5'b01110; // SUBW.
+                            2'b10:   o_alu_control = 5'b01101; // ADDW.
+                            default: o_alu_control = 5'b10010; // ADDIW.
+                        endcase
                     3'b001: o_alu_control = 5'b01111; // SLLIW or SLLW
                     3'b101: if ( i_func_7_5 ) o_alu_control = 5'b10001; // SRAIW or SRAW.
                             else              o_alu_control = 5'b10000; // SRLIW or SRLW. 
@@ -71,7 +75,6 @@ module alu_decoder
                 endcase 
             
             default: o_alu_control = 5'b00000; // Default.
-            // PROBLEM: SUBW IS NOT CONSIDERED
 
         endcase
     end
