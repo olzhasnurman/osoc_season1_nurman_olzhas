@@ -27,7 +27,8 @@ module data_cache_fsm
     output logic o_valid_update,
     output logic o_lru_update,
     output logic o_start_write,
-    output logic o_start_read
+    output logic o_start_read,
+    output logic o_addr_control
 );
 
     //------------------------------
@@ -96,6 +97,7 @@ module data_cache_fsm
         o_lru_update          = 1'b0;
         o_start_write         = 1'b0;
         o_start_read          = 1'b0;
+        o_addr_control        = 1'b1;
 
         case ( PS )
             IDLE: begin
@@ -119,7 +121,8 @@ module data_cache_fsm
             end
 
             WRITE_BACK: begin
-                o_start_write = 1'b1;
+                o_start_write  = 1'b1;
+                o_addr_control = 1'b0;
             end
             default: begin
                 o_stall               = 1'b1;
@@ -128,6 +131,7 @@ module data_cache_fsm
                 o_lru_update          = 1'b0;
                 o_start_write         = 1'b0;
                 o_start_read          = 1'b0;
+                o_addr_control        = 1'b1;
             end
         endcase
     end

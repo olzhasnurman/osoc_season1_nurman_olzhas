@@ -51,6 +51,7 @@ module top
     logic s_partial_st;
     logic s_partial_st_state;
     logic s_partial_ld_state;
+    logic s_addr_control;
 
     // ALU flags.
     logic s_zero_flag;
@@ -80,6 +81,7 @@ module top
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_mem_addr;
     logic [ MEM_DATA_WIDTH  - 1:0 ] s_mem_read_data;
     logic [ MEM_INSTR_WIDTH - 1:0 ] s_mem_read_instr;
+    logic [ MEM_ADDR_WIDTH  - 1:0 ] s_addr_axi;
 
     // Register file signals. 
     logic [ REG_ADDR_WIDTH - 1:0 ] s_reg_addr_1;
@@ -182,6 +184,7 @@ module top
         .o_addr_write_en        ( s_addr_write_en       ),
         .o_partial_store        ( s_partial_st_state    ),
         .o_access               ( o_access              ),
+        .o_addr_control         ( s_addr_control        ),
         .o_mem_reg_we           ( s_reg_mem_we          )
     );
 
@@ -217,10 +220,12 @@ module top
         .i_data_block   ( i_data_read_axi       ),
         .i_store_type   ( s_func_3[1:0]         ),
         .i_partial_st   ( s_partial_st_state    ),
+        .i_addr_control ( s_addr_control        ),
         .o_data         ( s_mem_read_data       ),
         .o_data_block   ( o_data_write_axi      ),
         .o_hit          ( s_data_hit            ),
         .o_dirty        ( s_data_dirty          ),
+        .o_addr_axi     ( s_addr_axi            ),
         .o_partial_st   ( s_partial_st          )
     );
 
@@ -385,7 +390,7 @@ module top
 
 
     // FOR SIMULATION. 
-    assign o_addr = s_mem_addr;
+    assign o_addr = s_addr_axi;
 
     
 endmodule

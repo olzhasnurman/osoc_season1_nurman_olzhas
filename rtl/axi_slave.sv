@@ -168,7 +168,11 @@ module axi_slave
             WRITE: begin
                 W_READY = 1'b1;
                 if ( W_READY & W_VALID ) begin
-                    o_write_en = 1'b1;
+                    s_count_start = 1'b1;
+                    if ( W_LAST ) begin
+                       o_write_en = 1'b0; 
+                    end
+                    else o_write_en = 1'b1;
                 end
             end
 
@@ -192,7 +196,7 @@ module axi_slave
 
     // Counter.
     always_ff @( posedge clk, posedge AR_VALID ) begin
-        if ( AR_VALID ) begin 
+        if ( AR_VALID | AW_VALID ) begin 
             s_count <= '0;
             s_count_done <= 1'b0;
         end
@@ -210,12 +214,12 @@ module axi_slave
 
     // Address increment.
     always_ff @( posedge clk ) begin 
-        if ( AR_VALID & AR_READY & ( PS == IDLE )) begin
+        if ( PS == IDLE ) begin
            R_LAST <= 1'b0;
            o_addr <= AR_ADDR;  
         end
         else begin
-            if ( R_READY ) begin
+            if ( R_READY | W_READY ) begin
                 if ( s_count_done ) begin
                     R_LAST <= 1'b1;
                     o_addr <= o_addr;

@@ -172,6 +172,7 @@ module axi_master
         AW_VALID = 1'b0;
         B_READY  = 1'b0;
         o_b_resp_axi = 1'b0;
+        s_count_start = 1'b0;
         
         case ( PS )
             IDLE: begin
@@ -206,8 +207,12 @@ module axi_master
                     W_VALID = 1'b1;
                     if ( W_LAST ) begin
                         s_shift = 1'b0;
+                        s_count_start = 1'b0;
                     end
-                    else s_shift = 1'b1;
+                    else begin
+                        s_shift = 1'b1;
+                        s_count_start = 1'b1;
+                    end
                 end
                 else begin
                     W_VALID = 1'b0;
@@ -232,6 +237,7 @@ module axi_master
                 AW_VALID = 1'b0;
                 B_READY  = 1'b0;
                 o_b_resp_axi = 1'b0;
+                s_count_start = 1'b0;
             end 
         endcase
     end
@@ -251,11 +257,11 @@ module axi_master
     //----------------------------------
     always_ff @( posedge clk ) begin
         if ( AW_VALID ) begin
-            s_data <= i_data;
+            s_data <= { 32'b0, i_data[DATA_WIDTH - 1:32]};
             W_DATA <= i_data[31:0];
         end
-        if ( s_shift ) begin
-            { s_data, W_DATA } <= { 64'b0 ,s_data[511:32] };
+        else if ( s_shift ) begin
+            { s_data, W_DATA } <= { 32'b0, s_data[DATA_WIDTH - 1:0] };
         end
     end
 

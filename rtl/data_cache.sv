@@ -29,14 +29,16 @@ module data_cache
     input  logic [ REG_WIDTH   - 1:0 ] i_data,
     input  logic [ BLOCK_WIDTH - 1:0 ] i_data_block,
     input  logic [               1:0 ] i_store_type,
-    input  logic                       i_partial_st, //
+    input  logic                       i_partial_st,
+    input  logic                       i_addr_control,
 
     // Output Interface.
     output logic [ REG_WIDTH   - 1:0 ] o_data,
     output logic [ BLOCK_WIDTH - 1:0 ] o_data_block,
     output logic                       o_hit,
     output logic                       o_dirty,
-    output logic                       o_partial_st //
+    output logic                       o_partial_st,
+    output logic [ ADDR_WIDTH  - 1:0 ] o_addr_axi
 
 );  
     //-------------------------
@@ -67,6 +69,8 @@ module data_cache
     logic [ $clog2( N ) - 1:0 ] s_lru;
     logic [           N - 1:0 ] s_lru_found;
     logic [           N - 1:0 ] s_hit;
+
+    logic [ ADDR_WIDTH - 1:0 ] s_addr_wb;
 
 
 
@@ -122,7 +126,7 @@ module data_cache
             endcase  
             
         end
-        else s_match = '0;
+        else s_match = s_lru;
     end
 
     // Find LRU.
@@ -349,8 +353,10 @@ module data_cache
     end
 
     //Read dirty bit.
-    assign o_dirty      = dirty_mem[ s_match ][ s_index ];
+    assign o_dirty      = dirty_mem[ s_lru ][ s_index ];
     assign o_data_block = data_mem[ s_index ][ s_match ];
+    assign s_addr_wb    = { tag_mem[ s_index ][ s_lru ], s_index, s_word_offset, 2'b0 };
+    assign o_addr_axi   = i_addr_control ? i_data_addr : s_addr_wb;
 
     
 endmodule

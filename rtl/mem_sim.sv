@@ -25,7 +25,7 @@ module mem_sim
 );
 
     logic [ DATA_WIDTH - 1:0 ] mem_i [ 63:0 ]; 
-    logic [ DATA_WIDTH - 1:0 ] mem_d [ 256:0];
+    logic [ DATA_WIDTH - 1:0 ] mem_d [ 255:0];
 
     // initial begin
     //     $readmemh("instruction.txt", mem_i);
@@ -38,11 +38,11 @@ module mem_sim
             $readmemh("data.txt", mem_d);
         end
         else if ( write_en ) begin
-            mem_d[ i_addr[ 10:2 ] ] <= i_data;
+            mem_d[ i_addr[ 9:2 ] ] <= i_data;
         end
     end
 
-    assign o_data = access ? mem_d[ i_addr [10:2] ] : mem_i[ i_addr[7:2] ];
+    assign o_data = access ? mem_d[ i_addr [9:2] ] : mem_i[ i_addr[7:2] ];
 
 
     

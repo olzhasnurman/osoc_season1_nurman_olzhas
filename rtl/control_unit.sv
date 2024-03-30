@@ -47,6 +47,7 @@ module control_unit
     output logic       o_addr_write_en,
     output logic       o_partial_store,
     output logic       o_access, // Just for simulation.
+    output logic       o_addr_control,
     output logic       o_mem_reg_we
 
 ); 
@@ -146,7 +147,8 @@ module control_unit
         .o_valid_update        ( o_data_valid_update ),
         .o_lru_update          ( o_data_lru_update   ),
         .o_start_write         ( o_start_write_axi   ),
-        .o_start_read          ( s_start_read_data   )
+        .o_start_read          ( s_start_read_data   ),
+        .o_addr_control        ( o_addr_control      )
     );
 
 
