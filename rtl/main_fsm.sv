@@ -92,8 +92,8 @@ module main_fsm
             7'b0111011: instr = R_Type_W;
             7'b1100011: instr = B_Type;
             7'b1101111: instr = J_Type;
-            7'b0110111: instr = U_Type_ALU;
-            7'b0010111: instr = U_Type_LOAD; 
+            7'b0010111: instr = U_Type_ALU;
+            7'b0110111: instr = U_Type_LOAD; 
             7'b0001111: instr = FENCE_Type;
             7'b1110011: instr = E_Type;
             default:    instr = I_Type;
