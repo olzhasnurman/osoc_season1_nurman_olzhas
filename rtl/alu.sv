@@ -133,9 +133,10 @@ module alu
     // ------------
     always_comb begin
         // Default values.
-        o_alu_result    = 0;
-        o_overflow_flag = 0;
-        o_carry_flag    = 0;
+        o_alu_result    = '0;
+        o_overflow_flag = 1'b0;
+        o_carry_flag    = 1'b0;
+        o_zero_flag     = 1'b0;
 
         case ( alu_control )
             ADD : begin
@@ -147,6 +148,7 @@ module alu
                 o_alu_result    = s_sub_out;
                 o_carry_flag    = s_carry_flag_sub;
                 o_overflow_flag = s_overflow;
+                o_zero_flag     = !(1'b1 & (&s_sub_out));
             end 
             AND  : o_alu_result = s_and_out;
             OR   : o_alu_result = s_or_out;
@@ -170,9 +172,10 @@ module alu
             ADDIW: o_alu_result = { { 32{s_add_out[31]} }, s_add_out[31:0] };
 
             default: begin
-                o_alu_result    = 0;
-                o_overflow_flag = 0;
-                o_carry_flag    = 0;
+                o_alu_result    = 'b0;
+                o_overflow_flag = 1'b0;
+                o_carry_flag    = 1'b0;
+                o_zero_flag     = 1'b0;
             end 
         endcase
 
