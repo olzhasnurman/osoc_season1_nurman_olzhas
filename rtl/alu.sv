@@ -148,7 +148,7 @@ module alu
                 o_alu_result    = s_sub_out;
                 o_carry_flag    = s_carry_flag_sub;
                 o_overflow_flag = s_overflow;
-                o_zero_flag     = !(1'b1 & (&s_sub_out));
+                o_zero_flag     = !(1'b1 & (|s_sub_out));
             end 
             AND  : o_alu_result = s_and_out;
             OR   : o_alu_result = s_or_out;
