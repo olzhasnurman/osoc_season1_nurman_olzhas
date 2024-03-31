@@ -52,7 +52,8 @@ module main_fsm
         BRANCH     = 4'b1010,
         LOADI      = 4'b1011,
         MEMWRITE_D = 4'b1100,
-        MEMREAD_D  = 4'b1101
+        MEMREAD_D  = 4'b1101,
+        BREAK      = 4'b1110
     } t_state;
 
     // State variables. 
@@ -137,7 +138,7 @@ module main_fsm
                     U_Type_ALU : NS = ALUWB;
                     U_Type_LOAD: NS = LOADI; 
                     FENCE_Type : NS = FETCH; // NOT FINISHED.
-                    E_Type     : NS = FETCH; // NOT FINISHED.
+                    E_Type     : NS = BREAK; // NOT FINISHED.
 
                     default: NS = PS; 
                 endcase
@@ -199,6 +200,8 @@ module main_fsm
             BRANCH: NS = FETCH;
             
             LOADI: NS = FETCH;
+
+            BREAK: NS = FETCH;
 
             default: NS = PS;
         endcase
@@ -399,6 +402,11 @@ module main_fsm
             LOADI: begin
                 o_result_src   = 2'b11;
                 o_reg_write_en = 1'b1; 
+            end
+
+            BREAK: begin
+                $display("Breakpoint");
+                $stop(); // For simulation.
             end
 
 
