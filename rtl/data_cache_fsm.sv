@@ -67,7 +67,7 @@ module data_cache_fsm
                 if ( i_hit ) begin
                     NS = IDLE;
                 end
-                else if ( i_write & i_dirty ) begin
+                else if ( i_dirty ) begin
                     NS = WRITE_BACK;
                 end
                 else NS = ALLOCATE;

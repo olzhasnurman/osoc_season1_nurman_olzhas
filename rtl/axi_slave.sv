@@ -219,13 +219,21 @@ module axi_slave
            o_addr <= AR_ADDR;  
         end
         else begin
-            if ( R_READY | W_READY ) begin
+            if ( R_READY ) begin
                 if ( s_count_done ) begin
                     R_LAST <= 1'b1;
                     o_addr <= o_addr;
                 end
                 else begin
                     R_LAST <= 1'b0;
+                    o_addr <= o_addr + 'b100;
+                end
+            end
+            else if ( W_READY ) begin
+                if ( s_count_done ) begin
+                    o_addr <= o_addr;
+                end
+                else begin
                     o_addr <= o_addr + 'b100;
                 end
             end
