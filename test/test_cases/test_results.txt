@@ -1,0 +1,54 @@
+___________________________________
+|  INSTR         |   TEST STATUS  |
+|________________|________________|
+| add            | PASS           |
+| addi           | PASS           |
+| addiw          | PASS           |
+| addw           | PASS           |
+| and            | PASS           |
+| andi           | PASS           |
+| auipc          | PASS           |
+| beq            | NOT TESTED     |
+| bge            | NOT TESTED     |
+| bgeu           | NOT TESTED     |
+| blt            | NOT TESTED     |
+| bltu           | NOT TESTED     |
+| bne            | NOT TESTED     |
+| fence          | NOT TESTED     |
+| jalr           | NOT TESTED     |
+| lb-align       | NOT TESTED     |
+| lbu-align      | NOT TESTED     |
+| ld-align       | NOT TESTED     |
+| lh-align       | NOT TESTED     |
+| lhu-align      | NOT TESTED     |
+| lui            | PASS           |
+| lw-align       | NOT TESTED     |
+| lwu-align      | NOT TESTED     |
+| misalign1-jalr | NOT TESTED     |
+| or             | PASS           |
+| ori            | PASS           |
+| sb-align       | NOT TESTED     |
+| sd-align       | NOT TESTED     |
+| sh-align       | NOT TESTED     |
+| sll            | PASS           |
+| slli           | PASS           |
+| slliw          | PASS           |
+| sllw           | PASS           |
+| slt            | PASS           |
+| slti           | PASS           |
+| sltiu          | PASS           |
+| sltu           | PASS           |
+| sra            | PASS           |
+| srai           | PASS           |
+| sraiw          | PASS           |
+| sraw           | PASS           |
+| srl            | PASS           |
+| srli           | PASS           |
+| srliw          | PASS           |
+| srlw           | PASS           |
+| sub            | PASS           |
+| subw           | PASS           |
+| sw-align       | NOT TESTED     |
+| xor            | PASS           |
+| xori           | PASS           |
+|________________|________________|
