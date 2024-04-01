@@ -73,9 +73,6 @@ module alu
     logic [ DATA_WIDTH - 1:0 ] s_sll_out;
     logic [ DATA_WIDTH - 1:0 ] s_srl_out;
     logic [ DATA_WIDTH - 1:0 ] s_sra_out;
-    logic [ DATA_WIDTH - 1:0 ] s_slli_out;
-    logic [ DATA_WIDTH - 1:0 ] s_srli_out;
-    logic [ DATA_WIDTH - 1:0 ] s_srai_out;
 
     logic less_than;
     logic less_than_u;
@@ -83,6 +80,7 @@ module alu
     // ALU word operation outputs.
     logic [ WORD_WIDTH - 1:0 ] s_addw_out;
     logic [ WORD_WIDTH - 1:0 ] s_subw_out;
+    logic [ WORD_WIDTH - 1:0 ] s_sllw_out;
     logic [ WORD_WIDTH - 1:0 ] s_srlw_out;
     logic [ WORD_WIDTH - 1:0 ] s_sraw_out;
 
@@ -103,12 +101,9 @@ module alu
     assign s_and_out   = i_src_1 & i_src_2;
     assign s_or_out    = i_src_1 | i_src_2;
     assign s_xor_out   = i_src_1 ^ i_src_2;
-    assign s_sll_out   = i_src_1 << i_src_2[4:0];
-    assign s_srl_out   = i_src_1 >> i_src_2[4:0];
-    assign s_sra_out   = $unsigned($signed(i_src_1) >>> i_src_2[4:0]);
-    assign s_slli_out   = i_src_1 << i_src_2[5:0];
-    assign s_srli_out   = i_src_1 >> i_src_2[5:0];
-    assign s_srai_out   = $unsigned($signed(i_src_1) >>> i_src_2[5:0]);
+    assign s_sll_out   = i_src_1 << i_src_2[5:0];
+    assign s_srl_out   = i_src_1 >> i_src_2[5:0];
+    assign s_sra_out   = $unsigned($signed(i_src_1) >>> i_src_2[5:0]);
 
     assign less_than   = $signed(i_src_1) < $signed(i_src_2);
     assign less_than_u = i_src_1 < i_src_2;
@@ -116,6 +111,7 @@ module alu
     // ALU word operations.
     assign s_addw_out = i_src_1[31:0] + i_src_2[31:0];
     assign s_subw_out = $unsigned($signed(i_src_1[31:0]) -  $signed(i_src_2[31:0])); 
+    assign s_sllw_out = i_src_1 << i_src_2[4:0];
     assign s_srlw_out = i_src_1[31:0] >> i_src_2[4:0];
     assign s_sraw_out = $unsigned($signed(i_src_1[31:0]) >>> i_src_2[4:0]);
 
@@ -159,13 +155,13 @@ module alu
             SRL  : o_alu_result = s_srl_out;
             SRA  : o_alu_result = s_sra_out;
 
-            SLLI : o_alu_result = s_slli_out;
-            SRLI : o_alu_result = s_srli_out;
-            SRAI : o_alu_result = s_srai_out;
+            SLLI : o_alu_result = s_sll_out;  // PROBLEM: NEED TO REMOVE
+            SRLI : o_alu_result = s_srl_out;  // PROBLEM: NEED TO REMOVE
+            SRAI : o_alu_result = s_sra_out;  // PROBLEM: NEED TO REMOVE
 
             ADDW : o_alu_result = { { 32{s_addw_out[31]} }, s_addw_out };
             SUBW : o_alu_result = { { 32{s_subw_out[31]} }, s_subw_out };
-            SLLW : o_alu_result = { { 32{s_sll_out[31]} }, s_sll_out[31:0] };
+            SLLW : o_alu_result = { { 32{s_sllw_out[31]} }, s_sllw_out };
             SRLW : o_alu_result = { { 32{s_srlw_out[31]} }, s_srlw_out };
             SRAW : o_alu_result = { { 32{s_sraw_out[31]} }, s_sraw_out };
 

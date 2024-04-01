@@ -34,8 +34,8 @@ module alu_decoder
                     3'b000: if ( s_op_func_7 == 2'b11 ) o_alu_control = 5'b00001; // sub instruciton.
                             else                        o_alu_control = 5'b00000; // add instruciton.
 
-                    3'b001: if ( i_func_7_5 ) o_alu_control = 5'b00101; // sll instruction.
-                            else              o_alu_control = 5'b01010; // slli instruction. 
+                    3'b001: if ( i_op_5 ) o_alu_control = 5'b00101; // sll instruction.
+                            else          o_alu_control = 5'b01010; // slli instruction. 
 
                     3'b010: o_alu_control = 5'b00110; // slt instruction. 
 
