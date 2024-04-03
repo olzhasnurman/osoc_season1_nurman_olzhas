@@ -43,15 +43,17 @@ module top
     logic [31:0] s_instr_read;
 
     // Data cache signals.
-    logic s_data_hit;
-    logic s_data_dirty;
-    logic s_data_block_write_en;
-    logic s_data_valid_update;
-    logic s_data_lru_update;
-    logic s_partial_st;
-    logic s_partial_st_state;
-    logic s_partial_ld_state;
-    logic s_addr_control;
+    logic       s_data_hit;
+    logic       s_data_dirty;
+    logic       s_data_block_write_en;
+    logic       s_data_valid_update;
+    logic       s_data_lru_update;
+    logic       s_partial_st;
+    logic       s_partial_st_state;
+    logic       s_partial_ld_state;
+    logic       s_addr_control;
+    logic       s_edge_ld;
+    logic [1:0] s_byte_offset;
 
     // ALU flags.
     logic s_zero_flag;
@@ -93,9 +95,7 @@ module top
     // ALU signals.
     logic [ REG_DATA_WIDTH - 1:0 ] s_alu_src_data_1;
     logic [ REG_DATA_WIDTH - 1:0 ] s_alu_src_data_2;
-    /* verilator lint_off UNOPTFLAT */
     logic [ REG_DATA_WIDTH - 1:0 ] s_alu_result;
-    /* verilator lint_on UNOPTFLAT */
 
     // Registered signals. 
     logic [ MEM_INSTR_WIDTH - 1:0 ] s_reg_instr;
@@ -129,6 +129,9 @@ module top
     assign s_reg_addr_1 = s_reg_instr[19:15];
     assign s_reg_addr_2 = s_reg_instr[24:20];
     assign s_reg_addr_3 = s_reg_instr[11:7];
+
+    assign s_byte_offset = s_reg_old_pc[1:0];
+
  
 
 
@@ -226,6 +229,7 @@ module top
         .o_hit          ( s_data_hit            ),
         .o_dirty        ( s_data_dirty          ),
         .o_addr_axi     ( s_addr_axi            ),
+        .o_edge_ld      ( s_edge_ld             ),
         .o_partial_st   ( s_partial_st          )
     );
 
@@ -322,6 +326,7 @@ module top
         .write_en     ( s_reg_mem_we       ),
         .i_partial_ld ( s_partial_st_state ),
         .i_write_data ( s_mem_read_data    ),
+        .i_edge_ld    ( s_edge_ld          ),
         .o_read_data  ( s_reg_mem_data     )
     );
 
@@ -383,9 +388,10 @@ module top
     // LOAD Instruction mux. 
     //------------------------------
     load_mux LOAD_MUX (
-        .i_func_3 ( s_func_3        ),
-        .i_data   ( s_reg_mem_data  ),
-        .o_data   ( s_mem_load_data )
+        .i_func_3      ( s_func_3        ),
+        .i_data        ( s_reg_mem_data  ),
+        .i_byte_offset ( s_byte_offset   ),
+        .o_data        ( s_mem_load_data )
     );
 
 

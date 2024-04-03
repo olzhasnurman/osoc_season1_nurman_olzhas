@@ -38,6 +38,7 @@ module data_cache
     output logic                       o_hit,
     output logic                       o_dirty,
     output logic                       o_partial_st,
+    output logic                       o_edge_ld,
     output logic [ ADDR_WIDTH  - 1:0 ] o_addr_axi
 
 );  
@@ -83,6 +84,7 @@ module data_cache
     assign s_word_offset = i_data_addr[ WORD_OFFSET_MSB:WORD_OFFSET_LSB ];
 
     assign o_partial_st = (i_store_type == 2'b11) & (s_word_offset == 4'b1111);
+    assign o_edge_ld    = (s_word_offset == 4'b1111);
 
 
     //-------------------------------------

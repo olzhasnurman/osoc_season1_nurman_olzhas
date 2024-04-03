@@ -21,6 +21,7 @@ module register_mem
     //Input interface. 
     input  logic [ DATA_WIDTH - 1:0 ] i_write_data,
     input  logic                      i_partial_ld,
+    input  logic                      i_edge_ld,
     
     // Output interface.
     output logic [ DATA_WIDTH - 1:0 ] o_read_data
@@ -33,7 +34,10 @@ module register_mem
         end
         else if ( write_en ) begin
             if ( i_partial_ld ) begin
-                o_read_data <= { i_write_data[ 31:0 ], o_read_data[ 63:32 ] };
+                o_read_data <= { i_write_data[ 31:0 ], o_read_data[ 31:0 ] };
+            end
+            else if ( i_edge_ld ) begin
+                o_read_data <= { { 32{1'b0} }, i_write_data[63:32] };
             end
             else o_read_data <= i_write_data;
         end

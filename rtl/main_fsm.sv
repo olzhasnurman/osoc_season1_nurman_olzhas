@@ -140,7 +140,7 @@ module main_fsm
                     FENCE_Type : NS = FETCH; // NOT FINISHED.
                     E_Type     : NS = BREAK; // NOT FINISHED.
 
-                    default: NS = PS; 
+                    default: NS = FETCH; // For simulation only.
                 endcase
             end
 
@@ -255,9 +255,10 @@ module main_fsm
             end
 
             MEMADDR: begin
-                o_alu_src_1 = 2'b10;
-                o_alu_src_2 = 2'b01;
-                o_alu_op    = 2'b00;
+                o_alu_src_1    = 2'b10;
+                o_alu_src_2    = 2'b01;
+                o_alu_op       = 2'b00;
+                o_mem_addr_src = 1'b1;
             end
 
             MEMREAD: begin
@@ -296,17 +297,16 @@ module main_fsm
                 o_alu_op        = 2'b00;
                 if ( i_stall_data ) begin
                     o_partial_store = 1'b0;
-                    o_mem_reg_we    = 1'b0;
                 end
                 else begin
                     o_partial_store = 1'b1;
-                    o_mem_reg_we    = 1'b1;
                 end 
             end
 
             MEMWB: begin
                 o_result_src   = 2'b01;
                 o_reg_write_en = 1'b1;
+                o_mem_addr_src = 1'b0;
             end
 
             MEMWRITE: begin
@@ -315,10 +315,12 @@ module main_fsm
                     o_addr_write_en = 1'b1;
                     o_alu_src_1     = 2'b10;
                     o_alu_src_2     = 2'b01;
+                    o_mem_reg_we    = 1'b0;
                 end
                 else begin
                     o_mem_write_en  = 1'b1;
                     o_addr_write_en = 1'b0;
+                    o_mem_reg_we    = 1'b1;
 
                     if ( i_partial_store ) begin
                         o_alu_src_1 = 2'b01;
