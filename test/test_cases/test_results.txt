@@ -1,54 +1,91 @@
-___________________________________
-|  INSTR         |   TEST STATUS  |
-|________________|________________|
-| add            | PASS           |
-| addi           | PASS           |
-| addiw          | PASS           |
-| addw           | PASS           |
-| and            | PASS           |
-| andi           | PASS           |
-| auipc          | PASS           |
-| beq            | NOT TESTED     |
-| bge            | NOT TESTED     |
-| bgeu           | NOT TESTED     |
-| blt            | NOT TESTED     |
-| bltu           | NOT TESTED     |
-| bne            | NOT TESTED     |
-| fence          | NOT TESTED     |
-| jalr           | NOT TESTED     |
-| lb-align       | NOT TESTED     |
-| lbu-align      | NOT TESTED     |
-| ld-align       | NOT TESTED     |
-| lh-align       | NOT TESTED     |
-| lhu-align      | NOT TESTED     |
-| lui            | PASS           |
-| lw-align       | NOT TESTED     |
-| lwu-align      | NOT TESTED     |
-| misalign1-jalr | NOT TESTED     |
-| or             | PASS           |
-| ori            | PASS           |
-| sb-align       | NOT TESTED     |
-| sd-align       | NOT TESTED     |
-| sh-align       | NOT TESTED     |
-| sll            | PASS           |
-| slli           | PASS           |
-| slliw          | PASS           |
-| sllw           | PASS           |
-| slt            | PASS           |
-| slti           | PASS           |
-| sltiu          | PASS           |
-| sltu           | PASS           |
-| sra            | PASS           |
-| srai           | PASS           |
-| sraiw          | PASS           |
-| sraw           | PASS           |
-| srl            | PASS           |
-| srli           | PASS           |
-| srliw          | PASS           |
-| srlw           | PASS           |
-| sub            | PASS           |
-| subw           | PASS           |
-| sw-align       | NOT TESTED     |
-| xor            | PASS           |
-| xori           | PASS           |
-|________________|________________|
+_________________________________________________
+|  INSTR         |   TEST NEMU    | RV-TESTS    |
+|________________|________________|_____________|
+| add            | PASS           | PASS        |
+| addi           | PASS           | PASS        |
+| addiw          | PASS           | PASS        |
+| addw           | PASS           | PASS        |
+| and            | PASS           | PASS        |
+| andi           | PASS           | PASS        |
+| auipc          | PASS           | PASS        |
+| beq            | NOT TESTED     | PASS        |
+| bge            | NOT TESTED     | PASS        |
+| bgeu           | NOT TESTED     | PASS        |
+| blt            | NOT TESTED     | PASS        |
+| bltu           | NOT TESTED     | PASS        |
+| bne            | NOT TESTED     | PASS        |
+| fence          | NOT TESTED     | -           |
+| fence_i        | -              | NOT TESTED  |
+| jal            | -              | PASS        |
+| jalr           | NOT TESTED     | PASS        |
+| lb-align       | NOT TESTED     | PASS        |
+| lbu-align      | NOT TESTED     | PASS        |
+| ld-align       | NOT TESTED     | PASS        |
+| lh-align       | NOT TESTED     | PASS        |
+| lhu-align      | NOT TESTED     | PASS        |
+| lui            | PASS           | NOT TESTED  |
+| lw-align       | NOT TESTED     | PASS        |
+| lwu-align      | NOT TESTED     | PASS        |
+| misalign1-jalr | NOT TESTED     | -           |
+| ma_data        | -              | NOT TESTED  |
+| or             | PASS           | PASS        |
+| ori            | PASS           | PASS        |
+| sb-align       | NOT TESTED     | PASS        |
+| sd-align       | NOT TESTED     | IMPL .insn  |
+| sh-align       | NOT TESTED     | IMPL .insn  |
+| sll            | PASS           | PASS        |
+| slli           | PASS           | PASS        |
+| slliw          | PASS           | PASS        |
+| sllw           | PASS           | PASS        |
+| slt            | PASS           | PASS        |
+| slti           | PASS           | PASS        |
+| sltiu          | PASS           | PASS        |
+| sltu           | PASS           | PASS        |
+| sra            | PASS           | PASS        |
+| srai           | PASS           | PASS        |
+| sraiw          | PASS           | PASS        |
+| sraw           | PASS           | PASS        |
+| srl            | PASS           | PASS        |
+| srli           | PASS           | PASS        |
+| srliw          | PASS           | PASS        |
+| srlw           | PASS           | PASS        |
+| sub            | PASS           | PASS        |
+| subw           | PASS           | PASS        |
+| sw-align       | NOT TESTED     | IMPL .insn  |
+| xor            | PASS           | PASS        |
+| xori           | PASS           | PASS        |
+|________________|________________|_____________|
+
+
+_______________________________
+| AM TESTS       | STATUS     |
+|________________|____________|
+|  add-longlong  | PASS       |
+|  add           | PASS       |
+|  bit           | PASS       |
+|  bubble-sort   | FAIL       |
+|  crc32         | FAIL       |
+|  fib           | PASS       |
+|  goldbach      | PASS       |
+|  hello-str     | NOT TESTED |
+|  if-else       | PASS       |
+|  leap-year     | FAIL       |
+|  load-store    | FAIL       |
+|  max           | PASS       |
+|  min3          | PASS       |
+|  mov-c         | PASS       |
+|  movsx         | PASS       |
+|  pascal        | FAIL       |
+|  prime         | FAIL       |
+|  quick-sort    | FAIL       |
+|  recursion     | NOT TESTED |
+|  select-sort   | FAIL       |
+|  shift         | PASS       |
+|  string        | NOT TESTED |
+|  sub-longlong  | PASS       |
+|  sum           | PASS       |
+|  switch        | FAIL       |
+|  to-lower-case | FAIL       |
+|  unalign       | PASS       |
+|  wanshu        | FAIL       |
+|________________|____________|
