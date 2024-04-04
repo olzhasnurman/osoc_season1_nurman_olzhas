@@ -306,7 +306,7 @@ module main_fsm
             MEMWB: begin
                 o_result_src   = 2'b01;
                 o_reg_write_en = 1'b1;
-                o_mem_addr_src = 1'b0;
+                o_mem_addr_src = 1'b1;
             end
 
             MEMWRITE: begin
