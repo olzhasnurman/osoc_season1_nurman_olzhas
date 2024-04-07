@@ -144,10 +144,13 @@ module axi_slave
         // Default values.
         R_VALID = 1'b0;
         AR_READY = 1'b0;
+        AW_READY = 1'b0;
         s_count_start = 1'b0;
         o_write_en = 1'b0;
         B_RESP = 2'b11;
         B_VALID = 1'b0;
+        R_RESP = 2'b01;
+        W_READY = 1'b0;
         
         case ( PS )
             IDLE: begin
@@ -184,10 +187,13 @@ module axi_slave
             default: begin
                 R_VALID = 1'b0;
                 AR_READY = 1'b0;
+                AW_READY = 1'b0;
+                R_RESP = 2'b01;
                 s_count_start = 1'b0;
                 o_write_en = 1'b0;
                 B_RESP = 2'b11;
                 B_VALID = 1'b0;
+                W_READY = 1'b0;
             end
 
         endcase

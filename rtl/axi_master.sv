@@ -173,6 +173,7 @@ module axi_master
         B_READY  = 1'b0;
         o_b_resp_axi = 1'b0;
         s_count_start = 1'b0;
+        s_shift = 1'b0;
         
         case ( PS )
             IDLE: begin
@@ -238,6 +239,7 @@ module axi_master
                 B_READY  = 1'b0;
                 o_b_resp_axi = 1'b0;
                 s_count_start = 1'b0;
+                s_shift = 1'b0;
             end 
         endcase
     end
