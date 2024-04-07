@@ -1,0 +1,3 @@
+riscv64-unknown-elf-objdump -D -b binary -m riscv:rv64 -M no-aliases,numeric load-store-riscv64-nemu.elf > am-load-store.txt
+riscv64-unknown-elf-objdump -D -M no-aliases,numeric load-store-riscv64-nemu.elf > disassembly.txt
+riscv64-unknown-elf-objdump -D  --start-address=0x114 --stop-address=0x370 -b binary --section=.data --section=.text -m riscv:rv64 -M no-aliases,numeric sub-longlong-riscv64-nemu.bin > dis.txt
