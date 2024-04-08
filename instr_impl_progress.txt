@@ -1,14 +1,14 @@
 _____________________________               _____________________________
 | INSTR | RTL | Test | Type |               | INSTR | RTL | Test | Type |
 |_______|_____|______|______|               |_______|_____|______|______|
-| lb    | YES | NO   | I    |               | ld    | YES | NO   | I    |
-| lh    | YES | NO   |      |               | lwu   | YES | NO   |      |
-| lw    | YES | NO   |      |               | addiw | YES | PASS |      |
-| lbu   | YES | NO   |      |               | slliw | YES | PASS |      |
-| lhu   | YES | NO   |      |               | srliw | YES | PASS |      |
+| lb    | YES | PASS | I    |               | ld    | YES | PASS | I    |
+| lh    | YES | PASS |      |               | lwu   | YES | PASS |      |
+| lw    | YES | PASS |      |               | addiw | YES | PASS |      |
+| lbu   | YES | PASS |      |               | slliw | YES | PASS |      |
+| lhu   | YES | PASS |      |               | srliw | YES | PASS |      |
 |_______|_____|______|      |               | sraiw | YES | PASS |      |
 | addi  | YES | PASS |      |               |_______|_____|______|______|
-| slli  | YES | PASS |      |               | sd    | YES | NO   | S    |
+| slli  | YES | PASS |      |               | sd    | YES | PASS | S    |
 | slti  | YES | PASS |      |               |_______|_____|______|______|
 | sltiu | YES | PASS |      |               | addw  | YES | PASS | R    |
 | xori  | YES | PASS |      |               | subw  | YES | PASS |      |
@@ -19,9 +19,9 @@ _____________________________               _____________________________
 |_______|_____|______|______|               
 | auipc | YES | PASS | U    |               
 | ______|_____|______|______|               ________________________             
-| sb    | YES | NO   | S    |               | INSTR   | RTL | TEST |                
-| sh    | YES | NO   |      |               |_________|_____|______|
-| sw    | YES | NO   |      |               | fence   | NO  | NO   |
+| sb    | YES | PASS | S    |               | INSTR   | RTL | TEST |                
+| sh    | YES | PASS |      |               |_________|_____|______|
+| sw    | YES | PASS |      |               | fence   | NO  | NO   |
 |_______|_____|______|______|               | ecall   | NO  | NO   |
 | add   | YES | PASS | R    |               | ebreak  | NO  | NO   |
 | sub   | YES | PASS |      |               |_________|_____|______|
@@ -43,8 +43,8 @@ _____________________________               _____________________________
 | bltu  | YES | PASS |      |
 | bgeu  | YES | PASS |      |
 |_______|_____|______|______|
-| jalr  | YES | NO   | I    |
+| jalr  | YES | PASS | I    |
 |_______|_____|______|______|
-| jal   | YES | NO   | J    |
+| jal   | YES | PASS | J    |
 |_______|_____|______|______|
 
