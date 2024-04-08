@@ -1,6 +1,6 @@
 # Define the path to the input and output files
-input_file_path = '1.txt'
-output_file_path = '2.txt'
+input_file_path = 'data_am/am-string.txt'
+output_file_path = 'data_am/string.txt'
 
 # Open the input file and read its contents
 with open(input_file_path, 'r') as file_in:

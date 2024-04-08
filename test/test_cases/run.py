@@ -1,7 +1,7 @@
 import subprocess
 
 # Path to the list.txt file
-list_file_path = "list_am_data.txt"
+list_file_path = "list_rvtest.txt"
 
 # Open the list.txt file and read all file names
 with open(list_file_path, 'r') as list_file:
@@ -11,6 +11,6 @@ with open(list_file_path, 'r') as list_file:
         # Check if the file name is not empty
         if file_name:
             # Construct the command to run the dis2instr.py script with the current file name
-            command = ["python3", "dis2instr.py", file_name]
+            command = ["python3", "extract.py", file_name]
             # Execute the command
             subprocess.run(command)
