@@ -31,7 +31,7 @@ _________________________________________________
 | or             | PASS           | PASS        |
 | ori            | PASS           | PASS        |
 | sb-align       | NOT TESTED     | PASS        |
-| sd-align       | NOT TESTED     | IMPL .insn  |
+| sd-align       | NOT TESTED     | PASS        |
 | sh-align       | NOT TESTED     | PASS        |
 | sll            | PASS           | PASS        |
 | slli           | PASS           | PASS        |
@@ -51,7 +51,7 @@ _________________________________________________
 | srlw           | PASS           | PASS        |
 | sub            | PASS           | PASS        |
 | subw           | PASS           | PASS        |
-| sw-align       | NOT TESTED     | IMPL .insn  |
+| sw-align       | NOT TESTED     | PASS        |
 | xor            | PASS           | PASS        |
 | xori           | PASS           | PASS        |
 |________________|________________|_____________|
@@ -69,7 +69,7 @@ ________________________________
 |  crc32         | PASS        |
 |  fib           | PASS        |
 |  goldbach      | PASS**      |
-|  hello-str     | NOT TESTED  |
+|  hello-str     | PASS        |
 |  if-else       | PASS        |
 |  leap-year     | *           | 
 |  load-store    | PASS        |
@@ -83,7 +83,7 @@ ________________________________
 |  recursion     | NOT TESTED* |
 |  select-sort   | PASS        |
 |  shift         | PASS        |
-|  string        | NOT TESTED  |
+|  string        | PASS        |
 |  sub-longlong  | PASS        |
 |  sum           | PASS        |
 |  switch        | PASS        |
@@ -93,4 +93,4 @@ ________________________________
 |________________|_____________|
 
 *  CONTAINS NOT IMPLEMENTED INSTR (REMW, DIVW)
-** CONTAINS NOT IMPLEMENTED INSTR, BUT IT ISN'T USED.
+** CONTAINS NOT IMPLEMENTED INSTR, BUT IT ISN'T USED (REMW).
