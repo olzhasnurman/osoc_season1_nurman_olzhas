@@ -67,7 +67,7 @@ module top
     logic [6:0] s_op;
     logic [2:0] s_func_3;
     logic       s_func_7_5;
-    logic [4:0] s_alu_control;
+    logic [3:0] s_alu_control;
     logic [1:0] s_result_src;
     logic [1:0] s_alu_src_control_1;
     logic [1:0] s_alu_src_control_2;
@@ -159,7 +159,6 @@ module top
         .i_func_3               ( s_func_3              ),
         .i_func_7_5             ( s_func_7_5            ),
         .i_zero_flag            ( s_zero_flag           ),
-        .i_negative_flag        ( s_negative_flag       ),
         .i_slt_flag             ( s_slt_flag            ),
         .i_sltu_flag            ( s_sltu_flag           ),
         .i_instr_hit            ( s_instr_hit           ),
@@ -254,10 +253,7 @@ module top
         .i_src_1         ( s_alu_src_data_1 ),
         .i_src_2         ( s_alu_src_data_2 ),
         .o_alu_result    ( s_alu_result     ),
-        .o_overflow_flag ( s_overflow_flag  ),
         .o_zero_flag     ( s_zero_flag      ),
-        .o_negative_flag ( s_negative_flag  ),
-        .o_carry_flag    ( s_carry_flag     ),
         .o_slt_flag      ( s_slt_flag       ),
         .o_sltu_flag     ( s_sltu_flag      )
     );

@@ -25,14 +25,12 @@ module mux3to1
 
     // MUX logic.
     always_comb begin
-        if ( control_signal[1] ) begin
-            o_mux = i_mux_3;
-        end
-        else if ( control_signal[0] ) begin
-            o_mux = i_mux_2;
-        end
-        else 
-            o_mux = i_mux_1;
+        case ( control_signal )
+            2'b00: o_mux = i_mux_1;
+            2'b01: o_mux = i_mux_2;
+            2'b10: o_mux = i_mux_3;
+            default: o_mux = i_mux_1;
+        endcase
     end
     
 endmodule

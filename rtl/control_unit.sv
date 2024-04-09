@@ -17,7 +17,6 @@ module control_unit
     input  logic [2:0] i_func_3,
     input  logic       i_func_7_5, 
     input  logic       i_zero_flag,
-    input  logic       i_negative_flag,
     input  logic       i_slt_flag,
     input  logic       i_sltu_flag,
     input  logic       i_instr_hit,
@@ -28,7 +27,7 @@ module control_unit
     input  logic       i_partial_store,
 
     // Output interface.
-    output logic [4:0] o_alu_control,
+    output logic [3:0] o_alu_control,
     output logic [1:0] o_result_src,
     output logic [1:0] o_alu_src_1,
     output logic [1:0] o_alu_src_2,
