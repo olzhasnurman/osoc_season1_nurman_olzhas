@@ -295,11 +295,12 @@ module main_fsm
                 o_alu_src_1     = 2'b01;
                 o_alu_src_2     = 2'b10;
                 o_alu_op        = 2'b00;
+                o_partial_store = 1'b1;
                 if ( i_stall_data ) begin
-                    o_partial_store = 1'b0;
+                    o_mem_reg_we = 1'b0;
                 end
                 else begin
-                    o_partial_store = 1'b1;
+                    o_mem_reg_we = 1'b1;
                 end 
             end
 
