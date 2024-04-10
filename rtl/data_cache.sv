@@ -122,10 +122,10 @@ module data_cache
         o_hit = | s_hit;
 
         if ( o_hit ) begin
-            case ( s_hit )
-                4'b0001: s_match = 2'b00;
-                4'b0010: s_match = 2'b01;
-                4'b0100: s_match = 2'b10;
+            casez ( s_hit )
+                4'bzzz1: s_match = 2'b00;
+                4'bzz10: s_match = 2'b01;
+                4'bz100: s_match = 2'b10;
                 4'b1000: s_match = 2'b11;
                 default: s_match = 2'b00;
             endcase  
@@ -141,10 +141,10 @@ module data_cache
         s_lru_found[2] = lru_mem[2][ s_index ] == 2'b00;
         s_lru_found[3] = lru_mem[3][ s_index ] == 2'b00;
 
-        case ( s_lru_found )
-            4'b0001: s_lru = 2'b00;
-            4'b0010: s_lru = 2'b01;
-            4'b0100: s_lru = 2'b10;
+        casez ( s_lru_found )
+            4'bzzz1: s_lru = 2'b00;
+            4'bzz10: s_lru = 2'b01;
+            4'bz100: s_lru = 2'b10;
             4'b1000: s_lru = 2'b11;
             default: s_lru = 2'b00;
         endcase  
