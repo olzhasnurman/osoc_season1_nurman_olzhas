@@ -32,7 +32,6 @@ module control_unit
     output logic [1:0] o_alu_src_1,
     output logic [1:0] o_alu_src_2,
     output logic [2:0] o_imm_src,
-    output logic       o_mem_addr_src,
     output logic       o_reg_write_en,
     output logic       o_pc_write,
     output logic       o_instr_write_en,
@@ -43,7 +42,7 @@ module control_unit
     output logic       o_data_valid_update,
     output logic       o_data_lru_update,
     output logic       o_start_write_axi,
-    output logic       o_addr_write_en,
+    output logic       o_old_addr_write_en,
     output logic       o_partial_store,
     output logic       o_access, // Just for simulation.
     output logic       o_addr_control,
@@ -66,7 +65,6 @@ module control_unit
     logic s_stall_data;
     logic s_start_read_data;
     logic s_start_data_cache;
-    logic s_write_state;
 
     assign o_pc_write       = s_pc_update | ( s_branch );
 
@@ -105,16 +103,14 @@ module control_unit
         .o_result_src     ( o_result_src        ),
         .o_alu_src_1      ( o_alu_src_1         ),
         .o_alu_src_2      ( o_alu_src_2         ),
-        .o_mem_addr_src   ( o_mem_addr_src      ),
         .o_reg_write_en   ( o_reg_write_en      ),
         .o_pc_update      ( s_pc_update         ),
         .o_mem_write_en   ( o_mem_write_en      ),
         .o_instr_write_en ( o_instr_write_en    ),
         .o_start_i_cache  ( s_start_instr_cache ),
         .o_start_d_cache  ( s_start_data_cache  ),
-        .o_write_state    ( s_write_state       ),
         .o_branch         ( s_instr_branch      ),
-        .o_addr_write_en  ( o_addr_write_en     ),
+        .o_addr_write_en  ( o_old_addr_write_en ),
         .o_partial_store  ( o_partial_store     ),
         .o_mem_reg_we     ( o_mem_reg_we        )
     );
@@ -136,7 +132,6 @@ module control_unit
         .clk                   ( clk                 ),
         .arstn                 ( arstn               ),
         .i_start_check         ( s_start_data_cache  ),
-        .i_write               ( s_write_state       ),
         .i_hit                 ( i_data_hit          ),
         .i_dirty               ( i_data_dirty        ),
         .i_r_last              ( i_read_last_axi     ),

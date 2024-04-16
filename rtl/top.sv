@@ -72,15 +72,13 @@ module top
     logic [1:0] s_alu_src_control_1;
     logic [1:0] s_alu_src_control_2;
     logic [2:0] s_imm_src;
-    logic       s_mem_addr_src;
     logic       s_reg_write_en;
     logic       s_pc_write_en;
     logic       s_mem_write_en;
     logic       s_instr_write_en;
-    logic       s_addr_write_en;
+    logic       s_old_addr_write_en;
 
     // Memory signals.
-    logic [ MEM_ADDR_WIDTH  - 1:0 ] s_mem_addr;
     logic [ MEM_DATA_WIDTH  - 1:0 ] s_mem_read_data;
     logic [ MEM_INSTR_WIDTH - 1:0 ] s_mem_read_instr;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_addr_axi;
@@ -101,6 +99,7 @@ module top
     logic [ MEM_INSTR_WIDTH - 1:0 ] s_reg_instr;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_pc;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_old_pc;
+    logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_old_addr;
     logic [ REG_DATA_WIDTH  - 1:0 ] s_reg_data_1;
     logic [ REG_DATA_WIDTH  - 1:0 ] s_reg_data_2;
     logic [ REG_DATA_WIDTH  - 1:0 ] s_reg_alu_result;
@@ -130,7 +129,7 @@ module top
     assign s_reg_addr_2 = s_reg_instr[24:20];
     assign s_reg_addr_3 = s_reg_instr[11:7];
 
-    assign s_byte_offset = s_reg_old_pc[1:0];
+    assign s_byte_offset = s_reg_old_addr[1:0];
 
  
 
@@ -172,7 +171,6 @@ module top
         .o_alu_src_1            ( s_alu_src_control_1   ),
         .o_alu_src_2            ( s_alu_src_control_2   ),
         .o_imm_src              ( s_imm_src             ),
-        .o_mem_addr_src         ( s_mem_addr_src        ),
         .o_reg_write_en         ( s_reg_write_en        ),
         .o_pc_write             ( s_pc_write_en         ),
         .o_instr_write_en       ( s_instr_write_en      ),
@@ -183,7 +181,7 @@ module top
         .o_data_valid_update    ( s_data_valid_update   ),
         .o_data_lru_update      ( s_data_lru_update     ),
         .o_start_write_axi      ( o_start_write_axi     ),
-        .o_addr_write_en        ( s_addr_write_en       ),
+        .o_old_addr_write_en    ( s_old_addr_write_en   ),
         .o_partial_store        ( s_partial_st_state    ),
         .o_access               ( o_access              ),
         .o_addr_control         ( s_addr_control        ),
@@ -217,7 +215,7 @@ module top
         .valid_update   ( s_data_valid_update   ),
         .lru_update     ( s_data_lru_update     ),
         .block_write_en ( s_data_block_write_en ),
-        .i_data_addr    ( s_mem_addr            ),
+        .i_data_addr    ( s_result              ),
         .i_data         ( s_reg_data_2          ),
         .i_data_block   ( i_data_read_axi       ),
         .i_store_type   ( s_func_3[1:0]         ),
@@ -237,7 +235,7 @@ module top
         .clk          ( clk              ),
         .write_en     ( s_instr_cache_we ),
         .arstn        ( arstn            ),
-        .i_instr_addr ( s_mem_addr       ),
+        .i_instr_addr ( s_reg_pc         ),
         .i_inst       ( i_data_read_axi  ),
         .o_instr      ( s_instr_read     ),
         .o_hit        ( s_instr_hit      )
@@ -284,11 +282,20 @@ module top
 
     // Old PC Register Instance.
     register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) OLD_PC_REG (
-        .clk          ( clk             ),
-        .write_en     ( s_addr_write_en ),
-        .arstn        ( arstn           ),
-        .i_write_data ( s_mem_addr      ),
-        .o_read_data  ( s_reg_old_pc    )
+        .clk          ( clk              ),
+        .write_en     ( s_instr_write_en ),
+        .arstn        ( arstn            ),
+        .i_write_data ( s_reg_pc         ),
+        .o_read_data  ( s_reg_old_pc     )
+    ); 
+
+    // Old ADDR Register Instance.
+    register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) OLD_ADDR_REG (
+        .clk          ( clk                 ),
+        .write_en     ( s_old_addr_write_en ),
+        .arstn        ( arstn               ),
+        .i_write_data ( s_result            ),
+        .o_read_data  ( s_reg_old_addr      )
     ); 
 
     // R1 Register Instance.
@@ -332,12 +339,13 @@ module top
     // MUX Instances.
     //----------------------
 
-    // 3-to-1 ALU Source 1 MUX Instance.
-    mux3to1 ALU_MUX_1 (
+    // 4-to-1 ALU Source 1 MUX Instance.
+    mux4to1 ALU_MUX_1 (
         .control_signal ( s_alu_src_control_1 ),
         .i_mux_1        ( s_reg_pc            ),
         .i_mux_2        ( s_reg_old_pc        ),
         .i_mux_3        ( s_reg_data_1        ),
+        .i_mux_4        ( s_reg_old_addr      ),
         .o_mux          ( s_alu_src_data_1    )
     );
 
@@ -358,14 +366,6 @@ module top
         .i_mux_3        ( s_alu_result     ),
         .i_mux_4        ( s_imm_ext        ),
         .o_mux          ( s_result         )
-    );
-
-    // 2-to-1 Memory Address Source MUX Instance.
-    mux2to1 MEM_ADDR_MUX (
-        .control_signal ( s_mem_addr_src ),
-        .i_mux_1        ( s_reg_pc       ),
-        .i_mux_2        ( s_result       ),
-        .o_addr         ( s_mem_addr     )
     );
 
     
