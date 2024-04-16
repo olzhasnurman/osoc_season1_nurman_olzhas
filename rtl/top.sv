@@ -116,6 +116,17 @@ module top
     // LOAD instruction mux unit signal.
     logic [ MEM_DATA_WIDTH - 1:0] s_mem_load_data;
 
+    // CSR signals.
+    logic                          s_mtvec_we;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_mtvec_data_in;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_mtvec_data_out; 
+    logic                          s_mepc_we;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_mepc_data_in;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_mepc_data_out;
+    logic                          s_mcause_we;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_mcause_data_in;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_mcause_data_out;
+
 
 
     //----------------------------------
@@ -239,6 +250,21 @@ module top
         .i_inst       ( i_data_read_axi  ),
         .o_instr      ( s_instr_read     ),
         .o_hit        ( s_instr_hit      )
+    );
+
+    // Control & Status Registers.
+    csr CSR0 (
+        .clk           ( clk               ),
+        .arstn         ( arstn             ),
+        .i_mtvec_we    ( s_mtvec_we        ),
+        .i_mtvec_data  ( s_mtvec_data_in   ),
+        .i_mepc_we     ( s_mepc_we         ),
+        .i_mepc_data   ( s_mepc_data_in    ),
+        .i_mcause_we   ( s_mcause_we       ),
+        .i_mcause_data ( s_mcause_data_in  ),
+        .o_mtvec_data  ( s_mtvec_data_out  ),
+        .o_mepc_data   ( s_mepc_data_out   ),
+        .o_mcause_data ( s_mcause_data_out )
     );
 
 
