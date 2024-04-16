@@ -7,7 +7,7 @@
 module register_en
 // Parameters.
 #(
-    parameter DATA_WIDTH = 32
+    parameter DATA_WIDTH = 64
 )
 // Port decleration. 
 (   
