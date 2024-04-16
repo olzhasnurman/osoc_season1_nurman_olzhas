@@ -33,7 +33,8 @@ module main_fsm
     output logic       o_branch,
     output logic       o_addr_write_en, //
     output logic       o_partial_store, // 
-    output logic       o_mem_reg_we
+    output logic       o_mem_reg_we,
+    output logic       o_fetch_state
 );  
     // State type.
     typedef enum logic [3:0] {
@@ -72,7 +73,8 @@ module main_fsm
         U_Type_ALU  = 4'b1001,
         U_Type_LOAD = 4'b1010,
         FENCE_Type  = 4'b1011,
-        E_Type      = 4'b1100
+        E_Type      = 4'b1100,
+        ILLEGAL     = 4'b1101
     } t_instruction;
 
     // Instruction decoder signal. 
@@ -94,7 +96,7 @@ module main_fsm
             7'b0110111: instr = U_Type_LOAD; 
             7'b0001111: instr = FENCE_Type;
             7'b1110011: instr = E_Type;
-            default:    instr = I_Type;
+            default:    instr = ILLEGAL;
         endcase
     end
 
@@ -223,6 +225,7 @@ module main_fsm
         o_start_d_cache  = 1'b0;
         o_partial_store  = 1'b0;
         o_mem_reg_we     = 1'b0;
+        o_fetch_state    = 1'b0;
 
         case ( PS )
             FETCH: begin
@@ -236,7 +239,8 @@ module main_fsm
                     o_pc_update        = 1'b1;      
                 end
                 
-                o_start_i_cache    = 1'b1; 
+                o_start_i_cache    = 1'b1;
+                o_fetch_state      = 1'b1; 
                 o_alu_src_1        = 2'b00;
                 o_alu_src_2        = 2'b10;
                 o_result_src       = 2'b10;
@@ -415,6 +419,7 @@ module main_fsm
                 o_start_d_cache  = 1'b0;
                 o_partial_store  = 1'b0;
                 o_mem_reg_we     = 1'b0;
+                o_fetch_state    = 1'b0;
             end
         endcase
     end

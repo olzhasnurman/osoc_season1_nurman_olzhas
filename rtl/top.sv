@@ -77,6 +77,7 @@ module top
     logic       s_mem_write_en;
     logic       s_instr_write_en;
     logic       s_old_addr_write_en;
+    logic       s_fetch_state;
 
     // Memory signals.
     logic [ MEM_DATA_WIDTH  - 1:0 ] s_mem_read_data;
@@ -196,7 +197,8 @@ module top
         .o_partial_store        ( s_partial_st_state    ),
         .o_access               ( o_access              ),
         .o_addr_control         ( s_addr_control        ),
-        .o_mem_reg_we           ( s_reg_mem_we          )
+        .o_mem_reg_we           ( s_reg_mem_we          ),
+        .o_fetch_state          ( s_fetch_state         )
     );
 
 
@@ -251,6 +253,7 @@ module top
         .o_instr      ( s_instr_read     ),
         .o_hit        ( s_instr_hit      )
     );
+
 
     // Control & Status Registers.
     csr CSR0 (
@@ -418,7 +421,7 @@ module top
 
 
     // FOR SIMULATION. 
-    assign o_addr = s_addr_axi;
+    assign o_addr = s_fetch_state ? { s_reg_pc[MEM_ADDR_WIDTH - 1:6 ], 6'b0 } : s_addr_axi; // For a cache line size of 512 bits. e.g. 16 words on 1 line.
 
     
 endmodule
