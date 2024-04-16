@@ -15,7 +15,6 @@ module data_cache_fsm
 
     // Input Interface.
     input  logic i_start_check,
-    input  logic i_write, // if 1'b1 it means that write instruction is being executed -> need to check dirty bit.
     input  logic i_hit,
     input  logic i_dirty,
     input  logic i_r_last,
