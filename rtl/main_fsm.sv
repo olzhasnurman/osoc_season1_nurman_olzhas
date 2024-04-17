@@ -59,7 +59,8 @@ module main_fsm
         LOADI      = 4'b1011,
         MEMWRITE_D = 4'b1100,
         MEMREAD_D  = 4'b1101,
-        CALL       = 4'b1110
+        CALL       = 4'b1110,
+        STOP       = 4'b1111
     } t_state;
 
     // State variables. 
@@ -188,7 +189,9 @@ module main_fsm
             
             LOADI: NS = FETCH;
 
-            CALL: NS = FETCH;
+            CALL: NS = STOP;
+
+            STOP: NS = FETCH;
 
             default: NS = PS;
         endcase
@@ -368,6 +371,8 @@ module main_fsm
                 o_result_src = 3'b100; // s_mtvec_out.
                 o_pc_update  = 1'b1;
             end
+
+            STOP: $stop(); // FOR SIMULATION ONLY
 
 
             default: begin

@@ -50,6 +50,7 @@ module top
     logic       s_data_lru_update;
     logic       s_addr_control;
     logic [2:0] s_addr_offset;
+    logic       s_edge_ld;
 
     // ALU flags.
     logic s_zero_flag;
@@ -253,7 +254,8 @@ module top
         .o_data_block    ( o_data_write_axi      ),
         .o_hit           ( s_data_hit            ),
         .o_dirty         ( s_data_dirty          ),
-        .o_addr_axi      ( s_addr_axi            ), 
+        .o_addr_axi      ( s_addr_axi            ),
+        .o_edge_ld       ( s_edge_ld             ), 
         .o_store_addr_ma ( s_store_addr_ma       )
     );
 
@@ -372,6 +374,7 @@ module top
         .arstn        ( arstn              ),
         .write_en     ( s_reg_mem_we       ),
         .i_write_data ( s_mem_read_data    ),
+       .i_edge_ld    ( s_edge_ld          ),
         .o_read_data  ( s_reg_mem_data     )
     );
 

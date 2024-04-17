@@ -37,6 +37,7 @@ module data_cache
     output logic                       o_hit,
     output logic                       o_dirty,
     output logic [ ADDR_WIDTH  - 1:0 ] o_addr_axi,
+    output logic                       o_edge_ld,
     output logic                       o_store_addr_ma
 
 );  
@@ -92,6 +93,7 @@ module data_cache
     assign s_store_addr_ma_sh = s_byte_offset[0];
     assign s_store_addr_ma_sw = | s_byte_offset;
     assign s_store_addr_ma_sd = s_store_addr_ma_sw | s_word_offset[0];
+    assign o_edge_ld = (s_word_offset == 4'b1111);
 
 
     //----------------------------------------
