@@ -36,7 +36,8 @@ module data_cache
     output logic [ BLOCK_WIDTH - 1:0 ] o_data_block,
     output logic                       o_hit,
     output logic                       o_dirty,
-    output logic [ ADDR_WIDTH  - 1:0 ] o_addr_axi
+    output logic [ ADDR_WIDTH  - 1:0 ] o_addr_axi,
+    output logic                       o_store_addr_ma
 
 );  
     //-------------------------
@@ -72,6 +73,11 @@ module data_cache
     logic [ ADDR_WIDTH - 1:0 ] s_addr_wb;
     logic [ ADDR_WIDTH - 1:0 ] s_addr;
 
+    // Store misalignment signals.
+    logic s_store_addr_ma_sh;
+    logic s_store_addr_ma_sw;
+    logic s_store_addr_ma_sd;
+
 
 
     //-------------------------
@@ -81,6 +87,26 @@ module data_cache
     assign s_index       = i_data_addr[ INDEX_MSB      :INDEX_LSB       ]; 
     assign s_word_offset = i_data_addr[ WORD_OFFSET_MSB:WORD_OFFSET_LSB ];
     assign s_byte_offset = i_data_addr[               1:0               ];
+
+
+    assign s_store_addr_ma_sh = s_byte_offset[0];
+    assign s_store_addr_ma_sw = | s_byte_offset;
+    assign s_store_addr_ma_sd = s_store_addr_ma_sw | s_word_offset[0];
+
+
+    //----------------------------------------
+    // Store address misaligned calculation.
+    //----------------------------------------
+    always_comb begin
+        case ( i_store_type )
+            2'b11: o_store_addr_ma = s_store_addr_ma_sd; // SD instruction.
+            2'b10: o_store_addr_ma = s_store_addr_ma_sw; // SW instruction.
+            2'b01: o_store_addr_ma = s_store_addr_ma_sh; // SH instruction.
+            2'b00: o_store_addr_ma = 1'b0;               // SB instruction.
+            default: o_store_addr_ma = 1'b0;
+        endcase
+    end
+
 
 
     //-------------------------------------
@@ -145,7 +171,6 @@ module data_cache
     end
 
 
-
     //-------------------------
     // Write logic.
     //-------------------------
@@ -158,14 +183,14 @@ module data_cache
                 // SD Instruction.
                 2'b11: begin
                     case ( s_word_offset[3:1] )
-                        3'b000: data_mem[ s_index ][ s_match ][ 63 :0   ] <= i_data; 
-                        3'b001: data_mem[ s_index ][ s_match ][ 127:64  ] <= i_data; 
-                        3'b010: data_mem[ s_index ][ s_match ][ 191:128 ] <= i_data; 
-                        3'b011: data_mem[ s_index ][ s_match ][ 255:192 ] <= i_data; 
-                        3'b100: data_mem[ s_index ][ s_match ][ 319:256 ] <= i_data; 
-                        3'b101: data_mem[ s_index ][ s_match ][ 383:320 ] <= i_data; 
-                        3'b110: data_mem[ s_index ][ s_match ][ 447:384 ] <= i_data; 
-                        3'b111: data_mem[ s_index ][ s_match ][ 511:448 ] <= i_data;
+                        3'b000:  data_mem[ s_index ][ s_match ][ 63 :0   ] <= i_data; 
+                        3'b001:  data_mem[ s_index ][ s_match ][ 127:64  ] <= i_data; 
+                        3'b010:  data_mem[ s_index ][ s_match ][ 191:128 ] <= i_data; 
+                        3'b011:  data_mem[ s_index ][ s_match ][ 255:192 ] <= i_data; 
+                        3'b100:  data_mem[ s_index ][ s_match ][ 319:256 ] <= i_data; 
+                        3'b101:  data_mem[ s_index ][ s_match ][ 383:320 ] <= i_data; 
+                        3'b110:  data_mem[ s_index ][ s_match ][ 447:384 ] <= i_data; 
+                        3'b111:  data_mem[ s_index ][ s_match ][ 511:448 ] <= i_data;
                         default: data_mem[ s_index ][ s_match ][ 63:0    ] <= '0;
                     endcase                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
                 end

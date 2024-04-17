@@ -238,22 +238,23 @@ module top
 
     // Data Cache.
     data_cache D_CACHE (
-        .clk            ( clk                   ),
-        .arstn          ( arstn                 ),
-        .write_en       ( s_mem_write_en        ),
-        .valid_update   ( s_data_valid_update   ),
-        .lru_update     ( s_data_lru_update     ),
-        .block_write_en ( s_data_block_write_en ),
-        .i_data_addr    ( s_result              ),
-        .i_data         ( s_reg_data_2          ),
-        .i_data_block   ( i_data_read_axi       ),
-        .i_store_type   ( s_func_3[1:0]         ),
-        .i_addr_control ( s_addr_control        ),
-        .o_data         ( s_mem_read_data       ),
-        .o_data_block   ( o_data_write_axi      ),
-        .o_hit          ( s_data_hit            ),
-        .o_dirty        ( s_data_dirty          ),
-        .o_addr_axi     ( s_addr_axi            )
+        .clk             ( clk                   ),
+        .arstn           ( arstn                 ),
+        .write_en        ( s_mem_write_en        ),
+        .valid_update    ( s_data_valid_update   ),
+        .lru_update      ( s_data_lru_update     ),
+        .block_write_en  ( s_data_block_write_en ),
+        .i_data_addr     ( s_result              ),
+        .i_data          ( s_reg_data_2          ),
+        .i_data_block    ( i_data_read_axi       ),
+        .i_store_type    ( s_func_3[1:0]         ),
+        .i_addr_control  ( s_addr_control        ),
+        .o_data          ( s_mem_read_data       ),
+        .o_data_block    ( o_data_write_axi      ),
+        .o_hit           ( s_data_hit            ),
+        .o_dirty         ( s_data_dirty          ),
+        .o_addr_axi      ( s_addr_axi            ), 
+        .o_store_addr_ma ( s_store_addr_ma       )
     );
 
     // Instruction Cache.
