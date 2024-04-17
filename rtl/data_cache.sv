@@ -160,6 +160,7 @@ module data_cache
     always_ff @( posedge clk ) begin
         if ( write_en ) begin
             case ( i_store_type )
+            // PROBLEM: NEED TO IMPLEMENT Store/AMO address misaligned.
                 // SD Instruction.
                 2'b11: begin
                     case ( s_word_offset )

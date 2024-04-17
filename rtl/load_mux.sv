@@ -34,7 +34,7 @@ module load_mux
         endcase 
     end
 
-    assign s_half = i_byte_offset[1] ? i_data[31:16] : i_data[15:0];
+    assign s_half = i_byte_offset[1] ? i_data[31:16] : i_data[15:0]; // PROBLEM: NEED TO IMPLEMENT Load address misaligned.
 
     always_comb begin
         case ( i_func_3 )
@@ -46,7 +46,7 @@ module load_mux
             3'b101: o_data = { { 48{1'b0} }, s_half};             // LHU Instruction.
             3'b110: o_data = { { 32{1'b0} }, i_data[31:0]};       // LWU Instruction.
         
-            default:  o_data = '0; // Default
+            default:  o_data = '0; // PROBLEM: NEED TO IMPLEMENT ILLEGAL INSTR.
 
         endcase
     end

@@ -68,7 +68,7 @@ module top
     logic [2:0] s_func_3;
     logic       s_func_7_5;
     logic [3:0] s_alu_control;
-    logic [1:0] s_result_src;
+    logic [2:0] s_result_src;
     logic [1:0] s_alu_src_control_1;
     logic [1:0] s_alu_src_control_2;
     logic [2:0] s_imm_src;
@@ -127,6 +127,7 @@ module top
     logic                          s_mcause_we;
     logic [ REG_DATA_WIDTH - 1:0 ] s_mcause_data_in;
     logic [ REG_DATA_WIDTH - 1:0 ] s_mcause_data_out;
+    logic [                  3:0 ] s_mcause;
 
 
 
@@ -142,6 +143,9 @@ module top
     assign s_reg_addr_3 = s_reg_instr[11:7];
 
     assign s_byte_offset = s_reg_old_addr[1:0];
+    
+    assign s_mepc_data_in   = s_reg_old_pc;
+    assign s_mcause_data_in = { 60'b0, s_mcause}; 
 
  
 
@@ -198,7 +202,11 @@ module top
         .o_access               ( o_access              ),
         .o_addr_control         ( s_addr_control        ),
         .o_mem_reg_we           ( s_reg_mem_we          ),
-        .o_fetch_state          ( s_fetch_state         )
+        .o_fetch_state          ( s_fetch_state         ),
+        .o_mepc_we              ( s_mepc_we             ),
+        .o_mtvec_we             ( s_mtvec_we            ),
+        .o_mcause_we            ( s_mcause_we           ),
+        .o_mcause               ( s_mcause              )
     );
 
 
@@ -387,13 +395,17 @@ module top
         .o_mux          ( s_alu_src_data_2    )
     );
 
-    // 4-to-1 Result Source MUX Instance.
-    mux4to1 RESULT_MUX (
+    // 8-to-1 Result Source MUX Instance.
+    mux8to1 RESULT_MUX (
         .control_signal ( s_result_src     ),
         .i_mux_1        ( s_reg_alu_result ),
         .i_mux_2        ( s_mem_load_data  ), 
         .i_mux_3        ( s_alu_result     ),
         .i_mux_4        ( s_imm_ext        ),
+        .i_mux_5        ( s_mtvec_data_out ),
+        .i_mux_6        ( s_mepc_data_out  ),
+        .i_mux_7        ( s_mepc_data_out  ),
+        .i_mux_8        ( s_mepc_data_out  ),
         .o_mux          ( s_result         )
     );
 

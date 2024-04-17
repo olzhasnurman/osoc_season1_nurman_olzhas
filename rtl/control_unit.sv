@@ -28,7 +28,7 @@ module control_unit
 
     // Output interface.
     output logic [3:0] o_alu_control,
-    output logic [1:0] o_result_src,
+    output logic [2:0] o_result_src,
     output logic [1:0] o_alu_src_1,
     output logic [1:0] o_alu_src_2,
     output logic [2:0] o_imm_src,
@@ -47,7 +47,11 @@ module control_unit
     output logic       o_access, // Just for simulation.
     output logic       o_addr_control,
     output logic       o_mem_reg_we,
-    output logic       o_fetch_state
+    output logic       o_fetch_state,
+    output logic       o_mepc_we,  
+    output logic       o_mtvec_we,  
+    output logic       o_mcause_we,
+    output logic [3:0] o_mcause 
 
 ); 
 
@@ -114,7 +118,11 @@ module control_unit
         .o_addr_write_en  ( o_old_addr_write_en ),
         .o_partial_store  ( o_partial_store     ),
         .o_mem_reg_we     ( o_mem_reg_we        ),
-        .o_fetch_state    ( o_fetch_state       )
+        .o_fetch_state    ( o_fetch_state       ),
+        .o_mepc_we        ( o_mepc_we           ),
+        .o_mtvec_we       ( o_mtvec_we          ),
+        .o_mcause_we      ( o_mcause_we         ),
+        .o_mcause         ( o_mcause            )
     );
 
     // Instruction cache FSM.

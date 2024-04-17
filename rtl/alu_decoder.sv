@@ -32,7 +32,7 @@ module alu_decoder
             2'b10: 
                 case (i_func_3)
                     3'b000: if ( s_op_func_7 == 2'b11 ) o_alu_control = 4'b0001; // sub instruciton.
-                            else                        o_alu_control = 4'b0000; // add instruciton.
+                            else                        o_alu_control = 4'b0000; // add & addi instruciton.
 
                     3'b001: o_alu_control = 4'b0101; // sll & slli instructions.
 
@@ -46,7 +46,7 @@ module alu_decoder
                         case ( i_func_7_5 )
                             1'b0:   o_alu_control = 4'b1000; // srl & srli instructions.
                             1'b1:   o_alu_control = 4'b1001; // sra & srai instructions. 
-                            default: o_alu_control = '0; 
+                            default: o_alu_control = '0;     // PROBLEM: NEED TO IMPLEMENT ILLEGAL INSTR.
                         endcase
 
                     3'b110: o_alu_control = 4'b0011; // or instruction.
@@ -68,7 +68,7 @@ module alu_decoder
                     3'b001: o_alu_control = 4'b1100; // SLLIW or SLLW
                     3'b101: if ( i_func_7_5 ) o_alu_control = 4'b1110; // SRAIW or SRAW.
                             else              o_alu_control = 4'b1101; // SRLIW or SRLW. 
-                    default: o_alu_control = 4'b0000; // Default.
+                    default: o_alu_control = 4'b0000; // PROBLEM: NEED TO IMPLEMENT ILLEGAL INSTR.
                 endcase 
             
             default: o_alu_control = 4'b0000; // Default.

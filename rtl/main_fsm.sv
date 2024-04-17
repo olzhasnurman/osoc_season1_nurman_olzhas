@@ -21,7 +21,7 @@ module main_fsm
 
     // Output interface.
     output logic [1:0] o_alu_op,
-    output logic [1:0] o_result_src,
+    output logic [2:0] o_result_src,
     output logic [1:0] o_alu_src_1,
     output logic [1:0] o_alu_src_2,
     output logic       o_reg_write_en,
@@ -34,7 +34,11 @@ module main_fsm
     output logic       o_addr_write_en, //
     output logic       o_partial_store, // 
     output logic       o_mem_reg_we,
-    output logic       o_fetch_state
+    output logic       o_fetch_state,
+    output logic       o_mepc_we,  
+    output logic       o_mtvec_we,  
+    output logic       o_mcause_we,
+    output logic [3:0] o_mcause 
 );  
     // State type.
     typedef enum logic [3:0] {
@@ -52,7 +56,8 @@ module main_fsm
         LOADI      = 4'b1011,
         MEMWRITE_D = 4'b1100,
         MEMREAD_D  = 4'b1101,
-        BREAK      = 4'b1110
+        BREAK      = 4'b1110,
+        CALL       = 4'b1111
     } t_state;
 
     // State variables. 
@@ -139,8 +144,9 @@ module main_fsm
                     U_Type_LOAD: NS = LOADI; 
                     FENCE_Type : NS = FETCH; // NOT FINISHED.
                     E_Type     : NS = BREAK; // NOT FINISHED.
+                    ILLEGAL    : NS = CALL;
 
-                    default: NS = FETCH; // For simulation only.
+                    default: NS = CALL; 
                 endcase
             end
 
@@ -203,6 +209,8 @@ module main_fsm
 
             BREAK: NS = FETCH;
 
+            CALL: NS = FETCH;
+
             default: NS = PS;
         endcase
     end
@@ -210,9 +218,10 @@ module main_fsm
 
     // FSM: Ouput logic.
     always_comb begin
+
         // Default values. 
         o_alu_op         = 2'b00;
-        o_result_src     = 2'b00;
+        o_result_src     = 3'b000;
         o_alu_src_1      = 2'b00;
         o_alu_src_2      = 2'b00;
         o_reg_write_en   = 1'b0;
@@ -226,6 +235,10 @@ module main_fsm
         o_partial_store  = 1'b0;
         o_mem_reg_we     = 1'b0;
         o_fetch_state    = 1'b0;
+        o_mepc_we        = 1'b0;
+        o_mtvec_we       = 1'b0;
+        o_mcause_we      = 1'b0;
+        o_mcause         = 4'b0000;
 
         case ( PS )
             FETCH: begin
@@ -243,7 +256,7 @@ module main_fsm
                 o_fetch_state      = 1'b1; 
                 o_alu_src_1        = 2'b00;
                 o_alu_src_2        = 2'b10;
-                o_result_src       = 2'b10;
+                o_result_src       = 3'b010;
                 o_alu_op           = 2'b00;
             end 
 
@@ -260,7 +273,7 @@ module main_fsm
             end
 
             MEMREAD: begin
-                o_result_src    = 2'b00;
+                o_result_src    = 3'b000;
                 o_start_d_cache = 1'b1;
                 o_alu_op        = 2'b00;
 
@@ -286,7 +299,7 @@ module main_fsm
             end
 
             MEMREAD_D: begin 
-                o_result_src    = 2'b00;
+                o_result_src    = 3'b000;
                 o_start_d_cache = 1'b1;
                 o_alu_src_1     = 2'b11;
                 o_alu_src_2     = 2'b10;
@@ -301,7 +314,7 @@ module main_fsm
             end
 
             MEMWB: begin
-                o_result_src   = 2'b01;
+                o_result_src   = 3'b001;
                 o_reg_write_en = 1'b1;
             end
 
@@ -329,7 +342,7 @@ module main_fsm
                 end
                 
                 o_start_d_cache = 1'b1;
-                o_result_src    = 2'b00;
+                o_result_src    = 3'b000;
                 o_alu_op    = 2'b00;
                 
             end
@@ -344,7 +357,7 @@ module main_fsm
 
                 o_partial_store = 1'b1;
                 o_start_d_cache = 1'b1;
-                o_result_src    = 2'b00;
+                o_result_src    = 3'b000;
                 o_alu_src_1     = 2'b11;
                 o_alu_src_2     = 2'b10;
                 o_alu_op        = 2'b00;
@@ -363,7 +376,7 @@ module main_fsm
             end
 
             ALUWB: begin
-                o_result_src   = 2'b00;
+                o_result_src   = 3'b000;
                 o_reg_write_en = 1'b1;
             end
 
@@ -381,7 +394,7 @@ module main_fsm
                 o_alu_src_1  = 2'b01;
                 o_alu_src_2  = 2'b10;
                 o_alu_op     = 2'b00;
-                o_result_src = 2'b00;
+                o_result_src = 3'b000;
                 o_pc_update  = 1'b1;
             end
 
@@ -389,12 +402,12 @@ module main_fsm
                 o_alu_src_1  = 2'b10;
                 o_alu_src_2  = 2'b00;
                 o_alu_op     = 2'b01;
-                o_result_src = 2'b00;
+                o_result_src = 3'b000;
                 o_branch     = 1'b1;
             end
 
             LOADI: begin
-                o_result_src   = 2'b11;
+                o_result_src   = 3'b011;
                 o_reg_write_en = 1'b1; 
             end
 
@@ -403,10 +416,20 @@ module main_fsm
                 $stop(); // For simulation.
             end
 
+            CALL: begin
+                o_mepc_we   = 1'b1;
+                o_mcause_we = 1'b1;
+                if ( instr == ILLEGAL ) o_mcause = 4'd2; // Illegal instruction trap.
+                else                    o_mcause = 4'd0;
+
+                o_result_src = 3'b100; // s_mtvec_out.
+                o_pc_update  = 1'b1;
+            end
+
 
             default: begin
                 o_alu_op         = 2'b00;
-                o_result_src     = 2'b00;
+                o_result_src     = 3'b000;
                 o_alu_src_1      = 2'b00;
                 o_alu_src_2      = 2'b00;
                 o_reg_write_en   = 1'b0;
@@ -420,6 +443,10 @@ module main_fsm
                 o_partial_store  = 1'b0;
                 o_mem_reg_we     = 1'b0;
                 o_fetch_state    = 1'b0;
+                o_mepc_we        = 1'b0;
+                o_mtvec_we       = 1'b0;
+                o_mcause_we      = 1'b0;
+                o_mcause         = 4'b0000;
             end
         endcase
     end

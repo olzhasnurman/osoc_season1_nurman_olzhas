@@ -82,6 +82,7 @@ module instr_cache
 
     always_comb begin
         case ( s_word_offset )
+        // PROBLEM: NEED TO IMPLEMENT Instruction address misaligned.
             4'b0000: o_instr = mem[ s_index ][ 31 :0   ]; 
             4'b0001: o_instr = mem[ s_index ][ 63 :32  ]; 
             4'b0010: o_instr = mem[ s_index ][ 95 :64  ]; 
