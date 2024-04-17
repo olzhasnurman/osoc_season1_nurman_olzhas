@@ -48,12 +48,8 @@ module top
     logic       s_data_block_write_en;
     logic       s_data_valid_update;
     logic       s_data_lru_update;
-    logic       s_partial_st;
-    logic       s_partial_st_state;
-    logic       s_partial_ld_state;
     logic       s_addr_control;
-    logic       s_edge_ld;
-    logic [1:0] s_byte_offset;
+    logic [2:0] s_addr_offset;
 
     // ALU flags.
     logic s_zero_flag;
@@ -133,6 +129,9 @@ module top
 
     // Exception cause signals.
     logic s_instr_addr_ma;
+    logic s_store_addr_ma;
+    logic s_load_addr_ma;
+    logic s_illegal_instr;
 
 
 
@@ -147,7 +146,7 @@ module top
     assign s_reg_addr_2 = s_reg_instr[24:20];
     assign s_reg_addr_3 = s_reg_instr[11:7];
 
-    assign s_byte_offset = s_reg_old_addr[1:0];
+    assign s_addr_offset = s_reg_old_addr[2:0];
     
     assign s_mepc_data_in     = s_reg_old_pc;
     assign s_mcause_data_in   = { 60'b0, s_mcause}; 
@@ -188,8 +187,10 @@ module top
         .i_data_hit             ( s_data_hit            ),
         .i_data_dirty           ( s_data_dirty          ),
         .i_b_resp_axi           ( i_b_resp_axi          ),
-        .i_partial_store        ( s_partial_st          ),
         .i_instr_addr_ma        ( s_instr_addr_ma       ),
+        .i_store_addr_ma        ( s_store_addr_ma       ),
+        .i_load_addr_ma         ( s_load_addr_ma        ),
+        .i_illegal_instr        ( s_illegal_instr       ),
         .o_alu_control          ( s_alu_control         ),
         .o_result_src           ( s_result_src          ),
         .o_alu_src_1            ( s_alu_src_control_1   ),
@@ -206,7 +207,6 @@ module top
         .o_data_lru_update      ( s_data_lru_update     ),
         .o_start_write_axi      ( o_start_write_axi     ),
         .o_old_addr_write_en    ( s_old_addr_write_en   ),
-        .o_partial_store        ( s_partial_st_state    ),
         .o_access               ( o_access              ),
         .o_addr_control         ( s_addr_control        ),
         .o_mem_reg_we           ( s_reg_mem_we          ),
@@ -248,15 +248,12 @@ module top
         .i_data         ( s_reg_data_2          ),
         .i_data_block   ( i_data_read_axi       ),
         .i_store_type   ( s_func_3[1:0]         ),
-        .i_partial_st   ( s_partial_st_state    ),
         .i_addr_control ( s_addr_control        ),
         .o_data         ( s_mem_read_data       ),
         .o_data_block   ( o_data_write_axi      ),
         .o_hit          ( s_data_hit            ),
         .o_dirty        ( s_data_dirty          ),
-        .o_addr_axi     ( s_addr_axi            ),
-        .o_edge_ld      ( s_edge_ld             ),
-        .o_partial_st   ( s_partial_st          )
+        .o_addr_axi     ( s_addr_axi            )
     );
 
     // Instruction Cache.
@@ -373,9 +370,7 @@ module top
         .clk          ( clk                ),
         .arstn        ( arstn              ),
         .write_en     ( s_reg_mem_we       ),
-        .i_partial_ld ( s_partial_st_state ),
         .i_write_data ( s_mem_read_data    ),
-        .i_edge_ld    ( s_edge_ld          ),
         .o_read_data  ( s_reg_mem_data     )
     );
 
@@ -434,10 +429,11 @@ module top
     // LOAD Instruction mux. 
     //------------------------------
     load_mux LOAD_MUX (
-        .i_func_3      ( s_func_3        ),
-        .i_data        ( s_reg_mem_data  ),
-        .i_byte_offset ( s_byte_offset   ),
-        .o_data        ( s_mem_load_data )
+        .i_func_3       ( s_func_3        ),
+        .i_data         ( s_reg_mem_data  ),
+        .i_addr_offset  ( s_addr_offset   ),
+        .o_data         ( s_mem_load_data ),
+        .o_load_addr_ma ( s_load_addr_ma  )
     );
 
 

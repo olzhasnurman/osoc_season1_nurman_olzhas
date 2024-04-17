@@ -18,8 +18,10 @@ module main_fsm
     input  logic        i_func_7_5, 
     input  logic        i_stall_instr,
     input  logic        i_stall_data,
-    input  logic        i_partial_store,
     input  logic        i_instr_addr_ma,
+    input logic         i_store_addr_ma,
+    input logic         i_load_addr_ma,
+    input logic         i_illegal_instr,
 
     // Output interface.
     output logic [ 1:0] o_alu_op,
@@ -34,7 +36,6 @@ module main_fsm
     output logic        o_start_d_cache, 
     output logic        o_branch,
     output logic        o_addr_write_en,
-    output logic        o_partial_store, 
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
     output logic        o_mepc_we,  
@@ -130,24 +131,26 @@ module main_fsm
             end 
 
             DECODE: begin
-                case ( instr )
-                    I_Type     : NS = MEMADDR;
-                    I_Type_ALU : NS = EXECUTEI;
-                    I_Type_JALR: NS = MEMADDR;
-                    I_Type_IW  : NS = EXECUTEI; 
-                    S_Type     : NS = MEMADDR;
-                    R_Type     : NS = EXECUTER; 
-                    R_Type_W   : NS = EXECUTER;
-                    B_Type     : NS = BRANCH;
-                    J_Type     : NS = JAL;
-                    U_Type_ALU : NS = ALUWB;
-                    U_Type_LOAD: NS = LOADI; 
-                    FENCE_Type : NS = FETCH; // NOT IMPLEMENTED.
-                    E_Type     : NS = CALL; // PROBLEM: NOT FINISHED.
-                    ILLEGAL    : NS = CALL;
-
-                    default: NS = CALL; 
-                endcase
+                if ( i_illegal_instr ) NS = CALL;
+                else begin
+                    case ( instr )
+                        I_Type     : NS = MEMADDR;
+                        I_Type_ALU : NS = EXECUTEI;
+                        I_Type_JALR: NS = MEMADDR;
+                        I_Type_IW  : NS = EXECUTEI; 
+                        S_Type     : NS = MEMADDR;
+                        R_Type     : NS = EXECUTER; 
+                        R_Type_W   : NS = EXECUTER;
+                        B_Type     : NS = BRANCH;
+                        J_Type     : NS = JAL;
+                        U_Type_ALU : NS = ALUWB;
+                        U_Type_LOAD: NS = LOADI; 
+                        FENCE_Type : NS = FETCH; // NOT IMPLEMENTED.
+                        E_Type     : NS = CALL; // PROBLEM: NOT FINISHED.
+                        ILLEGAL    : NS = CALL;
+                        default:     NS = CALL; 
+                    endcase
+                end
             end
 
             MEMADDR: begin
@@ -160,39 +163,17 @@ module main_fsm
             end
 
             MEMREAD: begin
-                if ( i_stall_data ) begin
-                    NS = PS;
-                end
-                else if ( i_partial_store ) begin
-                    NS = MEMREAD_D;
-                end
-                else NS = MEMWB;
-            end
-
-            MEMREAD_D: begin
-                if ( i_stall_data ) begin
-                    NS = PS;
-                end
-                else NS = MEMWB;
+                if ( i_load_addr_ma )       NS = CALL; 
+                else if ( i_stall_data )    NS = PS;
+                else                        NS = MEMWB;
             end
 
             MEMWB: NS = FETCH;
 
             MEMWRITE: begin
-                if ( i_stall_data ) begin
-                    NS = PS;
-                end
-                else if ( i_partial_store ) begin
-                    NS = MEMWRITE_D;
-                end 
-                else NS = FETCH;
-            end
-
-            MEMWRITE_D: begin
-                if ( i_stall_data ) begin
-                    NS = PS;
-                end
-                else NS = FETCH;
+                if ( i_store_addr_ma )      NS = CALL;
+                else if ( i_stall_data )    NS = PS;
+                else                        NS = FETCH;
             end
 
             EXECUTER: NS = ALUWB;
@@ -230,7 +211,6 @@ module main_fsm
         o_start_i_cache  = 1'b0;
         o_branch         = 1'b0;
         o_start_d_cache  = 1'b0;
-        o_partial_store  = 1'b0;
         o_mem_reg_we     = 1'b0;
         o_fetch_state    = 1'b0;
         o_mepc_we        = 1'b0;
@@ -284,31 +264,9 @@ module main_fsm
                 else begin
                     o_addr_write_en = 1'b0;
                     o_mem_reg_we    = 1'b1;
-
-                    if ( i_partial_store ) begin
-                        o_alu_src_1  = 2'b11;
-                        o_alu_src_2  = 2'b10;
-                    end
-                    else begin
-                        o_alu_src_1 = 2'b10;
-                        o_alu_src_2 = 2'b01;      
-                    end
+                    o_alu_src_1 = 2'b10;
+                    o_alu_src_2 = 2'b01;     
                 end
-            end
-
-            MEMREAD_D: begin 
-                o_result_src    = 3'b000;
-                o_start_d_cache = 1'b1;
-                o_alu_src_1     = 2'b11;
-                o_alu_src_2     = 2'b10;
-                o_alu_op        = 2'b00;
-                o_partial_store = 1'b1;
-                if ( i_stall_data ) begin
-                    o_mem_reg_we = 1'b0;
-                end
-                else begin
-                    o_mem_reg_we = 1'b1;
-                end 
             end
 
             MEMWB: begin
@@ -328,39 +286,14 @@ module main_fsm
                     o_mem_write_en  = 1'b1;
                     o_addr_write_en = 1'b0;
                     o_mem_reg_we    = 1'b1;
-
-                    if ( i_partial_store ) begin
-                        o_alu_src_1 = 2'b11;
-                        o_alu_src_2 = 2'b10;
-                    end
-                    else begin
-                        o_alu_src_1 = 2'b10;
-                        o_alu_src_2 = 2'b01;      
-                    end
+                    o_alu_src_1 = 2'b10;
+                    o_alu_src_2 = 2'b01;      
                 end
                 
                 o_start_d_cache = 1'b1;
                 o_result_src    = 3'b000;
                 o_alu_op    = 2'b00;
                 
-            end
-
-            MEMWRITE_D: begin
-                if ( i_stall_data ) begin
-                    o_mem_write_en = 1'b0;
-                end
-                else begin
-                    o_mem_write_en = 1'b1;
-                end
-
-                o_partial_store = 1'b1;
-                o_start_d_cache = 1'b1;
-                o_result_src    = 3'b000;
-                o_alu_src_1     = 2'b11;
-                o_alu_src_2     = 2'b10;
-                o_alu_op        = 2'b00;
-                
-
             end
 
             EXECUTER: begin
@@ -418,12 +351,18 @@ module main_fsm
             CALL: begin
                 o_mepc_we   = 1'b1;
                 o_mcause_we = 1'b1;
-                if ( instr == ILLEGAL )     o_mcause = 4'd2; // Illegal instruction.
+                if ( (instr == ILLEGAL) | i_illegal_instr ) o_mcause = 4'd2; // Illegal instruction.
+
+                //  An instruction-address-misaligned exception is generated on a taken branch or unconditional jump
+                // if the target address is not four-byte aligned. This exception is reported on the branch or jump
+                // instruction, not on the target instruction.
                 else if ( i_instr_addr_ma ) o_mcause = 4'd0; // Instruction address misaligned.
-                else if ( instr == E_Type) begin
+                else if ( instr == E_Type ) begin
                     if ( ~i_instr[20] ) o_mcause = 4'd11; // Env call from M-mode.
                     else                o_mcause = 4'd3; // Env breakpoint.
                 end
+                else if ( i_load_addr_ma  ) o_mcause = 4'd4; // Load address misaligned.
+                else if ( i_store_addr_ma ) o_mcause = 4'd6; // Store address misaligned.
                 else o_mcause = 4'd10; // Reserved.
 
                 o_result_src = 3'b100; // s_mtvec_out.
@@ -444,7 +383,6 @@ module main_fsm
                 o_start_i_cache  = 1'b0;
                 o_branch         = 1'b0;
                 o_start_d_cache  = 1'b0;
-                o_partial_store  = 1'b0;
                 o_mem_reg_we     = 1'b0;
                 o_fetch_state    = 1'b0;
                 o_mepc_we        = 1'b0;

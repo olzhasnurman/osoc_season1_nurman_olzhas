@@ -29,7 +29,6 @@ module data_cache
     input  logic [ REG_WIDTH   - 1:0 ] i_data,
     input  logic [ BLOCK_WIDTH - 1:0 ] i_data_block,
     input  logic [               1:0 ] i_store_type,
-    input  logic                       i_partial_st,
     input  logic                       i_addr_control,
 
     // Output Interface.
@@ -37,8 +36,6 @@ module data_cache
     output logic [ BLOCK_WIDTH - 1:0 ] o_data_block,
     output logic                       o_hit,
     output logic                       o_dirty,
-    output logic                       o_partial_st,
-    output logic                       o_edge_ld,
     output logic [ ADDR_WIDTH  - 1:0 ] o_addr_axi
 
 );  
@@ -84,9 +81,6 @@ module data_cache
     assign s_index       = i_data_addr[ INDEX_MSB      :INDEX_LSB       ]; 
     assign s_word_offset = i_data_addr[ WORD_OFFSET_MSB:WORD_OFFSET_LSB ];
     assign s_byte_offset = i_data_addr[               1:0               ];
-
-    assign o_partial_st = (i_store_type == 2'b11) & (s_word_offset == 4'b1111);
-    assign o_edge_ld    = (s_word_offset == 4'b1111);
 
 
     //-------------------------------------
@@ -163,29 +157,16 @@ module data_cache
             // PROBLEM: NEED TO IMPLEMENT Store/AMO address misaligned.
                 // SD Instruction.
                 2'b11: begin
-                    case ( s_word_offset )
-                        4'b0000: begin
-                            if ( i_partial_st ) begin
-                                data_mem[ s_index ][ s_match ][ 31 :0 ] <= i_data[ 63:32 ];
-                            end
-                            else data_mem[ s_index ][ s_match ][ 63 :0 ] <= i_data; 
-                        end 
-                        4'b0001: data_mem[ s_index ][ s_match ][ 95 :32  ] <= i_data; 
-                        4'b0010: data_mem[ s_index ][ s_match ][ 127:64  ] <= i_data; 
-                        4'b0011: data_mem[ s_index ][ s_match ][ 159:96  ] <= i_data; 
-                        4'b0100: data_mem[ s_index ][ s_match ][ 191:128 ] <= i_data; 
-                        4'b0101: data_mem[ s_index ][ s_match ][ 223:160 ] <= i_data; 
-                        4'b0110: data_mem[ s_index ][ s_match ][ 255:192 ] <= i_data; 
-                        4'b0111: data_mem[ s_index ][ s_match ][ 287:224 ] <= i_data; 
-                        4'b1000: data_mem[ s_index ][ s_match ][ 319:256 ] <= i_data; 
-                        4'b1001: data_mem[ s_index ][ s_match ][ 351:288 ] <= i_data;
-                        4'b1010: data_mem[ s_index ][ s_match ][ 383:320 ] <= i_data; 
-                        4'b1011: data_mem[ s_index ][ s_match ][ 415:352 ] <= i_data; 
-                        4'b1100: data_mem[ s_index ][ s_match ][ 447:384 ] <= i_data; 
-                        4'b1101: data_mem[ s_index ][ s_match ][ 479:416 ] <= i_data;
-                        4'b1110: data_mem[ s_index ][ s_match ][ 511:448 ] <= i_data;
-                        4'b1111: data_mem[ s_index ][ s_match ][ 511:480 ] <= i_data[31:0];
-                        default: data_mem[ s_index ][ s_match ][ 31:0    ] <= '0;
+                    case ( s_word_offset[3:1] )
+                        3'b000: data_mem[ s_index ][ s_match ][ 63 :0   ] <= i_data; 
+                        3'b001: data_mem[ s_index ][ s_match ][ 127:64  ] <= i_data; 
+                        3'b010: data_mem[ s_index ][ s_match ][ 191:128 ] <= i_data; 
+                        3'b011: data_mem[ s_index ][ s_match ][ 255:192 ] <= i_data; 
+                        3'b100: data_mem[ s_index ][ s_match ][ 319:256 ] <= i_data; 
+                        3'b101: data_mem[ s_index ][ s_match ][ 383:320 ] <= i_data; 
+                        3'b110: data_mem[ s_index ][ s_match ][ 447:384 ] <= i_data; 
+                        3'b111: data_mem[ s_index ][ s_match ][ 511:448 ] <= i_data;
+                        default: data_mem[ s_index ][ s_match ][ 63:0    ] <= '0;
                     endcase                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
                 end
 
