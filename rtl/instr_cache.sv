@@ -25,7 +25,8 @@ module instr_cache
 
     // Output Interface.
     output logic [ WORD_SIZE   - 1:0 ] o_instr,
-    output logic                       o_hit
+    output logic                       o_hit,
+    output logic                       o_instr_addr_ma
 
 );
     // Local Parameters.
@@ -56,6 +57,9 @@ module instr_cache
     assign s_index       = i_instr_addr[ INDEX_MSB      :INDEX_LSB       ]; 
     assign s_word_offset = i_instr_addr[ WORD_OFFSET_MSB:WORD_OFFSET_LSB ];
 
+    // Instruction address misaligned exception.
+    assign o_instr_addr_ma = | i_instr_addr[ 1:0 ];
+
     // Tag memory.
     logic [ TAG_WIDTH - 1:0 ] tag_mem [ BLOCK_COUNT - 1:0 ];
 
@@ -82,7 +86,6 @@ module instr_cache
 
     always_comb begin
         case ( s_word_offset )
-        // PROBLEM: NEED TO IMPLEMENT Instruction address misaligned.
             4'b0000: o_instr = mem[ s_index ][ 31 :0   ]; 
             4'b0001: o_instr = mem[ s_index ][ 63 :32  ]; 
             4'b0010: o_instr = mem[ s_index ][ 95 :64  ]; 

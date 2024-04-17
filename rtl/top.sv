@@ -120,7 +120,8 @@ module top
     // CSR signals.
     logic                          s_mtvec_we;
     logic [ REG_DATA_WIDTH - 1:0 ] s_mtvec_data_in;
-    logic [ REG_DATA_WIDTH - 1:0 ] s_mtvec_data_out; 
+    logic [ REG_DATA_WIDTH - 1:0 ] s_mtvec_data_out;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_exception_j_addr;
     logic                          s_mepc_we;
     logic [ REG_DATA_WIDTH - 1:0 ] s_mepc_data_in;
     logic [ REG_DATA_WIDTH - 1:0 ] s_mepc_data_out;
@@ -128,6 +129,10 @@ module top
     logic [ REG_DATA_WIDTH - 1:0 ] s_mcause_data_in;
     logic [ REG_DATA_WIDTH - 1:0 ] s_mcause_data_out;
     logic [                  3:0 ] s_mcause;
+
+
+    // Exception cause signals.
+    logic s_instr_addr_ma;
 
 
 
@@ -144,8 +149,9 @@ module top
 
     assign s_byte_offset = s_reg_old_addr[1:0];
     
-    assign s_mepc_data_in   = s_reg_old_pc;
-    assign s_mcause_data_in = { 60'b0, s_mcause}; 
+    assign s_mepc_data_in     = s_reg_old_pc;
+    assign s_mcause_data_in   = { 60'b0, s_mcause}; 
+    assign s_exception_j_addr = s_mtvec_data_out >> 2;
 
  
 
@@ -170,6 +176,7 @@ module top
     control_unit CU (
         .clk                    ( clk                   ), 
         .arstn                  ( arstn                 ),
+        .i_instr                ( s_reg_instr           ),
         .i_op                   ( s_op                  ),
         .i_func_3               ( s_func_3              ),
         .i_func_7_5             ( s_func_7_5            ),
@@ -182,6 +189,7 @@ module top
         .i_data_dirty           ( s_data_dirty          ),
         .i_b_resp_axi           ( i_b_resp_axi          ),
         .i_partial_store        ( s_partial_st          ),
+        .i_instr_addr_ma        ( s_instr_addr_ma       ),
         .o_alu_control          ( s_alu_control         ),
         .o_result_src           ( s_result_src          ),
         .o_alu_src_1            ( s_alu_src_control_1   ),
@@ -253,13 +261,14 @@ module top
 
     // Instruction Cache.
     instr_cache I_CACHE (
-        .clk          ( clk              ),
-        .write_en     ( s_instr_cache_we ),
-        .arstn        ( arstn            ),
-        .i_instr_addr ( s_reg_pc         ),
-        .i_inst       ( i_data_read_axi  ),
-        .o_instr      ( s_instr_read     ),
-        .o_hit        ( s_instr_hit      )
+        .clk             ( clk              ),
+        .write_en        ( s_instr_cache_we ),
+        .arstn           ( arstn            ),
+        .i_instr_addr    ( s_reg_pc         ),
+        .i_inst          ( i_data_read_axi  ),
+        .o_instr         ( s_instr_read     ),
+        .o_hit           ( s_instr_hit      ),
+        .o_instr_addr_ma ( s_instr_addr_ma  )
     );
 
 
@@ -397,16 +406,16 @@ module top
 
     // 8-to-1 Result Source MUX Instance.
     mux8to1 RESULT_MUX (
-        .control_signal ( s_result_src     ),
-        .i_mux_1        ( s_reg_alu_result ),
-        .i_mux_2        ( s_mem_load_data  ), 
-        .i_mux_3        ( s_alu_result     ),
-        .i_mux_4        ( s_imm_ext        ),
-        .i_mux_5        ( s_mtvec_data_out ),
-        .i_mux_6        ( s_mepc_data_out  ),
-        .i_mux_7        ( s_mepc_data_out  ),
-        .i_mux_8        ( s_mepc_data_out  ),
-        .o_mux          ( s_result         )
+        .control_signal ( s_result_src       ),
+        .i_mux_1        ( s_reg_alu_result   ),
+        .i_mux_2        ( s_mem_load_data    ), 
+        .i_mux_3        ( s_alu_result       ),
+        .i_mux_4        ( s_imm_ext          ),
+        .i_mux_5        ( s_exception_j_addr ),
+        .i_mux_6        ( s_mepc_data_out    ),
+        .i_mux_7        ( s_mepc_data_out    ),
+        .i_mux_8        ( s_mepc_data_out    ),
+        .o_mux          ( s_result           )
     );
 
     

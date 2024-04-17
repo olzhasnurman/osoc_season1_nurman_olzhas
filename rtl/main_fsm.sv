@@ -12,33 +12,35 @@ module main_fsm
     input  logic       arstn,
 
     // Input interface. 
-    input  logic [6:0] i_op,
-    input  logic [2:0] i_func_3,
-    input  logic       i_func_7_5, 
-    input  logic       i_stall_instr,
-    input  logic       i_stall_data,
-    input  logic       i_partial_store, //
+    input  logic [31:0] i_instr,
+    input  logic [ 6:0] i_op,
+    input  logic [ 2:0] i_func_3,
+    input  logic        i_func_7_5, 
+    input  logic        i_stall_instr,
+    input  logic        i_stall_data,
+    input  logic        i_partial_store,
+    input  logic        i_instr_addr_ma,
 
     // Output interface.
-    output logic [1:0] o_alu_op,
-    output logic [2:0] o_result_src,
-    output logic [1:0] o_alu_src_1,
-    output logic [1:0] o_alu_src_2,
-    output logic       o_reg_write_en,
-    output logic       o_pc_update,
-    output logic       o_mem_write_en,
-    output logic       o_instr_write_en, 
-    output logic       o_start_i_cache,
-    output logic       o_start_d_cache, 
-    output logic       o_branch,
-    output logic       o_addr_write_en, //
-    output logic       o_partial_store, // 
-    output logic       o_mem_reg_we,
-    output logic       o_fetch_state,
-    output logic       o_mepc_we,  
-    output logic       o_mtvec_we,  
-    output logic       o_mcause_we,
-    output logic [3:0] o_mcause 
+    output logic [ 1:0] o_alu_op,
+    output logic [ 2:0] o_result_src,
+    output logic [ 1:0] o_alu_src_1,
+    output logic [ 1:0] o_alu_src_2,
+    output logic        o_reg_write_en,
+    output logic        o_pc_update,
+    output logic        o_mem_write_en,
+    output logic        o_instr_write_en, 
+    output logic        o_start_i_cache,
+    output logic        o_start_d_cache, 
+    output logic        o_branch,
+    output logic        o_addr_write_en,
+    output logic        o_partial_store, 
+    output logic        o_mem_reg_we,
+    output logic        o_fetch_state,
+    output logic        o_mepc_we,  
+    output logic        o_mtvec_we,  
+    output logic        o_mcause_we,
+    output logic [ 3:0] o_mcause 
 );  
     // State type.
     typedef enum logic [3:0] {
@@ -56,8 +58,7 @@ module main_fsm
         LOADI      = 4'b1011,
         MEMWRITE_D = 4'b1100,
         MEMREAD_D  = 4'b1101,
-        BREAK      = 4'b1110,
-        CALL       = 4'b1111
+        CALL       = 4'b1110
     } t_state;
 
     // State variables. 
@@ -123,10 +124,9 @@ module main_fsm
 
         case ( PS )
             FETCH: begin
-                if ( i_stall_instr ) begin
-                    NS = PS;
-                end
-                else NS = DECODE;
+                if ( i_instr_addr_ma )    NS = CALL;
+                else if ( i_stall_instr ) NS = PS;
+                else                      NS = DECODE;
             end 
 
             DECODE: begin
@@ -142,8 +142,8 @@ module main_fsm
                     J_Type     : NS = JAL;
                     U_Type_ALU : NS = ALUWB;
                     U_Type_LOAD: NS = LOADI; 
-                    FENCE_Type : NS = FETCH; // NOT FINISHED.
-                    E_Type     : NS = BREAK; // NOT FINISHED.
+                    FENCE_Type : NS = FETCH; // NOT IMPLEMENTED.
+                    E_Type     : NS = CALL; // PROBLEM: NOT FINISHED.
                     ILLEGAL    : NS = CALL;
 
                     default: NS = CALL; 
@@ -206,8 +206,6 @@ module main_fsm
             BRANCH: NS = FETCH;
             
             LOADI: NS = FETCH;
-
-            BREAK: NS = FETCH;
 
             CALL: NS = FETCH;
 
@@ -411,16 +409,22 @@ module main_fsm
                 o_reg_write_en = 1'b1; 
             end
 
-            BREAK: begin
-                $display("Breakpoint");
-                $stop(); // For simulation.
-            end
+            // FOR SIMULATION ONLY..
+            // BREAK: begin
+            //     $display("Breakpoint");
+            //     $stop();
+            // end
 
             CALL: begin
                 o_mepc_we   = 1'b1;
                 o_mcause_we = 1'b1;
-                if ( instr == ILLEGAL ) o_mcause = 4'd2; // Illegal instruction trap.
-                else                    o_mcause = 4'd0;
+                if ( instr == ILLEGAL )     o_mcause = 4'd2; // Illegal instruction.
+                else if ( i_instr_addr_ma ) o_mcause = 4'd0; // Instruction address misaligned.
+                else if ( instr == E_Type) begin
+                    if ( ~i_instr[20] ) o_mcause = 4'd11; // Env call from M-mode.
+                    else                o_mcause = 4'd3; // Env breakpoint.
+                end
+                else o_mcause = 4'd10; // Reserved.
 
                 o_result_src = 3'b100; // s_mtvec_out.
                 o_pc_update  = 1'b1;
