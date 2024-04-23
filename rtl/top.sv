@@ -50,7 +50,6 @@ module top
     logic       s_data_lru_update;
     logic       s_addr_control;
     logic [2:0] s_addr_offset;
-    logic       s_edge_ld;
 
     // ALU flags.
     logic s_zero_flag;
@@ -151,7 +150,7 @@ module top
     assign s_reg_addr_2 = s_reg_instr[24:20];
     assign s_reg_addr_3 = s_reg_instr[11:7];
 
-    assign s_addr_offset = s_reg_old_addr[2:0];
+    assign s_addr_offset = s_result[2:0];
     
     assign s_mepc_data_in     = s_reg_old_pc;
     assign s_mcause_data_in   = { 60'b0, s_mcause}; 
@@ -260,7 +259,6 @@ module top
         .o_hit           ( s_data_hit            ),
         .o_dirty         ( s_data_dirty          ),
         .o_addr_axi      ( s_addr_axi            ),
-        .o_edge_ld       ( s_edge_ld             ), 
         .o_store_addr_ma ( s_store_addr_ma       )
     );
 
@@ -374,12 +372,11 @@ module top
     );
 
     // Memory Data Register. 
-    register_mem MEM_DATA (
+    register_en MEM_DATA (
         .clk          ( clk                ),
         .arstn        ( arstn              ),
         .write_en     ( s_reg_mem_we       ),
-        .i_write_data ( s_mem_read_data    ),
-        .i_edge_ld    ( s_edge_ld          ),
+        .i_write_data ( s_mem_load_data    ),
         .o_read_data  ( s_reg_mem_data     )
     );
 
@@ -413,7 +410,7 @@ module top
     mux4to1 RESULT_MUX (
         .control_signal ( s_result_src       ),
         .i_mux_1        ( s_reg_alu_result   ),
-        .i_mux_2        ( s_mem_load_data    ), 
+        .i_mux_2        ( s_reg_mem_data     ), 
         .i_mux_3        ( s_alu_result       ),
         .i_mux_4        ( s_imm_ext          ),
         .o_mux          ( s_result           )
@@ -443,7 +440,7 @@ module top
     //------------------------------
     load_mux LOAD_MUX (
         .i_func_3       ( s_func_3        ),
-        .i_data         ( s_reg_mem_data  ),
+        .i_data         ( s_mem_read_data ),
         .i_addr_offset  ( s_addr_offset   ),
         .o_data         ( s_mem_load_data ),
         .o_load_addr_ma ( s_load_addr_ma  )

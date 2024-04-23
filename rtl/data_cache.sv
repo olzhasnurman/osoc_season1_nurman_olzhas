@@ -37,7 +37,6 @@ module data_cache
     output logic                       o_hit,
     output logic                       o_dirty,
     output logic [ ADDR_WIDTH  - 1:0 ] o_addr_axi,
-    output logic                       o_edge_ld,
     output logic                       o_store_addr_ma
 
 );  
@@ -93,7 +92,6 @@ module data_cache
     assign s_store_addr_ma_sh = s_byte_offset[0];
     assign s_store_addr_ma_sw = | s_byte_offset;
     assign s_store_addr_ma_sd = s_store_addr_ma_sw | s_word_offset[0];
-    assign o_edge_ld = (s_word_offset == 4'b1111);
 
 
     //----------------------------------------
@@ -440,7 +438,7 @@ module data_cache
             4'b1100: o_data = data_mem[ s_index ][ s_match ][ 447:384 ]; 
             4'b1101: o_data = data_mem[ s_index ][ s_match ][ 479:416 ];
             4'b1110: o_data = data_mem[ s_index ][ s_match ][ 511:448 ];
-            4'b1111: o_data = data_mem[ s_index ][ s_match ][ 511:448 ];
+            4'b1111: o_data = { 32'b0, data_mem[ s_index ][ s_match ][ 511:480 ]};
             default: o_data = '0;
         endcase
     end
