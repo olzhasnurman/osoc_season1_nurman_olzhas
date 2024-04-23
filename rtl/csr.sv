@@ -37,7 +37,7 @@ module csr
     //--------------------------
     // mtvec register instance.
     //--------------------------
-    register_en MTVEC0 (
+    register_en_rst MTVEC0 (
         .clk          ( clk          ),
         .write_en     ( i_mtvec_we   ),
         .arstn        ( arstn        ),

@@ -15,7 +15,7 @@ module main_fsm
     input  logic [31:0] i_instr,
     input  logic [ 6:0] i_op,
     input  logic [ 2:0] i_func_3,
-    input  logic        i_func_7_5, 
+    input  logic        i_func_7_4, 
     input  logic        i_stall_instr,
     input  logic        i_stall_data,
     input  logic        i_instr_addr_ma,
@@ -25,9 +25,10 @@ module main_fsm
 
     // Output interface.
     output logic [ 1:0] o_alu_op,
-    output logic [ 2:0] o_result_src,
+    output logic [ 1:0] o_result_src,
     output logic [ 1:0] o_alu_src_1,
     output logic [ 1:0] o_alu_src_2,
+    output logic        o_addr_src,
     output logic        o_reg_write_en,
     output logic        o_pc_update,
     output logic        o_mem_write_en,
@@ -57,10 +58,9 @@ module main_fsm
         JAL        = 4'b1001,
         BRANCH     = 4'b1010,
         LOADI      = 4'b1011,
-        MEMWRITE_D = 4'b1100,
-        MEMREAD_D  = 4'b1101,
-        CALL       = 4'b1110,
-        STOP       = 4'b1111
+        CALL       = 4'b1100,
+        RET        = 4'b1101,
+        STOP       = 4'b1110 // FOR SIMULATION ONLY.
     } t_state;
 
     // State variables. 
@@ -82,7 +82,8 @@ module main_fsm
         U_Type_LOAD = 4'b1010,
         FENCE_Type  = 4'b1011,
         E_Type      = 4'b1100,
-        ILLEGAL     = 4'b1101
+        ILLEGAL     = 4'b1101,
+        TERMINATE   = 4'b1110 // FOR SIMULATION ONLY.
     } t_instruction;
 
     // Instruction decoder signal. 
@@ -104,6 +105,7 @@ module main_fsm
             7'b0110111: instr = U_Type_LOAD; 
             7'b0001111: instr = FENCE_Type;
             7'b1110011: instr = E_Type;
+            7'b1111111: instr = TERMINATE; // FOR SIMULATION ONLY.
             default:    instr = ILLEGAL;
         endcase
     end
@@ -147,8 +149,12 @@ module main_fsm
                         U_Type_ALU : NS = ALUWB;
                         U_Type_LOAD: NS = LOADI; 
                         FENCE_Type : NS = FETCH; // NOT IMPLEMENTED.
-                        E_Type     : NS = CALL; // PROBLEM: NOT FINISHED.
+                        E_Type     : begin
+                            if ( i_func_7_4 ) NS = RET; // PROBLEM: NOT FINISHED.
+                            else              NS = CALL;                             
+                        end 
                         ILLEGAL    : NS = CALL;
+                        TERMINATE  : NS = STOP; // FOR SIMULATION ONLY.
                         default:     NS = CALL; 
                     endcase
                 end
@@ -183,13 +189,18 @@ module main_fsm
 
             EXECUTEI: NS = ALUWB;
 
-            JAL: NS = ALUWB;
+            JAL: begin
+                if ( instr == E_Type ) NS = FETCH;
+                else                   NS = ALUWB;
+            end
 
             BRANCH: NS = FETCH;
             
             LOADI: NS = FETCH;
 
-            CALL: NS = STOP;
+            CALL: NS = FETCH;
+
+            RET: NS = JAL;
 
             STOP: NS = FETCH;
 
@@ -203,9 +214,10 @@ module main_fsm
 
         // Default values. 
         o_alu_op         = 2'b00;
-        o_result_src     = 3'b000;
+        o_result_src     = 2'b00;
         o_alu_src_1      = 2'b00;
         o_alu_src_2      = 2'b00;
+        o_addr_src       = 1'b0;
         o_reg_write_en   = 1'b0;
         o_pc_update      = 1'b0;
         o_mem_write_en   = 1'b0;
@@ -237,7 +249,7 @@ module main_fsm
                 o_fetch_state      = 1'b1; 
                 o_alu_src_1        = 2'b00;
                 o_alu_src_2        = 2'b10;
-                o_result_src       = 3'b010;
+                o_result_src       = 2'b10;
                 o_alu_op           = 2'b00;
             end 
 
@@ -254,7 +266,7 @@ module main_fsm
             end
 
             MEMREAD: begin
-                o_result_src    = 3'b000;
+                o_result_src    = 2'b00;
                 o_start_d_cache = 1'b1;
                 o_alu_op        = 2'b00;
 
@@ -273,7 +285,7 @@ module main_fsm
             end
 
             MEMWB: begin
-                o_result_src   = 3'b001;
+                o_result_src   = 2'b01;
                 o_reg_write_en = 1'b1;
             end
 
@@ -294,7 +306,7 @@ module main_fsm
                 end
                 
                 o_start_d_cache = 1'b1;
-                o_result_src    = 3'b000;
+                o_result_src    = 2'b00;
                 o_alu_op    = 2'b00;
                 
             end
@@ -310,7 +322,7 @@ module main_fsm
             end
 
             ALUWB: begin
-                o_result_src   = 3'b000;
+                o_result_src   = 2'b00;
                 o_reg_write_en = 1'b1;
             end
 
@@ -328,7 +340,7 @@ module main_fsm
                 o_alu_src_1  = 2'b01;
                 o_alu_src_2  = 2'b10;
                 o_alu_op     = 2'b00;
-                o_result_src = 3'b000;
+                o_result_src = 2'b00;
                 o_pc_update  = 1'b1;
             end
 
@@ -336,24 +348,20 @@ module main_fsm
                 o_alu_src_1  = 2'b10;
                 o_alu_src_2  = 2'b00;
                 o_alu_op     = 2'b01;
-                o_result_src = 3'b000;
+                o_result_src = 2'b00;
                 o_branch     = 1'b1;
             end
 
             LOADI: begin
-                o_result_src   = 3'b011;
+                o_result_src   = 2'b11;
                 o_reg_write_en = 1'b1; 
             end
-
-            // FOR SIMULATION ONLY..
-            // BREAK: begin
-            //     $display("Breakpoint");
-            //     $stop();
-            // end
 
             CALL: begin
                 o_mepc_we   = 1'b1;
                 o_mcause_we = 1'b1;
+
+                // Cause write logic.
                 if ( (instr == ILLEGAL) | i_illegal_instr ) o_mcause = 4'd2; // Illegal instruction.
 
                 //  An instruction-address-misaligned exception is generated on a taken branch or unconditional jump
@@ -368,8 +376,16 @@ module main_fsm
                 else if ( i_store_addr_ma ) o_mcause = 4'd6; // Store address misaligned.
                 else o_mcause = 4'd10; // Reserved.
 
-                o_result_src = 3'b100; // s_mtvec_out.
-                o_pc_update  = 1'b1;
+                o_addr_src = 1'b1;
+                o_pc_update = 1'b1;
+                $display("time =%0t", $time); // FOR SIMULATION ONLY.
+
+            end
+
+            RET: begin
+                o_alu_src_1 = 2'b11;
+                o_alu_src_2 = 2'b10;
+                o_alu_op    = 2'b00;
             end
 
             STOP: $stop(); // FOR SIMULATION ONLY
@@ -377,9 +393,10 @@ module main_fsm
 
             default: begin
                 o_alu_op         = 2'b00;
-                o_result_src     = 3'b000;
+                o_result_src     = 2'b00;
                 o_alu_src_1      = 2'b00;
                 o_alu_src_2      = 2'b00;
+                o_addr_src       = 1'b0;
                 o_reg_write_en   = 1'b0;
                 o_pc_update      = 1'b0;
                 o_mem_write_en   = 1'b0;

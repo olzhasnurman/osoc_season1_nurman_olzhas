@@ -64,11 +64,13 @@ module top
     logic [6:0] s_op;
     logic [2:0] s_func_3;
     logic       s_func_7_5;
+    logic [6:0] s_func_7;
     logic [3:0] s_alu_control;
-    logic [2:0] s_result_src;
+    logic [1:0] s_result_src;
     logic [1:0] s_alu_src_control_1;
     logic [1:0] s_alu_src_control_2;
     logic [2:0] s_imm_src;
+    logic       s_addr_src;
     logic       s_reg_write_en;
     logic       s_pc_write_en;
     logic       s_mem_write_en;
@@ -106,6 +108,7 @@ module top
 
     // MUX signals.
     logic [ REG_DATA_WIDTH - 1:0 ] s_result;
+    logic [ MEM_ADDR_WIDTH - 1:0 ] s_pc_addr;
 
     // Immediate extend unit signals. 
     logic [                  24:0 ] s_imm;
@@ -143,6 +146,7 @@ module top
     assign s_op         = s_reg_instr[6:0];
     assign s_func_3     = s_reg_instr[14:12];
     assign s_func_7_5   = s_reg_instr[30]; 
+    assign s_func_7     = s_reg_instr[31:25];
     assign s_reg_addr_1 = s_reg_instr[19:15];
     assign s_reg_addr_2 = s_reg_instr[24:20];
     assign s_reg_addr_3 = s_reg_instr[11:7];
@@ -179,7 +183,7 @@ module top
         .i_instr                ( s_reg_instr           ),
         .i_op                   ( s_op                  ),
         .i_func_3               ( s_func_3              ),
-        .i_func_7_5             ( s_func_7_5            ),
+        .i_func_7               ( s_func_7              ),
         .i_zero_flag            ( s_zero_flag           ),
         .i_slt_flag             ( s_slt_flag            ),
         .i_sltu_flag            ( s_sltu_flag           ),
@@ -197,6 +201,7 @@ module top
         .o_alu_src_1            ( s_alu_src_control_1   ),
         .o_alu_src_2            ( s_alu_src_control_2   ),
         .o_imm_src              ( s_imm_src             ),
+        .o_addr_src             ( s_addr_src            ),
         .o_reg_write_en         ( s_reg_write_en        ),
         .o_pc_write             ( s_pc_write_en         ),
         .o_instr_write_en       ( s_instr_write_en      ),
@@ -322,7 +327,7 @@ module top
         .clk          ( clk           ),
         .write_en     ( s_pc_write_en ),
         .arstn        ( arstn         ),
-        .i_write_data ( s_result      ),
+        .i_write_data ( s_pc_addr     ),
         .o_read_data  ( s_reg_pc      )
     ); 
 
@@ -374,7 +379,7 @@ module top
         .arstn        ( arstn              ),
         .write_en     ( s_reg_mem_we       ),
         .i_write_data ( s_mem_read_data    ),
-       .i_edge_ld    ( s_edge_ld          ),
+        .i_edge_ld    ( s_edge_ld          ),
         .o_read_data  ( s_reg_mem_data     )
     );
 
@@ -390,33 +395,37 @@ module top
         .i_mux_1        ( s_reg_pc            ),
         .i_mux_2        ( s_reg_old_pc        ),
         .i_mux_3        ( s_reg_data_1        ),
-        .i_mux_4        ( s_reg_old_addr      ),
+        .i_mux_4        ( s_mepc_data_out     ),
         .o_mux          ( s_alu_src_data_1    )
     );
 
-    // 3-to-1 ALU Source 2 MUX Instance.
-    mux3to1 ALU_MUX_2 (
+    // 4-to-1 ALU Source 2 MUX Instance.
+    mux4to1 ALU_MUX_2 (
         .control_signal ( s_alu_src_control_2 ),
         .i_mux_1        ( s_reg_data_2        ),
         .i_mux_2        ( s_imm_ext           ),
         .i_mux_3        ( 64'b0100            ),
+        .i_mux_4        ( 64'b0               ),
         .o_mux          ( s_alu_src_data_2    )
     );
 
-    // 8-to-1 Result Source MUX Instance.
-    mux8to1 RESULT_MUX (
+    // 4-to-1 Result Source MUX Instance.
+    mux4to1 RESULT_MUX (
         .control_signal ( s_result_src       ),
         .i_mux_1        ( s_reg_alu_result   ),
         .i_mux_2        ( s_mem_load_data    ), 
         .i_mux_3        ( s_alu_result       ),
         .i_mux_4        ( s_imm_ext          ),
-        .i_mux_5        ( s_exception_j_addr ),
-        .i_mux_6        ( s_mepc_data_out    ),
-        .i_mux_7        ( s_mepc_data_out    ),
-        .i_mux_8        ( s_mepc_data_out    ),
         .o_mux          ( s_result           )
     );
 
+    // 2-to-1 PC address source MUX instance.
+    mux2to1 ADDR_MUX (
+        .control_signal ( s_addr_src         ),
+        .i_mux_1        ( s_result           ),
+        .i_mux_2        ( s_exception_j_addr ),
+        .o_addr         ( s_pc_addr          )
+    );
     
 
 
