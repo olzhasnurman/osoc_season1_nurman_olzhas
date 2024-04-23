@@ -1,0 +1,82 @@
+
+build/mov-c-riscv64-nemu.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	00000413          	addi	x8,x0,0
+   4:	00009117          	auipc	x2,0x9
+   8:	ffc10113          	addi	x2,x2,-4 # 0x9000
+   c:	0fc000ef          	jal	x1,0x108
+  10:	00050463          	beq	x10,x0,0x18
+  14:	00008067          	jalr	x0,0(x1)
+  18:	ff010113          	addi	x2,x2,-16
+  1c:	00100513          	addi	x10,x0,1
+  20:	00113423          	sd	x1,8(x2)
+  24:	0d8000ef          	jal	x1,0xfc
+  28:	ff010113          	addi	x2,x2,-16
+  2c:	00813023          	sd	x8,0(x2)
+  30:	00000417          	auipc	x8,0x0
+  34:	10040413          	addi	x8,x8,256 # 0x130
+  38:	00042023          	sw	x0,0(x8)
+  3c:	00100793          	addi	x15,x0,1
+  40:	00f42223          	sw	x15,4(x8)
+  44:	00200793          	addi	x15,x0,2
+  48:	00f42423          	sw	x15,8(x8)
+  4c:	00300793          	addi	x15,x0,3
+  50:	00f42623          	sw	x15,12(x8)
+  54:	00400793          	addi	x15,x0,4
+  58:	00f42823          	sw	x15,16(x8)
+  5c:	00c42783          	lw	x15,12(x8)
+  60:	00113423          	sd	x1,8(x2)
+  64:	00000717          	auipc	x14,0x0
+  68:	0ef72a23          	sw	x15,244(x14) # 0x158
+  6c:	00000797          	auipc	x15,0x0
+  70:	0ec7a783          	lw	x15,236(x15) # 0x158
+  74:	00f42a23          	sw	x15,20(x8)
+  78:	00042503          	lw	x10,0(x8)
+  7c:	00153513          	sltiu	x10,x10,1
+  80:	f91ff0ef          	jal	x1,0x10
+  84:	00442503          	lw	x10,4(x8)
+  88:	fff50513          	addi	x10,x10,-1
+  8c:	00153513          	sltiu	x10,x10,1
+  90:	f81ff0ef          	jal	x1,0x10
+  94:	00842503          	lw	x10,8(x8)
+  98:	ffe50513          	addi	x10,x10,-2
+  9c:	00153513          	sltiu	x10,x10,1
+  a0:	f71ff0ef          	jal	x1,0x10
+  a4:	00c42503          	lw	x10,12(x8)
+  a8:	ffd50513          	addi	x10,x10,-3
+  ac:	00153513          	sltiu	x10,x10,1
+  b0:	f61ff0ef          	jal	x1,0x10
+  b4:	01042503          	lw	x10,16(x8)
+  b8:	ffc50513          	addi	x10,x10,-4
+  bc:	00153513          	sltiu	x10,x10,1
+  c0:	f51ff0ef          	jal	x1,0x10
+  c4:	00000517          	auipc	x10,0x0
+  c8:	09452503          	lw	x10,148(x10) # 0x158
+  cc:	ffd50513          	addi	x10,x10,-3
+  d0:	00153513          	sltiu	x10,x10,1
+  d4:	f3dff0ef          	jal	x1,0x10
+  d8:	01442503          	lw	x10,20(x8)
+  dc:	ffd50513          	addi	x10,x10,-3
+  e0:	00153513          	sltiu	x10,x10,1
+  e4:	f2dff0ef          	jal	x1,0x10
+  e8:	00813083          	ld	x1,8(x2)
+  ec:	00013403          	ld	x8,0(x2)
+  f0:	00000513          	addi	x10,x0,0
+  f4:	01010113          	addi	x2,x2,16
+  f8:	00008067          	jalr	x0,0(x1)
+  fc:	00050513          	addi	x10,x10,0
+ 100:	00100073          	ebreak
+ 104:	0000006f          	jal	x0,0x104
+ 108:	ff010113          	addi	x2,x2,-16
+ 10c:	00000517          	auipc	x10,0x0
+ 110:	01c50513          	addi	x10,x10,28 # 0x128
+ 114:	00113423          	sd	x1,8(x2)
+ 118:	f11ff0ef          	jal	x1,0x28
+ 11c:	00050513          	addi	x10,x10,0
+ 120:	00100073          	ebreak
+ 124:	0000006f          	jal	x0,0x124
+	...

@@ -1,0 +1,125 @@
+
+build/bubble-sort-riscv64-nemu.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	00000413          	addi	x8,x0,0
+   4:	00009117          	auipc	x2,0x9
+   8:	ffc10113          	addi	x2,x2,-4 # 0x9000
+   c:	11c000ef          	jal	x1,0x128
+  10:	00050463          	beq	x10,x0,0x18
+  14:	00008067          	jalr	x0,0(x1)
+  18:	ff010113          	addi	x2,x2,-16
+  1c:	00100513          	addi	x10,x0,1
+  20:	00113423          	sd	x1,8(x2)
+  24:	0f8000ef          	jal	x1,0x11c
+  28:	01300793          	addi	x15,x0,19
+  2c:	00000517          	auipc	x10,0x0
+  30:	12850513          	addi	x10,x10,296 # 0x154
+  34:	04078063          	beq	x15,x0,0x74
+  38:	fff7859b          	addiw	x11,x15,-1
+  3c:	02059793          	slli	x15,x11,0x20
+  40:	01e7d613          	srli	x12,x15,0x1e
+  44:	00a60633          	add	x12,x12,x10
+  48:	00000797          	auipc	x15,0x0
+  4c:	10878793          	addi	x15,x15,264 # 0x150
+  50:	0007a703          	lw	x14,0(x15)
+  54:	0047a683          	lw	x13,4(x15)
+  58:	00e6d663          	bge	x13,x14,0x64
+  5c:	00d7a023          	sw	x13,0(x15)
+  60:	00e7a223          	sw	x14,4(x15)
+  64:	00478793          	addi	x15,x15,4
+  68:	fec794e3          	bne	x15,x12,0x50
+  6c:	0005879b          	addiw	x15,x11,0
+  70:	fc0794e3          	bne	x15,x0,0x38
+  74:	00008067          	jalr	x0,0(x1)
+  78:	fd010113          	addi	x2,x2,-48
+  7c:	00913c23          	sd	x9,24(x2)
+  80:	00000497          	auipc	x9,0x0
+  84:	0d048493          	addi	x9,x9,208 # 0x150
+  88:	02813023          	sd	x8,32(x2)
+  8c:	01213823          	sd	x18,16(x2)
+  90:	01313423          	sd	x19,8(x2)
+  94:	02113423          	sd	x1,40(x2)
+  98:	00048913          	addi	x18,x9,0
+  9c:	f8dff0ef          	jal	x1,0x28
+  a0:	00000413          	addi	x8,x0,0
+  a4:	01400993          	addi	x19,x0,20
+  a8:	00092503          	lw	x10,0(x18)
+  ac:	00490913          	addi	x18,x18,4
+  b0:	40850533          	sub	x10,x10,x8
+  b4:	00153513          	sltiu	x10,x10,1
+  b8:	0014041b          	addiw	x8,x8,1
+  bc:	f55ff0ef          	jal	x1,0x10
+  c0:	ff3414e3          	bne	x8,x19,0xa8
+  c4:	00100513          	addi	x10,x0,1
+  c8:	f49ff0ef          	jal	x1,0x10
+  cc:	00000413          	addi	x8,x0,0
+  d0:	f59ff0ef          	jal	x1,0x28
+  d4:	01400913          	addi	x18,x0,20
+  d8:	0004a503          	lw	x10,0(x9)
+  dc:	00448493          	addi	x9,x9,4
+  e0:	40850533          	sub	x10,x10,x8
+  e4:	00153513          	sltiu	x10,x10,1
+  e8:	0014041b          	addiw	x8,x8,1
+  ec:	f25ff0ef          	jal	x1,0x10
+  f0:	ff2414e3          	bne	x8,x18,0xd8
+  f4:	00100513          	addi	x10,x0,1
+  f8:	f19ff0ef          	jal	x1,0x10
+  fc:	02813083          	ld	x1,40(x2)
+ 100:	02013403          	ld	x8,32(x2)
+ 104:	01813483          	ld	x9,24(x2)
+ 108:	01013903          	ld	x18,16(x2)
+ 10c:	00813983          	ld	x19,8(x2)
+ 110:	00000513          	addi	x10,x0,0
+ 114:	03010113          	addi	x2,x2,48
+ 118:	00008067          	jalr	x0,0(x1)
+ 11c:	00050513          	addi	x10,x10,0
+ 120:	00100073          	ebreak
+ 124:	0000006f          	jal	x0,0x124
+ 128:	ff010113          	addi	x2,x2,-16
+ 12c:	00000517          	auipc	x10,0x0
+ 130:	01c50513          	addi	x10,x10,28 # 0x148
+ 134:	00113423          	sd	x1,8(x2)
+ 138:	f41ff0ef          	jal	x1,0x78
+ 13c:	00050513          	addi	x10,x10,0
+ 140:	00100073          	ebreak
+ 144:	0000006f          	jal	x0,0x144
+	...
+ 150:	0002                	c.slli64	x0
+ 152:	0000                	c.unimp
+ 154:	000c                	.insn	2, 0x000c
+ 156:	0000                	c.unimp
+ 158:	000e                	c.slli	x0,0x3
+ 15a:	0000                	c.unimp
+ 15c:	0006                	c.slli	x0,0x1
+ 15e:	0000                	c.unimp
+ 160:	000d                	c.addi	x0,3
+ 162:	0000                	c.unimp
+ 164:	0000000f          	fence	unknown,unknown
+ 168:	0010                	.insn	2, 0x0010
+ 16a:	0000                	c.unimp
+ 16c:	000a                	c.slli	x0,0x2
+ 16e:	0000                	c.unimp
+ 170:	0000                	c.unimp
+ 172:	0000                	c.unimp
+ 174:	0012                	c.slli	x0,0x4
+ 176:	0000                	c.unimp
+ 178:	0000000b          	.insn	4, 0x000b
+ 17c:	00000013          	addi	x0,x0,0
+ 180:	0009                	c.addi	x0,2
+ 182:	0000                	c.unimp
+ 184:	0001                	c.addi	x0,0
+ 186:	0000                	c.unimp
+ 188:	00000007          	.insn	4, 0x0007
+ 18c:	0005                	c.addi	x0,1
+ 18e:	0000                	c.unimp
+ 190:	0004                	.insn	2, 0x0004
+ 192:	0000                	c.unimp
+ 194:	00000003          	lb	x0,0(x0) # 0x0
+ 198:	0008                	.insn	2, 0x0008
+ 19a:	0000                	c.unimp
+ 19c:	0011                	c.addi	x0,4
+	...

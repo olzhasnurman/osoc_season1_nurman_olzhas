@@ -1,0 +1,81 @@
+
+build/prime-riscv64-nemu.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	00000413          	addi	x8,x0,0
+   4:	00009117          	auipc	x2,0x9
+   8:	ffc10113          	addi	x2,x2,-4 # 0x9000
+   c:	0b8000ef          	jal	x1,0xc4
+  10:	00050463          	beq	x10,x0,0x18
+  14:	00008067          	jalr	x0,0(x1)
+  18:	ff010113          	addi	x2,x2,-16
+  1c:	00100513          	addi	x10,x0,1
+  20:	00113423          	sd	x1,8(x2)
+  24:	094000ef          	jal	x1,0xb8
+  28:	fd010113          	addi	x2,x2,-48
+  2c:	02813023          	sd	x8,32(x2)
+  30:	00913c23          	sd	x9,24(x2)
+  34:	01213823          	sd	x18,16(x2)
+  38:	01313423          	sd	x19,8(x2)
+  3c:	02113423          	sd	x1,40(x2)
+  40:	00000493          	addi	x9,x0,0
+  44:	06500413          	addi	x8,x0,101
+  48:	00000997          	auipc	x19,0x0
+  4c:	0a898993          	addi	x19,x19,168 # 0xf0
+  50:	09700913          	addi	x18,x0,151
+  54:	00200793          	addi	x15,x0,2
+  58:	02f4673b          	remw	x14,x8,x15
+  5c:	0017879b          	addiw	x15,x15,1
+  60:	02070263          	beq	x14,x0,0x84
+  64:	fe879ae3          	bne	x15,x8,0x58
+  68:	00249793          	slli	x15,x9,0x2
+  6c:	00f987b3          	add	x15,x19,x15
+  70:	0007a503          	lw	x10,0(x15)
+  74:	0014849b          	addiw	x9,x9,1
+  78:	40850533          	sub	x10,x10,x8
+  7c:	00153513          	sltiu	x10,x10,1
+  80:	f91ff0ef          	jal	x1,0x10
+  84:	0024041b          	addiw	x8,x8,2
+  88:	fd2416e3          	bne	x8,x18,0x54
+  8c:	ff648513          	addi	x10,x9,-10
+  90:	00153513          	sltiu	x10,x10,1
+  94:	f7dff0ef          	jal	x1,0x10
+  98:	02813083          	ld	x1,40(x2)
+  9c:	02013403          	ld	x8,32(x2)
+  a0:	01813483          	ld	x9,24(x2)
+  a4:	01013903          	ld	x18,16(x2)
+  a8:	00813983          	ld	x19,8(x2)
+  ac:	00000513          	addi	x10,x0,0
+  b0:	03010113          	addi	x2,x2,48
+  b4:	00008067          	jalr	x0,0(x1)
+  b8:	00050513          	addi	x10,x10,0
+  bc:	00100073          	ebreak
+  c0:	0000006f          	jal	x0,0xc0
+  c4:	ff010113          	addi	x2,x2,-16
+  c8:	00000517          	auipc	x10,0x0
+  cc:	02050513          	addi	x10,x10,32 # 0xe8
+  d0:	00113423          	sd	x1,8(x2)
+  d4:	f55ff0ef          	jal	x1,0x28
+  d8:	00050513          	addi	x10,x10,0
+  dc:	00100073          	ebreak
+  e0:	0000006f          	jal	x0,0xe0
+	...
+  f0:	0065                	c.addi	x0,25
+  f2:	0000                	c.unimp
+  f4:	00000067          	jalr	x0,0(x0) # 0x0
+  f8:	0000006b          	.insn	4, 0x006b
+  fc:	006d                	c.addi	x0,27
+  fe:	0000                	c.unimp
+ 100:	0071                	c.addi	x0,28
+ 102:	0000                	c.unimp
+      00830000
+ 104:	007f0000  	.insn	10, 0x0089000000830000007f
+ 10c:	0089 
+ 10e:	0000                	c.unimp
+ 110:	0000008b          	.insn	4, 0x008b
+ 114:	0095                	c.addi	x1,5
+      0000
+	...

@@ -1,0 +1,98 @@
+
+/home/maveric/ics2023/am-kernels/tests/cpu-tests/build/crc32-riscv64-nemu.elf:     file format elf64-littleriscv
+
+
+Disassembly of section .text:
+
+0000000080000000 <_start>:
+    80000000:	00000413          	li	s0,0
+    80000004:	00009117          	auipc	sp,0x9
+    80000008:	ffc10113          	addi	sp,sp,-4 # 80009000 <_end>
+    8000000c:	118000ef          	jal	ra,80000124 <_trm_init>
+
+0000000080000010 <check>:
+    80000010:	00050463          	beqz	a0,80000018 <check+0x8>
+    80000014:	00008067          	ret
+    80000018:	ff010113          	addi	sp,sp,-16
+    8000001c:	00100513          	li	a0,1
+    80000020:	00113423          	sd	ra,8(sp)
+    80000024:	0f4000ef          	jal	ra,80000118 <halt>
+
+0000000080000028 <rc_crc32>:
+    80000028:	00000f97          	auipc	t6,0x0
+    8000002c:	558f8f93          	addi	t6,t6,1368 # 80000580 <have_table.1>
+    80000030:	000fae03          	lw	t3,0(t6)
+    80000034:	040e1c63          	bnez	t3,8000008c <rc_crc32+0x64>
+    80000038:	edb88337          	lui	t1,0xedb88
+    8000003c:	00000e97          	auipc	t4,0x0
+    80000040:	144e8e93          	addi	t4,t4,324 # 80000180 <table.0>
+    80000044:	32030313          	addi	t1,t1,800 # ffffffffedb88320 <_end+0xffffffff6db7f320>
+    80000048:	10000f13          	li	t5,256
+    8000004c:	000e079b          	sext.w	a5,t3
+    80000050:	00800713          	li	a4,8
+    80000054:	0017d69b          	srliw	a3,a5,0x1
+    80000058:	0017f813          	andi	a6,a5,1
+    8000005c:	fff7071b          	addiw	a4,a4,-1
+    80000060:	00d348b3          	xor	a7,t1,a3
+    80000064:	0006879b          	sext.w	a5,a3
+    80000068:	00080463          	beqz	a6,80000070 <rc_crc32+0x48>
+    8000006c:	0008879b          	sext.w	a5,a7
+    80000070:	fe0712e3          	bnez	a4,80000054 <rc_crc32+0x2c>
+    80000074:	00fea023          	sw	a5,0(t4)
+    80000078:	001e0e1b          	addiw	t3,t3,1
+    8000007c:	004e8e93          	addi	t4,t4,4
+    80000080:	fdee16e3          	bne	t3,t5,8000004c <rc_crc32+0x24>
+    80000084:	00100793          	li	a5,1
+    80000088:	00ffa023          	sw	a5,0(t6)
+    8000008c:	00c58633          	add	a2,a1,a2
+    80000090:	fff54793          	not	a5,a0
+    80000094:	02c5fe63          	bgeu	a1,a2,800000d0 <rc_crc32+0xa8>
+    80000098:	00000517          	auipc	a0,0x0
+    8000009c:	0e850513          	addi	a0,a0,232 # 80000180 <table.0>
+    800000a0:	0005c683          	lbu	a3,0(a1)
+    800000a4:	0087d71b          	srliw	a4,a5,0x8
+    800000a8:	00158593          	addi	a1,a1,1
+    800000ac:	00d7c7b3          	xor	a5,a5,a3
+    800000b0:	0ff7f793          	zext.b	a5,a5
+    800000b4:	00279793          	slli	a5,a5,0x2
+    800000b8:	00f507b3          	add	a5,a0,a5
+    800000bc:	0007a783          	lw	a5,0(a5)
+    800000c0:	00e7c7b3          	xor	a5,a5,a4
+    800000c4:	0007879b          	sext.w	a5,a5
+    800000c8:	fcb61ce3          	bne	a2,a1,800000a0 <rc_crc32+0x78>
+    800000cc:	fff7c513          	not	a0,a5
+    800000d0:	00008067          	ret
+
+00000000800000d4 <main>:
+    800000d4:	ff010113          	addi	sp,sp,-16
+    800000d8:	02b00613          	li	a2,43
+    800000dc:	00000597          	auipc	a1,0x0
+    800000e0:	06c58593          	addi	a1,a1,108 # 80000148 <_etext+0x4>
+    800000e4:	00000513          	li	a0,0
+    800000e8:	00113423          	sd	ra,8(sp)
+    800000ec:	f3dff0ef          	jal	ra,80000028 <rc_crc32>
+    800000f0:	414fa7b7          	lui	a5,0x414fa
+    800000f4:	33978793          	addi	a5,a5,825 # 414fa339 <_entry_offset+0x414fa339>
+    800000f8:	0005051b          	sext.w	a0,a0
+    800000fc:	40f50533          	sub	a0,a0,a5
+    80000100:	00153513          	seqz	a0,a0
+    80000104:	f0dff0ef          	jal	ra,80000010 <check>
+    80000108:	00813083          	ld	ra,8(sp)
+    8000010c:	00000513          	li	a0,0
+    80000110:	01010113          	addi	sp,sp,16
+    80000114:	00008067          	ret
+
+0000000080000118 <halt>:
+    80000118:	00050513          	mv	a0,a0
+    8000011c:	00100073          	ebreak
+    80000120:	0000006f          	j	80000120 <halt+0x8>
+
+0000000080000124 <_trm_init>:
+    80000124:	ff010113          	addi	sp,sp,-16
+    80000128:	00000517          	auipc	a0,0x0
+    8000012c:	05050513          	addi	a0,a0,80 # 80000178 <mainargs>
+    80000130:	00113423          	sd	ra,8(sp)
+    80000134:	fa1ff0ef          	jal	ra,800000d4 <main>
+    80000138:	00050513          	mv	a0,a0
+    8000013c:	00100073          	ebreak
+    80000140:	0000006f          	j	80000140 <_trm_init+0x1c>
