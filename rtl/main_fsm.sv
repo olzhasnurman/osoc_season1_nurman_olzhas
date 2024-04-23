@@ -105,7 +105,7 @@ module main_fsm
             7'b0110111: instr = U_Type_LOAD; 
             7'b0001111: instr = FENCE_Type;
             7'b1110011: instr = E_Type;
-            7'b1111111: instr = TERMINATE; // FOR SIMULATION ONLY.
+            //7'b1111111: instr = TERMINATE; // FOR SIMULATION ONLY.
             default:    instr = ILLEGAL;
         endcase
     end
@@ -154,7 +154,7 @@ module main_fsm
                             else              NS = CALL;                             
                         end 
                         ILLEGAL    : NS = CALL;
-                        TERMINATE  : NS = STOP; // FOR SIMULATION ONLY.
+                        //TERMINATE  : NS = STOP; // FOR SIMULATION ONLY.
                         default:     NS = CALL; 
                     endcase
                 end
@@ -202,7 +202,7 @@ module main_fsm
 
             RET: NS = JAL;
 
-            STOP: NS = FETCH;
+            //STOP: NS = FETCH;
 
             default: NS = PS;
         endcase
@@ -373,12 +373,12 @@ module main_fsm
                     else                o_mcause = 4'd3; // Env breakpoint.
                 end
                 else if ( i_load_addr_ma  ) o_mcause = 4'd4; // Load address misaligned.
-                else if ( i_store_addr_ma ) o_mcause = 4'd6; // Store address misaligned.
+                else if ( i_store_addr_ma ) o_mcause = 4'd6; // Store address misaligned.x
                 else o_mcause = 4'd10; // Reserved.
 
                 o_addr_src = 1'b1;
                 o_pc_update = 1'b1;
-                $display("time =%0t", $time); // FOR SIMULATION ONLY.
+                // $display("time =%0t", $time); // FOR SIMULATION ONLY.
 
             end
 
@@ -388,7 +388,7 @@ module main_fsm
                 o_alu_op    = 2'b00;
             end
 
-            STOP: $stop(); // FOR SIMULATION ONLY
+            //STOP: $stop(); // FOR SIMULATION ONLY
 
 
             default: begin
