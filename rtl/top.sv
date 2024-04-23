@@ -135,12 +135,16 @@ module top
     logic s_store_addr_ma;
     logic s_load_addr_ma;
     logic s_illegal_instr;
+    logic s_illegal_instr_load;
 
 
 
     //----------------------------------
     // Continious assignmnets. 
     //----------------------------------
+    assign s_illegal_instr = s_illegal_instr_load;
+
+
     assign s_imm        = s_reg_instr[31:7];
     assign s_op         = s_reg_instr[6:0];
     assign s_func_3     = s_reg_instr[14:12];
@@ -439,11 +443,12 @@ module top
     // LOAD Instruction mux. 
     //------------------------------
     load_mux LOAD_MUX (
-        .i_func_3       ( s_func_3        ),
-        .i_data         ( s_mem_read_data ),
-        .i_addr_offset  ( s_addr_offset   ),
-        .o_data         ( s_mem_load_data ),
-        .o_load_addr_ma ( s_load_addr_ma  )
+        .i_func_3        ( s_func_3             ),
+        .i_data          ( s_mem_read_data      ),
+        .i_addr_offset   ( s_addr_offset        ),
+        .o_data          ( s_mem_load_data      ),
+        .o_load_addr_ma  ( s_load_addr_ma       ),
+        .o_illegal_instr ( s_illegal_instr_load )
     );
 
 

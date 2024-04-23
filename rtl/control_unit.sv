@@ -75,6 +75,12 @@ module control_unit
     logic s_start_read_data;
     logic s_start_data_cache;
 
+    // Illegalal instruction flag.
+    logic s_illegal_instr;
+    logic s_illegal_instr_alu;
+
+    assign s_illegal_instr = s_illegal_instr_alu | i_illegal_instr;
+
     assign o_pc_write       = s_pc_update | ( s_branch );
 
     assign o_start_read_axi = s_start_read_data | s_start_read_instr;
@@ -111,7 +117,7 @@ module control_unit
         .i_instr_addr_ma  ( i_instr_addr_ma     ),
         .i_store_addr_ma  ( i_store_addr_ma     ),
         .i_load_addr_ma   ( i_load_addr_ma      ),
-        .i_illegal_instr  ( i_illegal_instr     ),
+        .i_illegal_instr  ( s_illegal_instr     ),
         .o_alu_op         ( s_alu_op            ),
         .o_result_src     ( o_result_src        ),
         .o_alu_src_1      ( o_alu_src_1         ),
@@ -166,11 +172,12 @@ module control_unit
 
     // ALU decoder module.
     alu_decoder ALU_DECODER (
-        .i_alu_op      ( s_alu_op      ),
-        .i_func_3      ( i_func_3      ),
-        .i_func_7_5    ( i_func_7[5]   ),
-        .i_op_5        ( i_op[5]       ),
-        .o_alu_control ( o_alu_control )
+        .i_alu_op        ( s_alu_op            ),
+        .i_func_3        ( i_func_3            ),
+        .i_func_7_5      ( i_func_7[5]         ),
+        .i_op_5          ( i_op[5]             ),
+        .o_alu_control   ( o_alu_control       ),
+        .o_illegal_instr ( s_illegal_instr_alu )
     );
 
     // Instruction decoder. 

@@ -15,7 +15,8 @@ module alu_decoder
     input  logic       i_op_5,
 
     // Output interface. 
-    output logic [3:0] o_alu_control
+    output logic [3:0] o_alu_control,
+    output logic       o_illegal_instr
 );
 
     logic [1:0] s_op_func_7;
@@ -24,6 +25,8 @@ module alu_decoder
 
     // ALU decoder logic.
     always_comb begin 
+        o_illegal_instr = 1'b0;
+
         case ( i_alu_op )
             2'b00: o_alu_control = 4'b0000; // ADD for I type instruction: lw, sw.
             2'b01: o_alu_control = 4'b0001; // SUB  for B type instructions: beq, bne.
@@ -46,7 +49,7 @@ module alu_decoder
                         case ( i_func_7_5 )
                             1'b0:   o_alu_control = 4'b1000; // srl & srli instructions.
                             1'b1:   o_alu_control = 4'b1001; // sra & srai instructions. 
-                            default: o_alu_control = '0;     // PROBLEM: NEED TO IMPLEMENT ILLEGAL INSTR.
+                            default: o_alu_control = '0; 
                         endcase
 
                     3'b110: o_alu_control = 4'b0011; // or instruction.
@@ -68,7 +71,10 @@ module alu_decoder
                     3'b001: o_alu_control = 4'b1100; // SLLIW or SLLW
                     3'b101: if ( i_func_7_5 ) o_alu_control = 4'b1110; // SRAIW or SRAW.
                             else              o_alu_control = 4'b1101; // SRLIW or SRLW. 
-                    default: o_alu_control = 4'b0000; // PROBLEM: NEED TO IMPLEMENT ILLEGAL INSTR.
+                    default: begin
+                        o_alu_control   = 4'b0000;
+                        o_illegal_instr = 1'b1;                        
+                    end
                 endcase 
             
             default: o_alu_control = 4'b0000; // Default.
