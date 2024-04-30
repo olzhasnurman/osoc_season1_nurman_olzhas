@@ -268,7 +268,7 @@ module axi_master
     end
 
     // Counter.
-    always_ff @( posedge clk, posedge AW_VALID ) begin
+    always_ff @( posedge clk ) begin
         if ( AW_VALID ) begin 
             s_count <= '0;
             s_count_done <= 1'b0;
