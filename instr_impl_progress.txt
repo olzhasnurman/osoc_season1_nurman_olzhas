@@ -28,16 +28,16 @@ _____________________________               _____________________________
 | sll   | YES | PASS |      |               
 | slt   | YES | PASS |      |               
 | sltu  | YES | PASS |      |
-| xor   | YES | PASS |      |
-| srl   | YES | PASS |      |
-| sra   | YES | PASS |      |
-| or    | YES | PASS |      |
-| and   | YES | PASS |      |
-|_______|_____|______|______|
-| lui   | YES | PASS | U    |
-| ______|_____|______|______|
-| beq   | YES | PASS | B    |
-| bne   | YES | PASS |      |
+| xor   | YES | PASS |      |               ________________________
+| srl   | YES | PASS |      |               | INSTR  | RTL  | TEST |
+| sra   | YES | PASS |      |               |________|______|______|
+| or    | YES | PASS |      |               | csrrw  | NO   | NO   |
+| and   | YES | PASS |      |               | csrrs  | NO   | NO   |
+|_______|_____|______|______|               | csrrc  | NO   | NO   |
+| lui   | YES | PASS | U    |               | csrrwi | NO   | NO   |
+| ______|_____|______|______|               | csrrsi | NO   | NO   |
+| beq   | YES | PASS | B    |               | csrrci | NO   | NO   |
+| bne   | YES | PASS |      |               |________|______|______|
 | blt   | YES | PASS |      |
 | bge   | YES | PASS |      |
 | bltu  | YES | PASS |      |
