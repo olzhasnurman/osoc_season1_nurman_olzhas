@@ -31,12 +31,12 @@ module control_unit
     input logic         i_illegal_instr,
 
     // Output interface.
-    output logic [ 3:0] o_alu_control,
-    output logic [ 1:0] o_result_src,
+    output logic [ 4:0] o_alu_control,
+    output logic [ 2:0] o_result_src,
     output logic [ 1:0] o_alu_src_1,
     output logic [ 1:0] o_alu_src_2,
     output logic [ 2:0] o_imm_src,
-    output logic        o_addr_src,
+    output logic        o_pc_src,
     output logic        o_reg_write_en,
     output logic        o_pc_write,
     output logic        o_instr_write_en,
@@ -52,10 +52,12 @@ module control_unit
     output logic        o_addr_control,
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
-    output logic        o_mepc_we,  
-    output logic        o_mtvec_we,  
-    output logic        o_mcause_we,
-    output logic [ 3:0] o_mcause 
+    output logic [ 3:0] o_mcause,
+    output logic        o_csr_we,
+    output logic        o_csr_reg_we,
+    output logic [ 1:0] o_csr_write_addr,
+    output logic [ 1:0] o_csr_read_addr,
+    output logic [ 1:0] o_csr_src_control
 
 ); 
 
@@ -63,7 +65,7 @@ module control_unit
     logic       s_instr_branch;
     logic       s_branch;
     logic       s_pc_update;
-    logic [1:0] s_alu_op;
+    logic [2:0] s_alu_op;
     
     // Instruction cache.
     logic s_stall_instr;
@@ -106,37 +108,39 @@ module control_unit
 
     // Main FSM module instance. 
     main_fsm M_FSM (
-        .clk              ( clk                 ),
-        .arstn            ( arstn               ),
-        .i_instr          ( i_instr             ),
-        .i_op             ( i_op                ),
-        .i_func_3         ( i_func_3            ),
-        .i_func_7_4       ( i_func_7[4]         ), 
-        .i_stall_instr    ( s_stall_instr       ),
-        .i_stall_data     ( s_stall_data        ),
-        .i_instr_addr_ma  ( i_instr_addr_ma     ),
-        .i_store_addr_ma  ( i_store_addr_ma     ),
-        .i_load_addr_ma   ( i_load_addr_ma      ),
-        .i_illegal_instr  ( s_illegal_instr     ),
-        .o_alu_op         ( s_alu_op            ),
-        .o_result_src     ( o_result_src        ),
-        .o_alu_src_1      ( o_alu_src_1         ),
-        .o_alu_src_2      ( o_alu_src_2         ),
-        .o_addr_src       ( o_addr_src          ),
-        .o_reg_write_en   ( o_reg_write_en      ),
-        .o_pc_update      ( s_pc_update         ),
-        .o_mem_write_en   ( o_mem_write_en      ),
-        .o_instr_write_en ( o_instr_write_en    ),
-        .o_start_i_cache  ( s_start_instr_cache ),
-        .o_start_d_cache  ( s_start_data_cache  ),
-        .o_branch         ( s_instr_branch      ),
-        .o_addr_write_en  ( o_old_addr_write_en ),
-        .o_mem_reg_we     ( o_mem_reg_we        ),
-        .o_fetch_state    ( o_fetch_state       ),
-        .o_mepc_we        ( o_mepc_we           ),
-        .o_mtvec_we       ( o_mtvec_we          ),
-        .o_mcause_we      ( o_mcause_we         ),
-        .o_mcause         ( o_mcause            )
+        .clk               ( clk                 ),
+        .arstn             ( arstn               ),
+        .i_instr           ( i_instr             ),
+        .i_op              ( i_op                ),
+        .i_func_3          ( i_func_3            ),
+        .i_func_7_4        ( i_func_7[4]         ), 
+        .i_stall_instr     ( s_stall_instr       ),
+        .i_stall_data      ( s_stall_data        ),
+        .i_instr_addr_ma   ( i_instr_addr_ma     ),
+        .i_store_addr_ma   ( i_store_addr_ma     ),
+        .i_load_addr_ma    ( i_load_addr_ma      ),
+        .i_illegal_instr   ( s_illegal_instr     ),
+        .o_alu_op          ( s_alu_op            ),
+        .o_result_src      ( o_result_src        ),
+        .o_alu_src_1       ( o_alu_src_1         ),
+        .o_alu_src_2       ( o_alu_src_2         ),
+        .o_pc_src          ( o_pc_src            ), 
+        .o_reg_write_en    ( o_reg_write_en      ),
+        .o_pc_update       ( s_pc_update         ),
+        .o_mem_write_en    ( o_mem_write_en      ),
+        .o_instr_write_en  ( o_instr_write_en    ),
+        .o_start_i_cache   ( s_start_instr_cache ),
+        .o_start_d_cache   ( s_start_data_cache  ),
+        .o_branch          ( s_instr_branch      ),
+        .o_addr_write_en   ( o_old_addr_write_en ),
+        .o_mem_reg_we      ( o_mem_reg_we        ),
+        .o_fetch_state     ( o_fetch_state       ),
+        .o_mcause          ( o_mcause            ),
+        .o_csr_we          ( o_csr_we            ),
+        .o_csr_reg_we      ( o_csr_reg_we        ),
+        .o_csr_write_addr  ( o_csr_write_addr    ),
+        .o_csr_read_addr   ( o_csr_read_addr     ),
+        .o_csr_src_control ( o_csr_src_control   )
     );
 
     // Instruction cache FSM.

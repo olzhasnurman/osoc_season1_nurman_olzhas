@@ -9,7 +9,7 @@ module alu
 #(
     parameter DATA_WIDTH    = 64,
               WORD_WIDTH    = 32,
-              CONTROL_WIDTH = 4   
+              CONTROL_WIDTH = 5   
 ) 
 // Port decleration.
 (
@@ -30,25 +30,29 @@ module alu
     // ---------------
     // Oprations.
     // ---------------
-    enum logic [3:0] {
-        ADD   = 4'b0000,
-        SUB   = 4'b0001,
-        AND   = 4'b0010,
-        OR    = 4'b0011,
-        XOR   = 4'b0100,
-        SLL   = 4'b0101,
-        SLT   = 4'b0110,
-        SLTU  = 4'b0111,
-        SRL   = 4'b1000,
-        SRA   = 4'b1001,
+    enum logic [4:0] {
+        ADD   = 5'b00000,
+        SUB   = 5'b00001,
+        AND   = 5'b00010,
+        OR    = 5'b00011,
+        XOR   = 5'b00100,
+        SLL   = 5'b00101,
+        SLT   = 5'b00110,
+        SLTU  = 5'b00111,
+        SRL   = 5'b01000,
+        SRA   = 5'b01001,
 
-        ADDW  = 4'b1010,
-        SUBW  = 4'b1011,
-        SLLW  = 4'b1100,
-        SRLW  = 4'b1101,
-        SRAW  = 4'b1110,
+        ADDW  = 5'b01010,
+        SUBW  = 5'b01011,
+        SLLW  = 5'b01100,
+        SRLW  = 5'b01101,
+        SRAW  = 5'b01110,
         
-        ADDIW = 4'b1111
+        ADDIW = 5'b01111,
+
+        CSRRW = 5'b10000,
+        CSRRS = 5'b10001,
+        CSRRC = 5'b10010
 
     } t_operation;
 
@@ -144,6 +148,10 @@ module alu
             SRAW : o_alu_result = { { 32{s_sraw_out[31]} }, s_sraw_out };
 
             ADDIW: o_alu_result = { { 32{s_add_out[31]} }, s_add_out[31:0] };
+
+            CSRRW: o_alu_result = i_src_1;
+            CSRRS: o_alu_result = s_or_out;
+            CSRRC: o_alu_result = ( ~ i_src_1) & i_src_2;
 
             default: begin
                 o_alu_result    = 'b0;

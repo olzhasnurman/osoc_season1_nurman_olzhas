@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------------------
 // This is a top module in RISC-V architecture. It connects datapath units & control unit.
 // ---------------------------------------------------------------------------------------
+/* verilator lint_off UNOPTFLAT */
 
 module top
 // Parameters. 
@@ -53,9 +54,6 @@ module top
 
     // ALU flags.
     logic s_zero_flag;
-    logic s_overflow_flag;
-    logic s_negative_flag;
-    logic s_carry_flag;
     logic s_slt_flag;
     logic s_sltu_flag;
 
@@ -64,12 +62,12 @@ module top
     logic [2:0] s_func_3;
     logic       s_func_7_5;
     logic [6:0] s_func_7;
-    logic [3:0] s_alu_control;
-    logic [1:0] s_result_src;
+    logic [4:0] s_alu_control;
+    logic [2:0] s_result_src;
     logic [1:0] s_alu_src_control_1;
     logic [1:0] s_alu_src_control_2;
     logic [2:0] s_imm_src;
-    logic       s_addr_src;
+    logic       s_pc_src;
     logic       s_reg_write_en;
     logic       s_pc_write_en;
     logic       s_mem_write_en;
@@ -117,17 +115,19 @@ module top
     logic [ MEM_DATA_WIDTH - 1:0] s_mem_load_data;
 
     // CSR signals.
-    logic                          s_mtvec_we;
-    logic [ REG_DATA_WIDTH - 1:0 ] s_mtvec_data_in;
-    logic [ REG_DATA_WIDTH - 1:0 ] s_mtvec_data_out;
-    logic [ REG_DATA_WIDTH - 1:0 ] s_exception_j_addr;
-    logic                          s_mepc_we;
-    logic [ REG_DATA_WIDTH - 1:0 ] s_mepc_data_in;
-    logic [ REG_DATA_WIDTH - 1:0 ] s_mepc_data_out;
-    logic                          s_mcause_we;
-    logic [ REG_DATA_WIDTH - 1:0 ] s_mcause_data_in;
-    logic [ REG_DATA_WIDTH - 1:0 ] s_mcause_data_out;
+    logic [                  1:0 ] s_csr_write_addr;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_csr_write_data;
+    logic                          s_csr_we;
+    logic                          s_csr_reg_we;
+    logic [                  1:0 ] s_csr_read_addr;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_csr_read_data;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_csr_data;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_csr_read_data_reg;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_csr_jamp_addr;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_csr_mcause;
     logic [                  3:0 ] s_mcause;
+
+    logic [ 1:0 ] s_csr_src_control;   // 00: CSR read data, 01: CSR read data reg, 10: CSR jamp addr.
 
 
     // Exception cause signals.
@@ -156,9 +156,9 @@ module top
 
     assign s_addr_offset = s_result[2:0];
     
-    assign s_mepc_data_in     = s_reg_old_pc;
-    assign s_mcause_data_in   = { 60'b0, s_mcause}; 
-    assign s_exception_j_addr = s_mtvec_data_out >> 2;
+    assign s_csr_jamp_addr  = s_csr_read_data >> 2;
+    assign s_csr_mcause     = { 60'b0, s_mcause };
+    assign s_csr_write_data = s_result;
 
  
 
@@ -204,7 +204,6 @@ module top
         .o_alu_src_1            ( s_alu_src_control_1   ),
         .o_alu_src_2            ( s_alu_src_control_2   ),
         .o_imm_src              ( s_imm_src             ),
-        .o_addr_src             ( s_addr_src            ),
         .o_reg_write_en         ( s_reg_write_en        ),
         .o_pc_write             ( s_pc_write_en         ),
         .o_instr_write_en       ( s_instr_write_en      ),
@@ -220,10 +219,13 @@ module top
         .o_addr_control         ( s_addr_control        ),
         .o_mem_reg_we           ( s_reg_mem_we          ),
         .o_fetch_state          ( s_fetch_state         ),
-        .o_mepc_we              ( s_mepc_we             ),
-        .o_mtvec_we             ( s_mtvec_we            ),
-        .o_mcause_we            ( s_mcause_we           ),
-        .o_mcause               ( s_mcause              )
+        .o_mcause               ( s_mcause              ),
+        .o_csr_we               ( s_csr_we              ),
+        .o_csr_reg_we           ( s_csr_reg_we          ),
+        .o_csr_write_addr       ( s_csr_write_addr      ),
+        .o_csr_read_addr        ( s_csr_read_addr       ),
+        .o_csr_src_control      ( s_csr_src_control     ),
+        .o_pc_src               ( s_pc_src              )
     );
 
 
@@ -280,18 +282,14 @@ module top
 
 
     // Control & Status Registers.
-    csr CSR0 (
-        .clk           ( clk               ),
-        .arstn         ( arstn             ),
-        .i_mtvec_we    ( s_mtvec_we        ),
-        .i_mtvec_data  ( s_mtvec_data_in   ),
-        .i_mepc_we     ( s_mepc_we         ),
-        .i_mepc_data   ( s_mepc_data_in    ),
-        .i_mcause_we   ( s_mcause_we       ),
-        .i_mcause_data ( s_mcause_data_in  ),
-        .o_mtvec_data  ( s_mtvec_data_out  ),
-        .o_mepc_data   ( s_mepc_data_out   ),
-        .o_mcause_data ( s_mcause_data_out )
+    csr_file CSR0 (
+        .clk          ( clk              ),
+        .write_en     ( s_csr_we         ),
+        .arstn        ( arstn            ),
+        .i_read_addr  ( s_csr_read_addr  ),
+        .i_write_addr ( s_csr_write_addr ),
+        .i_write_data ( s_csr_write_data ),
+        .o_read_data  ( s_csr_read_data  )
     );
 
 
@@ -349,7 +347,16 @@ module top
         .arstn        ( arstn               ),
         .i_write_data ( s_result            ),
         .o_read_data  ( s_reg_old_addr      )
-    ); 
+    );
+
+    // CSR Register Instance.
+    register_en # (.DATA_WIDTH (REG_DATA_WIDTH)) CSR_REG (
+        .clk          ( clk                 ),
+        .write_en     ( s_csr_reg_we        ),
+        .arstn        ( arstn               ),
+        .i_write_data ( s_csr_read_data     ),
+        .o_read_data  ( s_csr_read_data_reg )
+    );  
 
     // R1 Register Instance.
     register R1 (
@@ -393,41 +400,55 @@ module top
     // 4-to-1 ALU Source 1 MUX Instance.
     mux4to1 ALU_MUX_1 (
         .control_signal ( s_alu_src_control_1 ),
-        .i_mux_1        ( s_reg_pc            ),
-        .i_mux_2        ( s_reg_old_pc        ),
-        .i_mux_3        ( s_reg_data_1        ),
-        .i_mux_4        ( s_mepc_data_out     ),
+        .i_mux_0        ( s_reg_pc            ),
+        .i_mux_1        ( s_reg_old_pc        ),
+        .i_mux_2        ( s_reg_data_1        ),
+        .i_mux_3        ( s_imm_ext           ),
         .o_mux          ( s_alu_src_data_1    )
     );
 
     // 4-to-1 ALU Source 2 MUX Instance.
     mux4to1 ALU_MUX_2 (
         .control_signal ( s_alu_src_control_2 ),
-        .i_mux_1        ( s_reg_data_2        ),
-        .i_mux_2        ( s_imm_ext           ),
-        .i_mux_3        ( 64'b0100            ),
-        .i_mux_4        ( 64'b0               ),
+        .i_mux_0        ( s_reg_data_2        ),
+        .i_mux_1        ( s_imm_ext           ),
+        .i_mux_2        ( 64'b0100            ),
+        .i_mux_3        ( s_csr_data          ),
         .o_mux          ( s_alu_src_data_2    )
     );
 
-    // 4-to-1 Result Source MUX Instance.
-    mux4to1 RESULT_MUX (
+    // 3-to-1 CSR MUX Instance.
+    mux3to1 CSR_MUX (
+        .control_signal ( s_csr_src_control   ),
+        .i_mux_0        ( s_csr_read_data     ),
+        .i_mux_1        ( s_csr_read_data_reg ),
+        .i_mux_2        ( s_csr_jamp_addr     ),
+        .o_mux          ( s_csr_data          )
+    ); 
+
+    // 2-to-1 Addr MUX Instance.
+    mux2to1 ADDR_MUX (
+        .control_signal ( s_pc_src   ),
+        .i_mux_0        ( s_result   ),
+        .i_mux_1        ( s_csr_data ),
+        .o_mux          ( s_pc_addr  )   
+    );   
+
+    // 8-to-1 Result Source MUX Instance.
+    mux8to1 RESULT_MUX (
         .control_signal ( s_result_src       ),
-        .i_mux_1        ( s_reg_alu_result   ),
-        .i_mux_2        ( s_reg_mem_data     ), 
-        .i_mux_3        ( s_alu_result       ),
-        .i_mux_4        ( s_imm_ext          ),
+        .i_mux_0        ( s_reg_alu_result   ),
+        .i_mux_1        ( s_reg_mem_data     ), 
+        .i_mux_2        ( s_alu_result       ),
+        .i_mux_3        ( s_imm_ext          ),
+        .i_mux_4        ( s_csr_data         ),
+        .i_mux_5        ( s_csr_mcause       ),
+        .i_mux_6        ( s_reg_old_pc       ),
+        .i_mux_7        ( s_reg_data_1       ),
         .o_mux          ( s_result           )
     );
 
-    // 2-to-1 PC address source MUX instance.
-    mux2to1 ADDR_MUX (
-        .control_signal ( s_addr_src         ),
-        .i_mux_1        ( s_result           ),
-        .i_mux_2        ( s_exception_j_addr ),
-        .o_addr         ( s_pc_addr          )
-    );
-    
+
 
 
     //---------------------------------------

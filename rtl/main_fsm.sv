@@ -24,11 +24,11 @@ module main_fsm
     input logic         i_illegal_instr,
 
     // Output interface.
-    output logic [ 1:0] o_alu_op,
-    output logic [ 1:0] o_result_src,
+    output logic [ 2:0] o_alu_op,
+    output logic [ 2:0] o_result_src,
     output logic [ 1:0] o_alu_src_1,
     output logic [ 1:0] o_alu_src_2,
-    output logic        o_addr_src,
+    output logic        o_pc_src,
     output logic        o_reg_write_en,
     output logic        o_pc_update,
     output logic        o_mem_write_en,
@@ -39,28 +39,39 @@ module main_fsm
     output logic        o_addr_write_en,
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
-    output logic        o_mepc_we,  
-    output logic        o_mtvec_we,  
-    output logic        o_mcause_we,
-    output logic [ 3:0] o_mcause 
+    output logic [ 3:0] o_mcause,
+    output logic        o_csr_we,
+    output logic        o_csr_reg_we,
+    output logic [ 1:0] o_csr_write_addr,
+    output logic [ 1:0] o_csr_read_addr,
+    output logic [ 1:0] o_csr_src_control
 );  
+    //import "DPI-C" function void check(longint a);
+
+    logic s_func_3_reduction;
+    logic [1:0] s_csr_addr;
+
+    assign s_csr_addr = i_instr [22:21];
+    assign s_func_3_reduction = | i_func_3;
+
     // State type.
     typedef enum logic [3:0] {
-        FETCH      = 4'b0000,
-        DECODE     = 4'b0001,
-        MEMADDR    = 4'b0010,
-        MEMREAD    = 4'b0011,
-        MEMWB      = 4'b0100,
-        MEMWRITE   = 4'b0101,
-        EXECUTER   = 4'b0110,
-        ALUWB      = 4'b0111,
-        EXECUTEI   = 4'b1000,
-        JAL        = 4'b1001,
-        BRANCH     = 4'b1010,
-        LOADI      = 4'b1011,
-        CALL       = 4'b1100,
-        RET        = 4'b1101,
-        STOP       = 4'b1110 // FOR SIMULATION ONLY.
+        FETCH       = 4'b0000,
+        DECODE      = 4'b0001,
+        MEMADDR     = 4'b0010,
+        MEMREAD     = 4'b0011,
+        MEMWB       = 4'b0100,
+        MEMWRITE    = 4'b0101,
+        EXECUTER    = 4'b0110,
+        ALUWB       = 4'b0111,
+        EXECUTEI    = 4'b1000,
+        JAL         = 4'b1001,
+        BRANCH      = 4'b1010,
+        LOADI       = 4'b1011,
+        CALL_0      = 4'b1100,
+        CALL_1      = 4'b1101,
+        CSR_EXECUTE = 4'b1110,
+        CSR_WB      = 4'b1111
     } t_state;
 
     // State variables. 
@@ -81,9 +92,8 @@ module main_fsm
         U_Type_ALU  = 4'b1001,
         U_Type_LOAD = 4'b1010,
         FENCE_Type  = 4'b1011,
-        E_Type      = 4'b1100,
-        ILLEGAL     = 4'b1101,
-        TERMINATE   = 4'b1110 // FOR SIMULATION ONLY.
+        CSR_Type    = 4'b1100,
+        ILLEGAL     = 4'b1101
     } t_instruction;
 
     // Instruction decoder signal. 
@@ -104,8 +114,7 @@ module main_fsm
             7'b0010111: instr = U_Type_ALU;
             7'b0110111: instr = U_Type_LOAD; 
             7'b0001111: instr = FENCE_Type;
-            7'b1110011: instr = E_Type;
-            //7'b1111111: instr = TERMINATE; // FOR SIMULATION ONLY.
+            7'b1110011: instr = CSR_Type;
             default:    instr = ILLEGAL;
         endcase
     end
@@ -128,13 +137,13 @@ module main_fsm
 
         case ( PS )
             FETCH: begin
-                if ( i_instr_addr_ma )    NS = CALL;
+                if ( i_instr_addr_ma )    NS = CALL_0;
                 else if ( i_stall_instr ) NS = PS;
                 else                      NS = DECODE;
             end 
 
             DECODE: begin
-                if ( i_illegal_instr ) NS = CALL;
+                if ( i_illegal_instr ) NS = CALL_0;
                 else begin
                     case ( instr )
                         I_Type     : NS = MEMADDR;
@@ -149,13 +158,13 @@ module main_fsm
                         U_Type_ALU : NS = ALUWB;
                         U_Type_LOAD: NS = LOADI; 
                         FENCE_Type : NS = FETCH; // NOT IMPLEMENTED.
-                        E_Type     : begin
-                            if ( i_func_7_4 ) NS = RET; // PROBLEM: NOT FINISHED.
-                            else              NS = CALL;                             
+                        CSR_Type   : begin
+                            if ( s_func_3_reduction ) NS = CSR_EXECUTE; // CSR.
+                            else if ( i_func_7_4    ) NS = JAL;         // MRET. PROBLEM: NOT FINISHED.
+                            else                      NS = CALL_0;      // Break                             
                         end 
-                        ILLEGAL    : NS = CALL;
-                        //TERMINATE  : NS = STOP; // FOR SIMULATION ONLY.
-                        default:     NS = CALL; 
+                        ILLEGAL    : NS = CALL_0;
+                        default:     NS = CALL_0; 
                     endcase
                 end
             end
@@ -170,7 +179,7 @@ module main_fsm
             end
 
             MEMREAD: begin
-                if ( i_load_addr_ma )       NS = CALL; 
+                if ( i_load_addr_ma )       NS = CALL_0; 
                 else if ( i_stall_data )    NS = PS;
                 else                        NS = MEMWB;
             end
@@ -178,7 +187,7 @@ module main_fsm
             MEMWB: NS = FETCH;
 
             MEMWRITE: begin
-                if ( i_store_addr_ma )      NS = CALL;
+                if ( i_store_addr_ma )      NS = CALL_0;
                 else if ( i_stall_data )    NS = PS;
                 else                        NS = FETCH;
             end
@@ -190,19 +199,22 @@ module main_fsm
             EXECUTEI: NS = ALUWB;
 
             JAL: begin
-                if ( instr == E_Type ) NS = FETCH;
-                else                   NS = ALUWB;
-            end
+                if ( instr == CSR_Type ) NS = FETCH;
+                else                     NS = ALUWB;          
+            end 
+
 
             BRANCH: NS = FETCH;
             
             LOADI: NS = FETCH;
 
-            CALL: NS = FETCH;
+            CALL_0: NS = CALL_1;
 
-            RET: NS = JAL;
+            CALL_1: NS = FETCH;
 
-            //STOP: NS = FETCH;
+            CSR_EXECUTE: NS = CSR_WB;
+
+            CSR_WB: NS = FETCH;
 
             default: NS = PS;
         endcase
@@ -213,25 +225,27 @@ module main_fsm
     always_comb begin
 
         // Default values. 
-        o_alu_op         = 2'b00;
-        o_result_src     = 2'b00;
-        o_alu_src_1      = 2'b00;
-        o_alu_src_2      = 2'b00;
-        o_addr_src       = 1'b0;
-        o_reg_write_en   = 1'b0;
-        o_pc_update      = 1'b0;
-        o_mem_write_en   = 1'b0;
-        o_instr_write_en = 1'b0;
-        o_addr_write_en  = 1'b0;
-        o_start_i_cache  = 1'b0;
-        o_branch         = 1'b0;
-        o_start_d_cache  = 1'b0;
-        o_mem_reg_we     = 1'b0;
-        o_fetch_state    = 1'b0;
-        o_mepc_we        = 1'b0;
-        o_mtvec_we       = 1'b0;
-        o_mcause_we      = 1'b0;
-        o_mcause         = 4'b0000;
+        o_alu_op          = 3'b000;
+        o_result_src      = 3'b000;
+        o_alu_src_1       = 2'b00;
+        o_alu_src_2       = 2'b00;
+        o_pc_src          = 1'b0;
+        o_reg_write_en    = 1'b0;
+        o_pc_update       = 1'b0;
+        o_mem_write_en    = 1'b0;
+        o_instr_write_en  = 1'b0;
+        o_addr_write_en   = 1'b0;
+        o_start_i_cache   = 1'b0;
+        o_branch          = 1'b0;
+        o_start_d_cache   = 1'b0;
+        o_mem_reg_we      = 1'b0;
+        o_fetch_state     = 1'b0;
+        o_mcause          = 4'b0000;
+        o_csr_we          = 1'b0;
+        o_csr_reg_we      = 1'b0;
+        o_csr_write_addr  = s_csr_addr;
+        o_csr_read_addr   = s_csr_addr;
+        o_csr_src_control = 2'b00;
 
         case ( PS )
             FETCH: begin
@@ -249,26 +263,26 @@ module main_fsm
                 o_fetch_state      = 1'b1; 
                 o_alu_src_1        = 2'b00;
                 o_alu_src_2        = 2'b10;
-                o_result_src       = 2'b10;
-                o_alu_op           = 2'b00;
+                o_result_src       = 3'b010;
+                o_alu_op           = 3'b000;
             end 
 
             DECODE: begin
-                o_alu_src_1 = 2'b01;
-                o_alu_src_2 = 2'b01;
-                o_alu_op    = 2'b00;
+                o_alu_src_1  = 2'b01;
+                o_alu_src_2  = 2'b01;
+                o_alu_op     = 3'b000;
             end
 
             MEMADDR: begin
                 o_alu_src_1    = 2'b10;
                 o_alu_src_2    = 2'b01;
-                o_alu_op       = 2'b00;
+                o_alu_op       = 3'b000;
             end
 
             MEMREAD: begin
-                o_result_src    = 2'b00;
+                o_result_src    = 3'b000;
                 o_start_d_cache = 1'b1;
-                o_alu_op        = 2'b00;
+                o_alu_op        = 3'b000;
 
                 if ( i_stall_data ) begin
                     o_addr_write_en = 1'b1;
@@ -279,13 +293,13 @@ module main_fsm
                 else begin
                     o_addr_write_en = 1'b0;
                     o_mem_reg_we    = 1'b1;
-                    o_alu_src_1 = 2'b10;
-                    o_alu_src_2 = 2'b01;     
+                    o_alu_src_1     = 2'b10;
+                    o_alu_src_2     = 2'b01;     
                 end
             end
 
             MEMWB: begin
-                o_result_src   = 2'b01;
+                o_result_src   = 3'b001;
                 o_reg_write_en = 1'b1;
             end
 
@@ -306,8 +320,8 @@ module main_fsm
                 end
                 
                 o_start_d_cache = 1'b1;
-                o_result_src    = 2'b00;
-                o_alu_op    = 2'b00;
+                o_result_src    = 3'b000;
+                o_alu_op    = 3'b000;
                 
             end
 
@@ -315,14 +329,14 @@ module main_fsm
                 o_alu_src_1 = 2'b10;
                 o_alu_src_2 = 2'b00;
                 case ( instr )
-                    R_Type  : o_alu_op = 2'b10;
-                    R_Type_W: o_alu_op = 2'b11;
-                    default:  o_alu_op = 2'b10;
+                    R_Type  : o_alu_op = 3'b010;
+                    R_Type_W: o_alu_op = 3'b011;
+                    default:  o_alu_op = 3'b010;
                 endcase
             end
 
             ALUWB: begin
-                o_result_src   = 2'b00;
+                o_result_src   = 3'b000;
                 o_reg_write_en = 1'b1;
             end
 
@@ -330,36 +344,45 @@ module main_fsm
                 o_alu_src_1 = 2'b10;
                 o_alu_src_2 = 2'b01;
                 case ( instr )
-                    I_Type_ALU: o_alu_op = 2'b10;
-                    I_Type_IW : o_alu_op = 2'b11;
-                    default:    o_alu_op = 2'b10;
+                    I_Type_ALU: o_alu_op = 3'b010;
+                    I_Type_IW : o_alu_op = 3'b011;
+                    default:    o_alu_op = 3'b010;
                 endcase
             end
 
             JAL: begin
-                o_alu_src_1  = 2'b01;
-                o_alu_src_2  = 2'b10;
-                o_alu_op     = 2'b00;
-                o_result_src = 2'b00;
-                o_pc_update  = 1'b1;
+                o_alu_src_1       = 2'b01;
+                o_alu_src_2       = 2'b10;
+                o_alu_op          = 3'b000;
+                o_pc_update       = 1'b1;
+                o_csr_read_addr   = 2'b00;  // mepc.
+                o_csr_src_control = 2'b00;  // s_csr_read_data 
+                
+                if ( instr == CSR_Type ) o_result_src = 3'b100; // s_csr_data.
+                else                     o_result_src = 3'b000;
             end
 
             BRANCH: begin
                 o_alu_src_1  = 2'b10;
                 o_alu_src_2  = 2'b00;
-                o_alu_op     = 2'b01;
-                o_result_src = 2'b00;
+                o_alu_op     = 3'b001;
+                o_result_src = 3'b000;
                 o_branch     = 1'b1;
             end
 
             LOADI: begin
-                o_result_src   = 2'b11;
+                o_result_src   = 3'b011;
                 o_reg_write_en = 1'b1; 
             end
 
-            CALL: begin
-                o_mepc_we   = 1'b1;
-                o_mcause_we = 1'b1;
+            CALL_0: begin
+                o_csr_read_addr   = 2'b10;  // mtvec.
+                o_csr_write_addr  = 2'b01;  // mcause.
+                o_csr_src_control = 2'b10;  // s_csr_jump_addr. 
+                o_result_src      = 3'b101; // s_csr_mcause.
+                o_pc_src          = 1'b1;   // s_csr_data.
+                o_pc_update       = 1'b1;
+                o_csr_we          = 1'b1; 
 
                 // Cause write logic.
                 if ( (instr == ILLEGAL) | i_illegal_instr ) o_mcause = 4'd2; // Illegal instruction.
@@ -368,7 +391,7 @@ module main_fsm
                 // if the target address is not four-byte aligned. This exception is reported on the branch or jump
                 // instruction, not on the target instruction.
                 else if ( i_instr_addr_ma ) o_mcause = 4'd0; // Instruction address misaligned.
-                else if ( instr == E_Type ) begin
+                else if ( instr == CSR_Type ) begin
                     if ( ~i_instr[20] ) o_mcause = 4'd11; // Env call from M-mode.
                     else                o_mcause = 4'd3; // Env breakpoint.
                 end
@@ -376,27 +399,41 @@ module main_fsm
                 else if ( i_store_addr_ma ) o_mcause = 4'd6; // Store address misaligned.x
                 else o_mcause = 4'd10; // Reserved.
 
-                o_addr_src = 1'b1;
-                o_pc_update = 1'b1;
+                
                 // $display("time =%0t", $time); // FOR SIMULATION ONLY.
 
+                //check(0);
+
             end
 
-            RET: begin
-                o_alu_src_1 = 2'b11;
-                o_alu_src_2 = 2'b10;
-                o_alu_op    = 2'b00;
+            CALL_1: begin
+                o_csr_write_addr  = 2'b00;  // mepc.
+                o_result_src      = 3'b110; // s_old_pc.  
+                o_csr_we          = 1'b1;  
             end
 
-            //STOP: $stop(); // FOR SIMULATION ONLY
+            CSR_EXECUTE: begin
+                if ( i_func_3[2] ) o_alu_src_1  = 2'b11;
+                else               o_alu_src_1  = 2'b10;
+                o_alu_src_2  = 2'b11;
+                o_alu_op     = 3'b100;
+                o_csr_we     = 1'b1;
+                o_result_src = 3'b010;
+                o_csr_reg_we = 1'b1;
+            end
+
+            CSR_WB: begin
+                o_reg_write_en    = 1'b1;
+                o_result_src      = 3'b100;
+                o_csr_src_control = 2'b01; 
+            end
 
 
             default: begin
-                o_alu_op         = 2'b00;
-                o_result_src     = 2'b00;
+                o_alu_op         = 3'b000;
+                o_result_src     = 3'b000;
                 o_alu_src_1      = 2'b00;
                 o_alu_src_2      = 2'b00;
-                o_addr_src       = 1'b0;
                 o_reg_write_en   = 1'b0;
                 o_pc_update      = 1'b0;
                 o_mem_write_en   = 1'b0;
@@ -407,9 +444,6 @@ module main_fsm
                 o_start_d_cache  = 1'b0;
                 o_mem_reg_we     = 1'b0;
                 o_fetch_state    = 1'b0;
-                o_mepc_we        = 1'b0;
-                o_mtvec_we       = 1'b0;
-                o_mcause_we      = 1'b0;
                 o_mcause         = 4'b0000;
             end
         endcase

@@ -27,6 +27,7 @@ module extend_imm
     logic [ OUT_WIDTH - 1:0 ] s_b_type;
     logic [ OUT_WIDTH - 1:0 ] s_j_type;
     logic [ OUT_WIDTH - 1:0 ] s_u_type;
+    logic [ OUT_WIDTH - 1:0 ] csr_type;
 
     // Sign extend immediate for different instruction types. 
     assign s_i_type = { {52{i_imm[24]}}, i_imm[24:13] };
@@ -34,6 +35,7 @@ module extend_imm
     assign s_b_type = { {52{i_imm[24]}}, i_imm[0] , i_imm[23:18], i_imm[4:1], 1'b0 };
     assign s_j_type = { {44{i_imm[24]}}, i_imm[12:5], i_imm[13], i_imm[23:14], 1'b0 };
     assign s_u_type = { {32{i_imm[24]}}, i_imm[24:5], {12{1'b0}} };
+    assign csr_type = { 59'b0, i_imm[12:8] };
 
     // MUX to choose output based on instruction type.
     //  ___________________________________
@@ -44,6 +46,7 @@ module extend_imm
     // | 010            | B type          |
     // | 011            | J type          |
     // | 100            | U type          |
+    // | 101            | CSR             |
     // |__________________________________|
     always_comb begin
         case ( control_signal )
@@ -52,6 +55,7 @@ module extend_imm
             3'b010: o_imm_ext = s_b_type;
             3'b011: o_imm_ext = s_j_type;
             3'b100: o_imm_ext = s_u_type;
+            3'b101: o_imm_ext = csr_type;
             default: o_imm_ext = s_i_type;
         endcase
     end
