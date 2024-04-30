@@ -16,8 +16,8 @@ module mux2to1
     input  logic                      control_signal,
 
     // Input interface.
+    input  logic [ ADDR_WIDTH - 1:0 ] i_mux_0,
     input  logic [ ADDR_WIDTH - 1:0 ] i_mux_1,
-    input  logic [ ADDR_WIDTH - 1:0 ] i_mux_2,
 
     // Output interface.
     output logic [ ADDR_WIDTH - 1:0 ] o_mux
@@ -26,9 +26,9 @@ module mux2to1
     // MUX logic.
     always_comb begin
         if ( control_signal ) begin
-            o_mux = i_mux_2;
+            o_mux = i_mux_1;
         end
-        else o_mux = i_mux_1;
+        else o_mux = i_mux_0;
     end
     
 endmodule

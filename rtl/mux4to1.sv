@@ -15,10 +15,10 @@ module mux4to1
     input  logic [              1:0 ] control_signal,
 
     // Input interface.
+    input  logic [ DATA_WIDTH - 1:0 ] i_mux_0,
     input  logic [ DATA_WIDTH - 1:0 ] i_mux_1,
     input  logic [ DATA_WIDTH - 1:0 ] i_mux_2,
     input  logic [ DATA_WIDTH - 1:0 ] i_mux_3,
-    input  logic [ DATA_WIDTH - 1:0 ] i_mux_4,
 
     // Output interface.
     output logic [ DATA_WIDTH - 1:0 ] o_mux
@@ -27,11 +27,11 @@ module mux4to1
     // MUX logic.
     always_comb begin
         case ( control_signal )
-            2'b00: o_mux = i_mux_1;
-            2'b01: o_mux = i_mux_2;
-            2'b10: o_mux = i_mux_3;
-            2'b11: o_mux = i_mux_4;
-            default: o_mux = i_mux_1;
+            2'b00: o_mux = i_mux_0;
+            2'b01: o_mux = i_mux_1;
+            2'b10: o_mux = i_mux_2;
+            2'b11: o_mux = i_mux_3;
+            default: o_mux = '0;
         endcase
     end
     
