@@ -31,12 +31,12 @@ _____________________________               _____________________________
 | xor   | YES | PASS |      |               ________________________
 | srl   | YES | PASS |      |               | INSTR  | RTL  | TEST |
 | sra   | YES | PASS |      |               |________|______|______|
-| or    | YES | PASS |      |               | csrrw  | NO   | NO   |
-| and   | YES | PASS |      |               | csrrs  | NO   | NO   |
-|_______|_____|______|______|               | csrrc  | NO   | NO   |
-| lui   | YES | PASS | U    |               | csrrwi | NO   | NO   |
-| ______|_____|______|______|               | csrrsi | NO   | NO   |
-| beq   | YES | PASS | B    |               | csrrci | NO   | NO   |
+| or    | YES | PASS |      |               | csrrw  | YES  | NO   |
+| and   | YES | PASS |      |               | csrrs  | YES  | NO   |
+|_______|_____|______|______|               | csrrc  | YES  | NO   |
+| lui   | YES | PASS | U    |               | csrrwi | YES  | NO   |
+| ______|_____|______|______|               | csrrsi | YES  | NO   |
+| beq   | YES | PASS | B    |               | csrrci | YES  | NO   |
 | bne   | YES | PASS |      |               |________|______|______|
 | blt   | YES | PASS |      |
 | bge   | YES | PASS |      |
