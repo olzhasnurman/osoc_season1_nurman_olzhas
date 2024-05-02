@@ -137,6 +137,8 @@ module top
     logic s_illegal_instr;
     logic s_illegal_instr_load;
 
+    logic s_a0_reg_lsb; // FOR SIMULATION ONLY.
+
 
 
     //----------------------------------
@@ -199,6 +201,7 @@ module top
         .i_store_addr_ma        ( s_store_addr_ma       ),
         .i_load_addr_ma         ( s_load_addr_ma        ),
         .i_illegal_instr        ( s_illegal_instr       ),
+        .i_a0_reg_lsb           ( s_a0_reg_lsb          ), // FOR SIMULATION ONLY.
         .o_alu_control          ( s_alu_control         ),
         .o_result_src           ( s_result_src          ),
         .o_alu_src_1            ( s_alu_src_control_1   ),
@@ -244,6 +247,7 @@ module top
         .i_addr_3       ( s_reg_addr_3      ),
         .i_write_data_3 ( s_result          ),
         .o_read_data_1  ( s_reg_read_data_1 ),
+        .o_a0_reg_lsb   ( s_a0_reg_lsb      ), // FOR SIMULATION ONLY.
         .o_read_data_2  ( s_reg_read_data_2 )
     );
 

@@ -22,6 +22,7 @@ module main_fsm
     input logic         i_store_addr_ma,
     input logic         i_load_addr_ma,
     input logic         i_illegal_instr,
+    input  logic        i_a0_reg_lsb, // FOR SIMULATION ONLY.
 
     // Output interface.
     output logic [ 2:0] o_alu_op,
@@ -46,7 +47,7 @@ module main_fsm
     output logic [ 1:0] o_csr_read_addr,
     output logic [ 1:0] o_csr_src_control
 );  
-    //import "DPI-C" function void check(longint a);
+    import "DPI-C" function void check(longint a);
 
     logic s_func_3_reduction;
     logic [1:0] s_csr_addr;
@@ -137,14 +138,15 @@ module main_fsm
 
         case ( PS )
             FETCH: begin
-                if ( i_instr_addr_ma )    NS = CALL_0;
-                else if ( i_stall_instr ) NS = PS;
+                // if ( i_instr_addr_ma )    NS = CALL_0;
+                // else if ( i_stall_instr ) NS = PS;
+                if ( i_stall_instr ) NS = PS;
                 else                      NS = DECODE;
             end 
 
             DECODE: begin
-                if ( i_illegal_instr ) NS = CALL_0;
-                else begin
+                // if ( i_illegal_instr ) NS = CALL_0;
+                // else begin
                     case ( instr )
                         I_Type     : NS = MEMADDR;
                         I_Type_ALU : NS = EXECUTEI;
@@ -166,7 +168,7 @@ module main_fsm
                         ILLEGAL    : NS = CALL_0;
                         default:     NS = CALL_0; 
                     endcase
-                end
+                // end
             end
 
             MEMADDR: begin
@@ -179,16 +181,18 @@ module main_fsm
             end
 
             MEMREAD: begin
-                if ( i_load_addr_ma )       NS = CALL_0; 
-                else if ( i_stall_data )    NS = PS;
+                // if ( i_load_addr_ma )       NS = CALL_0; 
+                // else if ( i_stall_data )    NS = PS;
+                if ( i_stall_data )    NS = PS;
                 else                        NS = MEMWB;
             end
 
             MEMWB: NS = FETCH;
 
             MEMWRITE: begin
-                if ( i_store_addr_ma )      NS = CALL_0;
-                else if ( i_stall_data )    NS = PS;
+                // if ( i_store_addr_ma )      NS = CALL_0;
+                // else if ( i_stall_data )    NS = PS;
+                if ( i_stall_data )    NS = PS;
                 else                        NS = FETCH;
             end
 
@@ -400,9 +404,9 @@ module main_fsm
                 else o_mcause = 4'd10; // Reserved.
 
                 
-                // $display("time =%0t", $time); // FOR SIMULATION ONLY.
+                //$display("time =%0t", $time); // FOR SIMULATION ONLY.
 
-                //check(0);
+                check(i_a0_reg_lsb);
 
             end
 

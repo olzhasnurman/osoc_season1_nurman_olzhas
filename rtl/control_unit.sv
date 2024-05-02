@@ -29,6 +29,7 @@ module control_unit
     input logic         i_store_addr_ma,
     input logic         i_load_addr_ma,
     input logic         i_illegal_instr,
+    input logic         i_a0_reg_lsb, // FOR SIMULATION ONLY.
 
     // Output interface.
     output logic [ 4:0] o_alu_control,
@@ -120,6 +121,7 @@ module control_unit
         .i_store_addr_ma   ( i_store_addr_ma     ),
         .i_load_addr_ma    ( i_load_addr_ma      ),
         .i_illegal_instr   ( s_illegal_instr     ),
+        .i_a0_reg_lsb      ( i_a0_reg_lsb        ), // FOR SIMULATION ONLY.
         .o_alu_op          ( s_alu_op            ),
         .o_result_src      ( o_result_src        ),
         .o_alu_src_1       ( o_alu_src_1         ),

@@ -26,6 +26,7 @@ module register_file
     
     // Output interface.
     output logic [ DATA_WIDTH - 1:0 ] o_read_data_1,
+    output logic                      o_a0_reg_lsb, // FOR SIMULATION ONLY.
     output logic [ DATA_WIDTH - 1:0 ] o_read_data_2
 );
 
@@ -77,6 +78,7 @@ module register_file
     // Read logic.
     assign o_read_data_1 = mem[i_addr_1];
     assign o_read_data_2 = mem[i_addr_2];
+    assign o_a0_reg_lsb  = mem[10][0];
 
     
 endmodule
