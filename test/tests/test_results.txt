@@ -1,0 +1,99 @@
+_________________________________________________
+|  INSTR         | RV-ARCH-TEST*  | RV-TESTS**  |
+|________________|________________|_____________|
+| add            | PASS           | PASS        |
+| addi           | PASS           | PASS        |
+| addiw          | PASS           | PASS        |
+| addw           | PASS           | PASS        |
+| and            | PASS           | PASS        |
+| andi           | PASS           | PASS        |
+| auipc          | PASS           | PASS        |
+| beq            | NOT TESTED     | PASS        |
+| bge            | NOT TESTED     | PASS        |
+| bgeu           | NOT TESTED     | PASS        |
+| blt            | NOT TESTED     | PASS        |
+| bltu           | NOT TESTED     | PASS        |
+| bne            | NOT TESTED     | PASS        |
+| fence          | NOT TESTED     | -           |
+| fence_i        | -              | NOT TESTED  |
+| jal            | -              | PASS        |
+| jalr           | NOT TESTED     | PASS        |
+| lb-align       | NOT TESTED     | PASS        |
+| lbu-align      | NOT TESTED     | PASS        |
+| ld-align       | NOT TESTED     | PASS        |
+| lh-align       | NOT TESTED     | PASS        |
+| lhu-align      | NOT TESTED     | PASS        |
+| lui            | PASS           | PASS        |
+| lw-align       | NOT TESTED     | PASS        |
+| lwu-align      | NOT TESTED     | PASS        |
+| misalign1-jalr | NOT TESTED***  | -           |
+| ma_data        | -              | ***         |
+| or             | PASS           | PASS        |
+| ori            | PASS           | PASS        |
+| sb-align       | NOT TESTED     | PASS        |
+| sd-align       | NOT TESTED     | PASS        |
+| sh-align       | NOT TESTED     | PASS        |
+| sll            | PASS           | PASS        |
+| slli           | PASS           | PASS        |
+| slliw          | PASS           | PASS        |
+| sllw           | PASS           | PASS        |
+| slt            | PASS           | PASS        |
+| slti           | PASS           | PASS        |
+| sltiu          | PASS           | PASS        |
+| sltu           | PASS           | PASS        |
+| sra            | PASS           | PASS        |
+| srai           | PASS           | PASS        |
+| sraiw          | PASS           | PASS        |
+| sraw           | PASS           | PASS        |
+| srl            | PASS           | PASS        |
+| srli           | PASS           | PASS        |
+| srliw          | PASS           | PASS        |
+| srlw           | PASS           | PASS        |
+| sub            | PASS           | PASS        |
+| subw           | PASS           | PASS        |
+| sw-align       | NOT TESTED     | PASS        |
+| xor            | PASS           | PASS        |
+| xori           | PASS           | PASS        |
+|________________|________________|_____________|
+
+*   Source: https://github.com/riscv-non-isa/riscv-arch-test
+**  Source: https://github.com/riscv-software-src/riscv-tests
+*** Misaligned data access/jump ( lh	t2,1(s0), where s0 = 0x80003000 )
+
+
+__________________________________
+| AM TESTS*      | STATUS        |
+|________________|_______________|
+|  add-longlong  | PASS          |
+|  add           | PASS          |
+|  bit           | PASS          |
+|  bubble-sort   | PASS          |
+|  crc32         | PASS          |
+|  fib           | PASS          |
+|  goldbach      | PASS***       |
+|  hello-str     | PASS          |
+|  if-else       | PASS          |
+|  leap-year     | **            | 
+|  load-store    | PASS          |
+|  max           | PASS          |
+|  min3          | PASS          |
+|  mov-c         | PASS          |
+|  movsx         | PASS          |
+|  pascal        | PASS          |
+|  prime         | **            |
+|  quick-sort    | PASS          |
+|  recursion     | NOT TESTED**  |
+|  select-sort   | PASS          |
+|  shift         | PASS          |
+|  string        | PASS          |
+|  sub-longlong  | PASS          |
+|  sum           | PASS          |
+|  switch        | PASS          |
+|  to-lower-case | PASS          |
+|  unalign       | PASS          |
+|  wanshu        | **            |
+|________________|_______________|
+
+*   Source: https://github.com/NJU-ProjectN/am-kernels
+**  CONTAINS NOT IMPLEMENTED INSTR (REMW, DIVW)
+*** CONTAINS NOT IMPLEMENTED INSTR, BUT IT ISN'T USED (REMW).
