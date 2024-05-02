@@ -35,7 +35,7 @@ module csr_file
         if ( ~arstn ) begin
             mem[0] <= '0; // Mepc.
             mem[1] <= '0; // Mcause.
-            mem[2] <= 64'd2624; // Mtvec.
+            mem[2] <= '0; // Mtvec.
             mem[3] <= '0; // Reserved.
         end
         if ( write_en ) begin
