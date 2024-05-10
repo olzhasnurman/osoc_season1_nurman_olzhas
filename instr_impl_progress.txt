@@ -22,8 +22,8 @@ _____________________________               _____________________________
 | sb    | YES | PASS | S    |               | INSTR   | RTL | TEST |                
 | sh    | YES | PASS |      |               |_________|_____|______|
 | sw    | YES | PASS |      |               | fence   | NO  | NO   |
-|_______|_____|______|______|               | ecall   | NO  | NO   |
-| add   | YES | PASS | R    |               | ebreak  | NO  | NO   |
+|_______|_____|______|______|               | ecall   | YES | PASS |
+| add   | YES | PASS | R    |               | ebreak  | YES | PASS |
 | sub   | YES | PASS |      |               |_________|_____|______|
 | sll   | YES | PASS |      |               
 | slt   | YES | PASS |      |               
@@ -31,12 +31,12 @@ _____________________________               _____________________________
 | xor   | YES | PASS |      |               ________________________
 | srl   | YES | PASS |      |               | INSTR  | RTL  | TEST |
 | sra   | YES | PASS |      |               |________|______|______|
-| or    | YES | PASS |      |               | csrrw  | YES  | NO   |
-| and   | YES | PASS |      |               | csrrs  | YES  | NO   |
-|_______|_____|______|______|               | csrrc  | YES  | NO   |
-| lui   | YES | PASS | U    |               | csrrwi | YES  | NO   |
-| ______|_____|______|______|               | csrrsi | YES  | NO   |
-| beq   | YES | PASS | B    |               | csrrci | YES  | NO   |
+| or    | YES | PASS |      |               | csrrw  | YES  | PASS |
+| and   | YES | PASS |      |               | csrrs  | YES  | PASS |
+|_______|_____|______|______|               | csrrc  | YES  | PASS |
+| lui   | YES | PASS | U    |               | csrrwi | YES  | PASS |
+| ______|_____|______|______|               | csrrsi | YES  | PASS |
+| beq   | YES | PASS | B    |               | csrrci | YES  | PASS |
 | bne   | YES | PASS |      |               |________|______|______|
 | blt   | YES | PASS |      |
 | bge   | YES | PASS |      |
