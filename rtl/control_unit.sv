@@ -1,3 +1,4 @@
+
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -------------------------------------------------------------------------------------
@@ -28,7 +29,7 @@ module control_unit
     input  logic        i_instr_addr_ma,
     input logic         i_store_addr_ma,
     input logic         i_load_addr_ma,
-    input logic         i_illegal_instr,
+    input logic         i_illegal_instr_load,
     input logic         i_a0_reg_lsb, // FOR SIMULATION ONLY.
 
     // Output interface.
@@ -48,8 +49,6 @@ module control_unit
     output logic        o_data_valid_update,
     output logic        o_data_lru_update,
     output logic        o_start_write_axi,
-    output logic        o_old_addr_write_en,
-    output logic        o_access, // Just for simulation.
     output logic        o_addr_control,
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
@@ -79,15 +78,11 @@ module control_unit
     logic s_start_data_cache;
 
     // Illegalal instruction flag.
-    logic s_illegal_instr;
     logic s_illegal_instr_alu;
-
-    assign s_illegal_instr = s_illegal_instr_alu | i_illegal_instr;
 
     assign o_pc_write       = s_pc_update | ( s_branch );
 
     assign o_start_read_axi = s_start_read_data | s_start_read_instr;
-    assign o_access = s_start_read_data;
 
     // Branch type decoder. 
     always_comb begin : BRANCH_TYPE
@@ -109,40 +104,40 @@ module control_unit
 
     // Main FSM module instance. 
     main_fsm M_FSM (
-        .clk               ( clk                 ),
-        .arstn             ( arstn               ),
-        .i_instr           ( i_instr             ),
-        .i_op              ( i_op                ),
-        .i_func_3          ( i_func_3            ),
-        .i_func_7_4        ( i_func_7[4]         ), 
-        .i_stall_instr     ( s_stall_instr       ),
-        .i_stall_data      ( s_stall_data        ),
-        .i_instr_addr_ma   ( i_instr_addr_ma     ),
-        .i_store_addr_ma   ( i_store_addr_ma     ),
-        .i_load_addr_ma    ( i_load_addr_ma      ),
-        .i_illegal_instr   ( s_illegal_instr     ),
-        .i_a0_reg_lsb      ( i_a0_reg_lsb        ), // FOR SIMULATION ONLY.
-        .o_alu_op          ( s_alu_op            ),
-        .o_result_src      ( o_result_src        ),
-        .o_alu_src_1       ( o_alu_src_1         ),
-        .o_alu_src_2       ( o_alu_src_2         ),
-        .o_pc_src          ( o_pc_src            ), 
-        .o_reg_write_en    ( o_reg_write_en      ),
-        .o_pc_update       ( s_pc_update         ),
-        .o_mem_write_en    ( o_mem_write_en      ),
-        .o_instr_write_en  ( o_instr_write_en    ),
-        .o_start_i_cache   ( s_start_instr_cache ),
-        .o_start_d_cache   ( s_start_data_cache  ),
-        .o_branch          ( s_instr_branch      ),
-        .o_addr_write_en   ( o_old_addr_write_en ),
-        .o_mem_reg_we      ( o_mem_reg_we        ),
-        .o_fetch_state     ( o_fetch_state       ),
-        .o_mcause          ( o_mcause            ),
-        .o_csr_we          ( o_csr_we            ),
-        .o_csr_reg_we      ( o_csr_reg_we        ),
-        .o_csr_write_addr  ( o_csr_write_addr    ),
-        .o_csr_read_addr   ( o_csr_read_addr     ),
-        .o_csr_src_control ( o_csr_src_control   )
+        .clk                  ( clk                  ),
+        .arstn                ( arstn                ),
+        .i_instr              ( i_instr              ),
+        .i_op                 ( i_op                 ),
+        .i_func_3             ( i_func_3             ),
+        .i_func_7_4           ( i_func_7[4]          ), 
+        .i_stall_instr        ( s_stall_instr        ),
+        .i_stall_data         ( s_stall_data         ),
+        .i_instr_addr_ma      ( i_instr_addr_ma      ),
+        .i_store_addr_ma      ( i_store_addr_ma      ),
+        .i_load_addr_ma       ( i_load_addr_ma       ),
+        .i_illegal_instr_load ( i_illegal_instr_load ),
+        .i_illegal_instr_alu  ( s_illegal_instr_alu  ),
+        .i_a0_reg_lsb         ( i_a0_reg_lsb         ), // FOR SIMULATION ONLY.
+        .o_alu_op             ( s_alu_op             ),
+        .o_result_src         ( o_result_src         ),
+        .o_alu_src_1          ( o_alu_src_1          ),
+        .o_alu_src_2          ( o_alu_src_2          ),
+        .o_pc_src             ( o_pc_src             ), 
+        .o_reg_write_en       ( o_reg_write_en       ),
+        .o_pc_update          ( s_pc_update          ),
+        .o_mem_write_en       ( o_mem_write_en       ),
+        .o_instr_write_en     ( o_instr_write_en     ),
+        .o_start_i_cache      ( s_start_instr_cache  ),
+        .o_start_d_cache      ( s_start_data_cache   ),
+        .o_branch             ( s_instr_branch       ),
+        .o_mem_reg_we         ( o_mem_reg_we         ),
+        .o_fetch_state        ( o_fetch_state        ),
+        .o_mcause             ( o_mcause             ),
+        .o_csr_we             ( o_csr_we             ),
+        .o_csr_reg_we         ( o_csr_reg_we         ),
+        .o_csr_write_addr     ( o_csr_write_addr     ),
+        .o_csr_read_addr      ( o_csr_read_addr      ),
+        .o_csr_src_control    ( o_csr_src_control    )
     );
 
     // Instruction cache FSM.

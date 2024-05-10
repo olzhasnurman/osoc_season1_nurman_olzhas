@@ -1,3 +1,4 @@
+
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -----------------------------------------------------------------------------------------
@@ -21,7 +22,8 @@ module main_fsm
     input  logic        i_instr_addr_ma,
     input logic         i_store_addr_ma,
     input logic         i_load_addr_ma,
-    input logic         i_illegal_instr,
+    input logic         i_illegal_instr_load,
+    input logic         i_illegal_instr_alu,
     input  logic        i_a0_reg_lsb, // FOR SIMULATION ONLY.
 
     // Output interface.
@@ -37,7 +39,6 @@ module main_fsm
     output logic        o_start_i_cache,
     output logic        o_start_d_cache, 
     output logic        o_branch,
-    output logic        o_addr_write_en,
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
     output logic [ 3:0] o_mcause,
@@ -138,37 +139,33 @@ module main_fsm
 
         case ( PS )
             FETCH: begin
-                // if ( i_instr_addr_ma )    NS = CALL_0;
-                // else if ( i_stall_instr ) NS = PS;
-                if ( i_stall_instr ) NS = PS;
+                if ( i_instr_addr_ma )    NS = CALL_0;
+                else if ( i_stall_instr ) NS = PS;
                 else                      NS = DECODE;
             end 
 
             DECODE: begin
-                // if ( i_illegal_instr ) NS = CALL_0;
-                // else begin
-                    case ( instr )
-                        I_Type     : NS = MEMADDR;
-                        I_Type_ALU : NS = EXECUTEI;
-                        I_Type_JALR: NS = MEMADDR;
-                        I_Type_IW  : NS = EXECUTEI; 
-                        S_Type     : NS = MEMADDR;
-                        R_Type     : NS = EXECUTER; 
-                        R_Type_W   : NS = EXECUTER;
-                        B_Type     : NS = BRANCH;
-                        J_Type     : NS = JAL;
-                        U_Type_ALU : NS = ALUWB;
-                        U_Type_LOAD: NS = LOADI; 
-                        FENCE_Type : NS = FETCH; // NOT IMPLEMENTED.
-                        CSR_Type   : begin
-                            if ( s_func_3_reduction ) NS = CSR_EXECUTE; // CSR.
-                            else if ( i_func_7_4    ) NS = JAL;         // MRET. PROBLEM: NOT FINISHED.
-                            else                      NS = CALL_0;      // Break                             
-                        end 
-                        ILLEGAL    : NS = CALL_0;
-                        default:     NS = CALL_0; 
-                    endcase
-                // end
+                case ( instr )
+                    I_Type     : NS = MEMADDR;
+                    I_Type_ALU : NS = EXECUTEI;
+                    I_Type_JALR: NS = MEMADDR;
+                    I_Type_IW  : NS = EXECUTEI; 
+                    S_Type     : NS = MEMADDR;
+                    R_Type     : NS = EXECUTER; 
+                    R_Type_W   : NS = EXECUTER;
+                    B_Type     : NS = BRANCH;
+                    J_Type     : NS = JAL;
+                    U_Type_ALU : NS = ALUWB;
+                    U_Type_LOAD: NS = LOADI; 
+                    FENCE_Type : NS = FETCH; // NOT IMPLEMENTED.
+                    CSR_Type   : begin
+                        if ( s_func_3_reduction ) NS = CSR_EXECUTE; // CSR.
+                        else if ( i_func_7_4    ) NS = JAL;         // MRET. PROBLEM: NOT FINISHED.
+                        else                      NS = CALL_0;      // Break                             
+                    end 
+                    ILLEGAL    : NS = CALL_0;
+                    default:     NS = CALL_0; 
+                endcase
             end
 
             MEMADDR: begin
@@ -181,26 +178,30 @@ module main_fsm
             end
 
             MEMREAD: begin
-                // if ( i_load_addr_ma )       NS = CALL_0; 
-                // else if ( i_stall_data )    NS = PS;
-                if ( i_stall_data )    NS = PS;
-                else                        NS = MEMWB;
+                if ( i_load_addr_ma | i_illegal_instr_load ) NS = CALL_0; 
+                else if ( i_stall_data )                     NS = PS;
+                else                                         NS = MEMWB;
             end
 
             MEMWB: NS = FETCH;
 
             MEMWRITE: begin
-                // if ( i_store_addr_ma )      NS = CALL_0;
-                // else if ( i_stall_data )    NS = PS;
-                if ( i_stall_data )    NS = PS;
-                else                        NS = FETCH;
+                if ( i_store_addr_ma )   NS = CALL_0;
+                else if ( i_stall_data ) NS = PS;
+                else                     NS = FETCH;
             end
 
-            EXECUTER: NS = ALUWB;
+            EXECUTER: begin
+                if ( i_illegal_instr_alu ) NS = CALL_0;
+                else                       NS = ALUWB;                 
+            end 
 
             ALUWB: NS = FETCH;
 
-            EXECUTEI: NS = ALUWB;
+            EXECUTEI: begin
+                if ( i_illegal_instr_alu ) NS = CALL_0;
+                else                       NS = ALUWB;                 
+            end 
 
             JAL: begin
                 if ( instr == CSR_Type ) NS = FETCH;
@@ -238,7 +239,6 @@ module main_fsm
         o_pc_update       = 1'b0;
         o_mem_write_en    = 1'b0;
         o_instr_write_en  = 1'b0;
-        o_addr_write_en   = 1'b0;
         o_start_i_cache   = 1'b0;
         o_branch          = 1'b0;
         o_start_d_cache   = 1'b0;
@@ -259,7 +259,6 @@ module main_fsm
                 end
                 else begin
                     o_instr_write_en   = 1'b1;
-                    o_addr_write_en    = 1'b1;
                     o_pc_update        = 1'b1;      
                 end
                 
@@ -289,13 +288,11 @@ module main_fsm
                 o_alu_op        = 3'b000;
 
                 if ( i_stall_data ) begin
-                    o_addr_write_en = 1'b1;
                     o_mem_reg_we    = 1'b0;
                     o_alu_src_1     = 2'b10;
                     o_alu_src_2     = 2'b01;
                 end
                 else begin
-                    o_addr_write_en = 1'b0;
                     o_mem_reg_we    = 1'b1;
                     o_alu_src_1     = 2'b10;
                     o_alu_src_2     = 2'b01;     
@@ -310,14 +307,12 @@ module main_fsm
             MEMWRITE: begin
                 if ( i_stall_data ) begin
                     o_mem_write_en  = 1'b0;
-                    o_addr_write_en = 1'b1;
                     o_alu_src_1     = 2'b10;
                     o_alu_src_2     = 2'b01;
                     o_mem_reg_we    = 1'b0;
                 end
                 else begin
                     o_mem_write_en  = 1'b1;
-                    o_addr_write_en = 1'b0;
                     o_mem_reg_we    = 1'b1;
                     o_alu_src_1 = 2'b10;
                     o_alu_src_2 = 2'b01;      
@@ -389,7 +384,7 @@ module main_fsm
                 o_csr_we          = 1'b1; 
 
                 // Cause write logic.
-                if ( (instr == ILLEGAL) | i_illegal_instr ) o_mcause = 4'd2; // Illegal instruction.
+                if ( (instr == ILLEGAL) | i_illegal_instr_alu | i_illegal_instr_load ) o_mcause = 4'd2; // Illegal instruction.
 
                 //  An instruction-address-misaligned exception is generated on a taken branch or unconditional jump
                 // if the target address is not four-byte aligned. This exception is reported on the branch or jump
@@ -442,7 +437,6 @@ module main_fsm
                 o_pc_update      = 1'b0;
                 o_mem_write_en   = 1'b0;
                 o_instr_write_en = 1'b0;
-                o_addr_write_en  = 1'b0;
                 o_start_i_cache  = 1'b0;
                 o_branch         = 1'b0;
                 o_start_d_cache  = 1'b0;
