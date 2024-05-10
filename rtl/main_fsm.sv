@@ -217,7 +217,10 @@ module main_fsm
 
             CALL_1: NS = FETCH;
 
-            CSR_EXECUTE: NS = CSR_WB;
+            CSR_EXECUTE: begin
+                if ( i_illegal_instr_alu ) NS = CALL_0;
+                else                       NS = CSR_WB;                 
+            end 
 
             CSR_WB: NS = FETCH;
 
