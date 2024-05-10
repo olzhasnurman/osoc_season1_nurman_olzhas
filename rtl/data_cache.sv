@@ -64,8 +64,6 @@ module data_cache
     logic [ WORD_OFFSET_MSB - WORD_OFFSET_LSB:0 ] s_word_offset;
     logic [                                 1:0 ] s_byte_offset;
 
-    logic [ TAG_MSB         - TAG_LSB        :0 ] s_tag;
-
     logic [ $clog2( N ) - 1:0 ] s_lru;
     logic [           N - 1:0 ] s_lru_found;
     logic [           N - 1:0 ] s_hit;

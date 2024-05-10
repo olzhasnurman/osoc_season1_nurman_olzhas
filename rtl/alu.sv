@@ -83,9 +83,9 @@ module alu
     logic [ WORD_WIDTH - 1:0 ] s_sraw_out;
 
     // Flag signals. 
-    logic s_carry_flag_add;
-    logic s_carry_flag_sub;
-    logic s_overflow;
+    // logic s_carry_flag_add;
+    // logic s_carry_flag_sub;
+    // logic s_overflow;
 
     // NOTE: REVIEW SLT & SLTU INSTRUCTIONS. ALSO FLAGS.
 

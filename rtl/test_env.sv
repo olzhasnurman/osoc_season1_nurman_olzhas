@@ -30,7 +30,6 @@ module test_env
     logic [ DATA_WIDTH     - 1:0 ] s_data_cache_out;
     logic                          s_read_last_axi;
     logic                          s_b_resp_axi;
-    logic                          s_access;
 
 
 
@@ -49,7 +48,6 @@ module test_env
         .i_b_resp_axi      ( s_b_resp_axi     ),
         .o_start_read_axi  ( s_start_read     ),
         .o_start_write_axi ( s_start_write    ),
-        .o_access          ( s_access         ),
         .o_addr            ( s_addr_cache     ),
         .o_data_write_axi  ( s_data_cache_out )
     );
@@ -81,7 +79,6 @@ module test_env
         .clk      ( clk            ),
         .arstn    ( arstn          ),
         .write_en ( s_we_mem       ),
-        .access   ( s_access       ),
         .i_data   ( s_data_mem_in  ),
         .i_addr   ( s_addr_mem     ),
         .o_data   ( s_data_mem_out )

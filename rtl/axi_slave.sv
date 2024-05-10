@@ -3,6 +3,7 @@
 // --------------------------------------------------------------------------------------------------------
 // This is a AXI Slave protocol implementation for communication with outside memory for read operations.
 // --------------------------------------------------------------------------------------------------------
+/* verilator lint_off UNUSED */
 
 module axi_slave
 #(
@@ -171,7 +172,6 @@ module axi_slave
             WRITE: begin
                 W_READY = 1'b1;
                 if ( W_READY & W_VALID ) begin
-                    s_count_start = 1'b1;
                     if ( W_LAST ) begin
                        o_write_en = 1'b0; 
                     end
@@ -201,8 +201,8 @@ module axi_slave
     end
 
     // Counter.
-    always_ff @( posedge clk, posedge AR_VALID ) begin
-        if ( AR_VALID | AW_VALID ) begin 
+    always_ff @( posedge clk ) begin
+        if ( AR_VALID ) begin 
             s_count <= '0;
             s_count_done <= 1'b0;
         end
@@ -236,7 +236,7 @@ module axi_slave
                 end
             end
             else if ( W_READY ) begin
-                if ( s_count_done ) begin
+                if ( W_LAST ) begin
                     o_addr <= o_addr;
                 end
                 else begin
@@ -251,3 +251,5 @@ module axi_slave
     end
     
 endmodule
+
+/* verilator lint_on UNUSED */

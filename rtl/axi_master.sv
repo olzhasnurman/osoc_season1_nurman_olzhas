@@ -3,6 +3,7 @@
 // --------------------------------------------------------------------------------------------------------
 // This is a AXI Master protocol implementation for communication with outside memory for read operations.
 // --------------------------------------------------------------------------------------------------------
+/* verilator lint_off UNUSED */
 
 module axi_master
 #(
@@ -86,13 +87,19 @@ module axi_master
     //-------------------------
     // Continious assignments.
     //-------------------------
-    assign AR_ADDR  = i_addr;
     assign AR_LEN   = 8'd16;  // 16 in case of 512 bit data out size.
     assign AR_SIZE  = 3'b010; // 32 bit / 4 bytes. 
     assign AR_BURST = 2'b01;  // Incrementing Burst.
     assign AR_PROT  = 3'b100; // Random value. NOT FINAL VALUE.
 
-    assign AW_ADDR = i_addr;
+
+    assign AW_PROT  = 3'b001; // Priviledged access.
+    assign AW_LEN   = 8'd16;  // 16 in case of 512 bit data out size with burst size of 32 bits.
+    assign AW_SIZE  = 3'b010; // 32 bit / 4 bytes.
+    assign AW_BURST = 2'b01;  // Incrementing Burst.
+
+    assign W_STRB   = W_VALID ? 4'b1111 : 4'b0000; // All bytes are valid whenever W_VALID is High.
+
     assign o_read_last_axi = R_LAST;
 
 
@@ -125,15 +132,11 @@ module axi_master
 
         case ( PS )
             IDLE: begin
-                if ( i_start_read ) begin
-                    if ( AR_VALID & AR_READY ) begin
-                        NS = READ;
-                    end
+                if ( i_start_read & AR_READY ) begin
+                    NS = READ;
                 end
-                else if ( i_start_write ) begin
-                    if ( AW_VALID & AW_READY ) begin
-                        NS = WRITE;
-                    end
+                else if ( i_start_write & AW_READY ) begin
+                    NS = WRITE;
                 end
             end 
 
@@ -165,53 +168,54 @@ module axi_master
     always_comb begin
 
         // Default values.
-        s_fifo_we = 1'b0;
-        R_READY = 1'b0;
-        W_VALID = 1'b0;
-        AR_VALID = 1'b0;
-        AW_VALID = 1'b0;
-        B_READY  = 1'b0;
-        o_b_resp_axi = 1'b0;
+        s_fifo_we     = 1'b0;
+        R_READY       = 1'b0;
+        W_VALID       = 1'b0;
+        AR_VALID      = 1'b0;
+        AW_VALID      = 1'b0;
+        B_READY       = 1'b0;
+        o_b_resp_axi  = 1'b0;
         s_count_start = 1'b0;
-        s_shift = 1'b0;
+        s_shift       = 1'b0;
+        AR_ADDR       = i_addr;
+        AW_ADDR       = i_addr;
         
         case ( PS )
             IDLE: begin
                 if ( i_start_read ) begin
                     AR_VALID = 1'b1;
+                    AR_ADDR  = i_addr;
                 end
                 else if ( i_start_write ) begin
                     AW_VALID = 1'b1;
-                    s_shift = 1'b1;
-                end
-                
-                
-                else begin 
-                    AR_VALID = 1'b0;
+                    AW_ADDR  = i_addr;
+                    s_shift  = 1'b1;
                 end
             end
 
             READ: begin
+                AR_ADDR = i_addr;
                 if ( i_start_read ) begin
                     R_READY = 1'b1;
                 end
                 else R_READY = 1'b0;
 
-                if ( R_VALID & R_READY ) begin
+                if ( R_VALID & i_start_read ) begin
                     s_fifo_we = 1'b1;
                 end
                 else s_fifo_we = 1'b0;
             end
 
             WRITE: begin
+                AW_ADDR = i_addr;
                 if ( i_start_write ) begin
                     W_VALID = 1'b1;
                     if ( W_LAST ) begin
-                        s_shift = 1'b0;
+                        s_shift       = 1'b0;
                         s_count_start = 1'b0;
                     end
                     else begin
-                        s_shift = 1'b1;
+                        s_shift       = 1'b1;
                         s_count_start = 1'b1;
                     end
                 end
@@ -231,15 +235,15 @@ module axi_master
             end
 
             default: begin
-                s_fifo_we = 1'b0;
-                R_READY = 1'b0;
-                W_VALID = 1'b0;
-                AR_VALID = 1'b0;
-                AW_VALID = 1'b0;
-                B_READY  = 1'b0;
-                o_b_resp_axi = 1'b0;
+                s_fifo_we     = 1'b0;
+                R_READY       = 1'b0;
+                W_VALID       = 1'b0;
+                AR_VALID      = 1'b0;
+                AW_VALID      = 1'b0;
+                B_READY       = 1'b0;
+                o_b_resp_axi  = 1'b0;
                 s_count_start = 1'b0;
-                s_shift = 1'b0;
+                s_shift       = 1'b0;
             end 
         endcase
     end
@@ -285,14 +289,14 @@ module axi_master
         end
     end
 
-    // Address increment.
+    // Write last bit. 
     always_ff @( posedge clk ) begin 
-        if ( s_count_done ) begin
-            W_LAST <= 1'b1;
-        end
-        else W_LAST <= 1'b0;
+        if ( s_count_done ) W_LAST <= 1'b1;
+        else                W_LAST <= 1'b0;
     end
 
     assign o_data = s_fifo_out;
     
 endmodule
+
+/* verilator lint_on UNUSED */

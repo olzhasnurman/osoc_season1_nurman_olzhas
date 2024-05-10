@@ -26,7 +26,6 @@ module top
     input  logic         i_b_resp_axi,      // NEEDS TO BE CONNECTED TO AXI
     output logic         o_start_read_axi,  // NEEDS TO BE CONNECTED TO AXI
     output logic         o_start_write_axi, // NEEDS TO BE CONNECTED TO AXI
-    output logic         o_access,          // JUST FOR SIMULATION
     output logic [ MEM_ADDR_WIDTH - 1:0 ] o_addr, // JUST FOR SIMULATION
     output logic [511:0] o_data_write_axi   // NEEDS TO BE CONNECTED TO AXI
 );
@@ -60,7 +59,6 @@ module top
     // Control unit signals. 
     logic [6:0] s_op;
     logic [2:0] s_func_3;
-    logic       s_func_7_5;
     logic [6:0] s_func_7;
     logic [4:0] s_alu_control;
     logic [2:0] s_result_src;
@@ -72,12 +70,10 @@ module top
     logic       s_pc_write_en;
     logic       s_mem_write_en;
     logic       s_instr_write_en;
-    logic       s_old_addr_write_en;
     logic       s_fetch_state;
 
     // Memory signals.
     logic [ MEM_DATA_WIDTH  - 1:0 ] s_mem_read_data;
-    logic [ MEM_INSTR_WIDTH - 1:0 ] s_mem_read_instr;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_addr_axi;
 
     // Register file signals. 
@@ -96,7 +92,6 @@ module top
     logic [ MEM_INSTR_WIDTH - 1:0 ] s_reg_instr;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_pc;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_old_pc;
-    logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_old_addr;
     logic [ REG_DATA_WIDTH  - 1:0 ] s_reg_data_1;
     logic [ REG_DATA_WIDTH  - 1:0 ] s_reg_data_2;
     logic [ REG_DATA_WIDTH  - 1:0 ] s_reg_alu_result;
@@ -134,7 +129,6 @@ module top
     logic s_instr_addr_ma;
     logic s_store_addr_ma;
     logic s_load_addr_ma;
-    logic s_illegal_instr;
     logic s_illegal_instr_load;
 
     logic s_a0_reg_lsb; // FOR SIMULATION ONLY.
@@ -144,13 +138,9 @@ module top
     //----------------------------------
     // Continious assignmnets. 
     //----------------------------------
-    assign s_illegal_instr = s_illegal_instr_load;
-
-
     assign s_imm        = s_reg_instr[31:7];
     assign s_op         = s_reg_instr[6:0];
-    assign s_func_3     = s_reg_instr[14:12];
-    assign s_func_7_5   = s_reg_instr[30]; 
+    assign s_func_3     = s_reg_instr[14:12];   
     assign s_func_7     = s_reg_instr[31:25];
     assign s_reg_addr_1 = s_reg_instr[19:15];
     assign s_reg_addr_2 = s_reg_instr[24:20];
@@ -200,7 +190,7 @@ module top
         .i_instr_addr_ma        ( s_instr_addr_ma       ),
         .i_store_addr_ma        ( s_store_addr_ma       ),
         .i_load_addr_ma         ( s_load_addr_ma        ),
-        .i_illegal_instr        ( s_illegal_instr       ),
+        .i_illegal_instr_load   ( s_illegal_instr_load  ),
         .i_a0_reg_lsb           ( s_a0_reg_lsb          ), // FOR SIMULATION ONLY.
         .o_alu_control          ( s_alu_control         ),
         .o_result_src           ( s_result_src          ),
@@ -217,8 +207,6 @@ module top
         .o_data_valid_update    ( s_data_valid_update   ),
         .o_data_lru_update      ( s_data_lru_update     ),
         .o_start_write_axi      ( o_start_write_axi     ),
-        .o_old_addr_write_en    ( s_old_addr_write_en   ),
-        .o_access               ( o_access              ),
         .o_addr_control         ( s_addr_control        ),
         .o_mem_reg_we           ( s_reg_mem_we          ),
         .o_fetch_state          ( s_fetch_state         ),
@@ -343,15 +331,6 @@ module top
         .i_write_data ( s_reg_pc         ),
         .o_read_data  ( s_reg_old_pc     )
     ); 
-
-    // Old ADDR Register Instance.
-    register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) OLD_ADDR_REG (
-        .clk          ( clk                 ),
-        .write_en     ( s_old_addr_write_en ),
-        .arstn        ( arstn               ),
-        .i_write_data ( s_result            ),
-        .o_read_data  ( s_reg_old_addr      )
-    );
 
     // CSR Register Instance.
     register_en # (.DATA_WIDTH (REG_DATA_WIDTH)) CSR_REG (
