@@ -62,14 +62,8 @@ def process_file(input_path, output_path):
                     file_out.write(reordered_line + '\n')
                     number_of_lines += 1
 
-                if (number_of_lines + 3)*16 > 2047:
-                    number_of_lines += 4
-                    new_lines = 4
-                    number_of_lines *= 16
-                else:
-                    new_lines = 3
-                    number_of_lines += 3
-                    number_of_lines *= 16
+                number_of_lines += 4
+                number_of_lines *= 16
 
                 #print(input_path + f": {number_of_lines} lines.")
                 with open (exception_handler_path, 'r') as exception_h:
@@ -109,18 +103,22 @@ def process_file(input_path, output_path):
                     with open(file_path_3, 'w') as file:
                         k = 0
                         for item in results:
-                            if ( k < new_lines ): 
+                            if ( item != ""): 
                                 file.write(item + '\n')  
+                                k += 1
+                        while k < 4:
+                            file.write("00000013\n")
                             k += 1
- 
 
-        with open ( file_path_2, 'r' ) as file_in:
-            with open ( output_path, 'w' ) as file_out:
-                with open (file_path_3, 'r') as file:
+
+        with open(file_path_2, 'r') as file_in:
+            with open(output_path, 'w') as file_out:
+                with open(file_path_3, 'r') as file:
                     for line in file:
                         file_out.write(line)
-                    for line in file_in:
-                        file_out.write(line)
+                for line in file_in:
+                    file_out.write(line)
+                    
 
         if 'rv64ui-' in input_path:
             skip = False
