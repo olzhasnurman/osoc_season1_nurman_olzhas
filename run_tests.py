@@ -123,11 +123,15 @@ def save_result(test):
          file_out.writelines(old_lines)
          file_out.write(test + ': ')
          with open('res.txt', 'r') as file_in:
-            line = file_in.readline()
-            if line == "":
-                file_out.write("\n")
-            else:
-                file_out.write(line)
+            i = 0
+            lines = file_in.readlines()
+            for line in lines:
+                if ( (i%3) & (i < 4)):
+                    file_out.write(line)
+                i += 1
+            if i == 0:
+                 file_out.write("\n")
+                 
 
                  
     os.system("rm res.txt")
