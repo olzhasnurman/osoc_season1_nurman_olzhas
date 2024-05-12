@@ -71,10 +71,12 @@ module top
     logic       s_mem_write_en;
     logic       s_instr_write_en;
     logic       s_fetch_state;
+    logic       s_mem_addr_reg_we;
 
     // Memory signals.
     logic [ MEM_DATA_WIDTH  - 1:0 ] s_mem_read_data;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_addr_axi;
+    logic [ MEM_ADDR_WIDTH  - 1:0 ] s_mem_addr_reg;
 
     // Register file signals. 
     logic [ REG_ADDR_WIDTH - 1:0 ] s_reg_addr_1;
@@ -210,6 +212,7 @@ module top
         .o_addr_control         ( s_addr_control        ),
         .o_mem_reg_we           ( s_reg_mem_we          ),
         .o_fetch_state          ( s_fetch_state         ),
+        .o_mem_addr_reg_we      ( s_mem_addr_reg_we     ),
         .o_mcause               ( s_mcause              ),
         .o_csr_we               ( s_csr_we              ),
         .o_csr_reg_we           ( s_csr_reg_we          ),
@@ -247,7 +250,7 @@ module top
         .valid_update    ( s_data_valid_update   ),
         .lru_update      ( s_data_lru_update     ),
         .block_write_en  ( s_data_block_write_en ),
-        .i_data_addr     ( s_result              ),
+        .i_data_addr     ( s_mem_addr_reg        ),
         .i_data          ( s_reg_data_2          ),
         .i_data_block    ( i_data_read_axi       ),
         .i_store_type    ( s_func_3[1:0]         ),
@@ -330,6 +333,15 @@ module top
         .arstn        ( arstn            ),
         .i_write_data ( s_reg_pc         ),
         .o_read_data  ( s_reg_old_pc     )
+    ); 
+
+    // MEM ADDR Register Instance.
+    register_en MEM_ADDR_REG (
+        .clk          ( clk               ),
+        .write_en     ( s_mem_addr_reg_we ),
+        .arstn        ( arstn             ),
+        .i_write_data ( s_result          ),
+        .o_read_data  ( s_mem_addr_reg    )
     ); 
 
     // CSR Register Instance.
