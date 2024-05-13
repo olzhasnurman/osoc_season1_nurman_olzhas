@@ -3,7 +3,6 @@
 // ---------------------------------------------------------------------------------------
 // This is a top module in RISC-V architecture. It connects datapath units & control unit.
 // ---------------------------------------------------------------------------------------
-/* verilator lint_off UNOPTFLAT */
 
 module top
 // Parameters. 
@@ -71,12 +70,10 @@ module top
     logic       s_mem_write_en;
     logic       s_instr_write_en;
     logic       s_fetch_state;
-    logic       s_mem_addr_reg_we;
 
     // Memory signals.
     logic [ MEM_DATA_WIDTH  - 1:0 ] s_mem_read_data;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_addr_axi;
-    logic [ MEM_ADDR_WIDTH  - 1:0 ] s_mem_addr_reg;
 
     // Register file signals. 
     logic [ REG_ADDR_WIDTH - 1:0 ] s_reg_addr_1;
@@ -123,6 +120,7 @@ module top
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_jamp_addr;
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_mcause;
     logic [                  3:0 ] s_mcause;
+    logic                          s_csr_write_src;
 
     logic [ 1:0 ] s_csr_src_control;   // 00: CSR read data, 01: CSR read data reg, 10: CSR jamp addr.
 
@@ -152,7 +150,6 @@ module top
     
     assign s_csr_jamp_addr  = s_csr_read_data >> 2;
     assign s_csr_mcause     = { 60'b0, s_mcause };
-    assign s_csr_write_data = s_result;
 
  
 
@@ -212,7 +209,7 @@ module top
         .o_addr_control         ( s_addr_control        ),
         .o_mem_reg_we           ( s_reg_mem_we          ),
         .o_fetch_state          ( s_fetch_state         ),
-        .o_mem_addr_reg_we      ( s_mem_addr_reg_we     ),
+        .o_csr_write_src        ( s_csr_write_src       ),
         .o_mcause               ( s_mcause              ),
         .o_csr_we               ( s_csr_we              ),
         .o_csr_reg_we           ( s_csr_reg_we          ),
@@ -250,7 +247,7 @@ module top
         .valid_update    ( s_data_valid_update   ),
         .lru_update      ( s_data_lru_update     ),
         .block_write_en  ( s_data_block_write_en ),
-        .i_data_addr     ( s_mem_addr_reg        ),
+        .i_data_addr     ( s_result              ),
         .i_data          ( s_reg_data_2          ),
         .i_data_block    ( i_data_read_axi       ),
         .i_store_type    ( s_func_3[1:0]         ),
@@ -333,15 +330,6 @@ module top
         .arstn        ( arstn            ),
         .i_write_data ( s_reg_pc         ),
         .o_read_data  ( s_reg_old_pc     )
-    ); 
-
-    // MEM ADDR Register Instance.
-    register_en MEM_ADDR_REG (
-        .clk          ( clk               ),
-        .write_en     ( s_mem_addr_reg_we ),
-        .arstn        ( arstn             ),
-        .i_write_data ( s_result          ),
-        .o_read_data  ( s_mem_addr_reg    )
     ); 
 
     // CSR Register Instance.
@@ -427,7 +415,15 @@ module top
         .i_mux_0        ( s_result   ),
         .i_mux_1        ( s_csr_data ),
         .o_mux          ( s_pc_addr  )   
-    );   
+    );  
+
+    // 2-to-1 CSR Write Source MUX Instance.
+    mux2to1 CSR_SRC_MUX (
+        .control_signal ( s_csr_write_src  ),
+        .i_mux_0        ( s_result         ),
+        .i_mux_1        ( s_csr_mcause     ),
+        .o_mux          ( s_csr_write_data ) 
+    );
 
     // 8-to-1 Result Source MUX Instance.
     mux8to1 RESULT_MUX (
@@ -469,7 +465,7 @@ module top
 
 
     // FOR SIMULATION. 
-    assign o_addr = s_fetch_state ? { s_reg_pc[MEM_ADDR_WIDTH - 1:6 ], 6'b0 } : s_addr_axi; // For a cache line size of 512 bits. e.g. 16 words on 1 line.
+    assign o_addr = s_fetch_state ? { s_reg_pc[MEM_ADDR_WIDTH - 1:6 ], 6'b0 } : s_addr_axi; // For a cache line size of 512 bits. e.g. 16 words in 1 line.
 
     
 endmodule
