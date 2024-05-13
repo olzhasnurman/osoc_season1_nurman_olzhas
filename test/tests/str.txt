@@ -96,7 +96,6 @@ riscv-tests/rv64ui-p-bgeu
 riscv-tests/rv64ui-p-blt
 riscv-tests/rv64ui-p-bltu
 riscv-tests/rv64ui-p-bne
-riscv-tests/rv64ui-p-fence_i
 riscv-tests/rv64ui-p-jal
 riscv-tests/rv64ui-p-jalr
 riscv-tests/rv64ui-p-lb

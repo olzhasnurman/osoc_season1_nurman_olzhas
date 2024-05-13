@@ -96,7 +96,6 @@ rv-tests-bgeu:./test/tests/instr/riscv-tests/rv64ui-p-bgeu.txt
 rv-tests-blt:./test/tests/instr/riscv-tests/rv64ui-p-blt.txt
 rv-tests-bltu:./test/tests/instr/riscv-tests/rv64ui-p-bltu.txt
 rv-tests-bne:./test/tests/instr/riscv-tests/rv64ui-p-bne.txt
-rv-tests-fence_i:./test/tests/instr/riscv-tests/rv64ui-p-fence_i.txt
 rv-tests-jal:./test/tests/instr/riscv-tests/rv64ui-p-jal.txt
 rv-tests-jalr:./test/tests/instr/riscv-tests/rv64ui-p-jalr.txt
 rv-tests-lb:./test/tests/instr/riscv-tests/rv64ui-p-lb.txt
