@@ -118,7 +118,7 @@ def process_file(input_path, output_path):
                         file_out.write(line)
                 for line in file_in:
                     file_out.write(line)
-                    
+
 
         if 'rv64ui-' in input_path:
             skip = False
@@ -137,6 +137,8 @@ def process_file(input_path, output_path):
                     replace_lines.append("0000006f\n") #jump here forever.
                 elif skip:
                     replace_lines.append("00000013\n") #nop
+                elif ("0ff0000f" in line):
+                    replace_lines.append("00000013\n")
                 else:
                     replace_lines.append(line)
             with open(output_path, 'w') as file_out:
