@@ -392,22 +392,20 @@ module data_cache
     // Write LRU.
     integer j;
     always_ff @( posedge clk ) begin
-        if ( ~ lru_set[ s_index ] ) begin
-            // For 4-way set associative cache.
-            lru_mem [ 0 ][ s_index ] <= 2'b00;
-            lru_mem [ 1 ][ s_index ] <= 2'b01;
-            lru_mem [ 2 ][ s_index ] <= 2'b10;
-            lru_mem [ 3 ][ s_index ] <= 2'b11;
-        end
-        else if ( lru_update ) begin
-            if ( o_hit ) begin
+        if ( lru_update ) begin
                 lru_mem[ s_match ][ s_index ] <= 2'b11;
                 for ( j = 0; j < N; j++ ) begin
                     if ( lru_mem[ j ][ s_index ] > lru_mem[ s_match ][ s_index ] ) begin
                         lru_mem[ j ][ s_index ] <= lru_mem[ j ][ s_index ] - 2'b01;
                     end
                 end
-            end
+        end
+        else if ( ~ lru_set[ s_index ] ) begin
+            // For 4-way set associative cache.
+            lru_mem [ 0 ][ s_index ] <= 2'b00;
+            lru_mem [ 1 ][ s_index ] <= 2'b01;
+            lru_mem [ 2 ][ s_index ] <= 2'b10;
+            lru_mem [ 3 ][ s_index ] <= 2'b11;
         end
     end
 
