@@ -126,7 +126,7 @@ def save_result(test):
             i = 0
             lines = file_in.readlines()
             for line in lines:
-                if ( (i%3) & (i < 4)):
+                if (i%3 == 0):
                     file_out.write(line)
                 i += 1
             if i == 0:
