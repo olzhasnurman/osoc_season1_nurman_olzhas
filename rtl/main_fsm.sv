@@ -72,7 +72,7 @@ module main_fsm
         BRANCH      = 4'b1010,
         LOADI       = 4'b1011,
         CALL_0      = 4'b1100,
-        CALL_1      = 4'b1101,
+        // CALL_1      = 4'b1101,
         CSR_EXECUTE = 4'b1110,
         CSR_WB      = 4'b1111
     } t_state;
@@ -214,9 +214,7 @@ module main_fsm
             
             LOADI: NS = FETCH;
 
-            CALL_0: NS = CALL_1;
-
-            CALL_1: NS = FETCH;
+            CALL_0: NS = FETCH;
 
             CSR_EXECUTE: begin
                 if ( i_illegal_instr_alu ) NS = CALL_0;
@@ -459,16 +457,12 @@ module main_fsm
                 o_csr_src_control = 2'b10;  // s_csr_jump_addr. 
                 o_pc_src          = 1'b1;   // s_csr_data.
                 o_pc_update       = 1'b1;
-                
+                o_csr_write_addr  = 2'b00;  // mepc.
+                o_result_src      = 3'b110; // s_old_pc.  
+                o_csr_we          = 1'b1; 
                 // $display("time =%0t", $time); // FOR SIMULATION ONLY.
                 // check(i_a0_reg_lsb, o_mcause);
 
-            end
-
-            CALL_1: begin
-                o_csr_write_addr  = 2'b00;  // mepc.
-                o_result_src      = 3'b110; // s_old_pc.  
-                o_csr_we          = 1'b1;  
             end
 
             CSR_EXECUTE: begin
