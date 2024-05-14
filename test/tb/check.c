@@ -7,7 +7,7 @@ int check(int8_t a0, int8_t mcause) {
     if ((mcause == 11) || (mcause == 3) ) {
         if ( a0 == 0 ) printf ("PASS\n");
         else if ( a0 == 1 ) printf ("FAIL\n");
-        else printf ("UNDEFINED A0\n");
+        else printf ("UNDEFINED value stored in a0 register\n");
     }
     else if ( mcause == 2 ) printf("ILLEGAL INSTRUCTION\n");
     else if ( mcause == 0 ) printf("INSTRUCTION ADDR MA\n");
