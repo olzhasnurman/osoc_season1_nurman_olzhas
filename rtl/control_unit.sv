@@ -81,6 +81,7 @@ module control_unit
 
     // Illegalal instruction flag.
     logic s_illegal_instr_alu;
+    logic s_illegal_instr_alu_ff;
 
     assign o_pc_write       = s_pc_update | ( s_branch );
 
@@ -118,7 +119,7 @@ module control_unit
         .i_store_addr_ma      ( i_store_addr_ma      ),
         .i_load_addr_ma       ( i_load_addr_ma       ),
         .i_illegal_instr_load ( i_illegal_instr_load ),
-        .i_illegal_instr_alu  ( s_illegal_instr_alu  ),
+        .i_illegal_instr_alu  ( s_illegal_instr_alu_ff ),
         .i_a0_reg_lsb         ( i_a0_reg_lsb         ), // FOR SIMULATION ONLY.
         .o_alu_op             ( s_alu_op             ),
         .o_result_src         ( o_result_src         ),
@@ -189,6 +190,14 @@ module control_unit
     instr_decoder INSTR_DECODER (
         .i_op      ( i_op      ),
         .o_imm_src ( o_imm_src )
+    );
+
+    // Illegal instruction flag flip-flop.
+    register # (.DATA_WIDTH (1) ) II_ALU_FF (
+        .clk          ( clk                    ),
+        .arstn        ( arstn                  ),
+        .i_write_data ( s_illegal_instr_alu    ),
+        .o_read_data  ( s_illegal_instr_alu_ff )
     );
 
 endmodule
