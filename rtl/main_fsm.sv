@@ -193,17 +193,14 @@ module main_fsm
                 else                     NS = FETCH;
             end
 
-            EXECUTER: begin
-                if ( i_illegal_instr_alu| i_instr[25] ) NS = CALL_0;
-                else                       NS = ALUWB;                 
-            end 
+            EXECUTER: NS = ALUWB;
 
-            ALUWB: NS = FETCH;
+            ALUWB: begin
+                if ( i_illegal_instr_alu | ( i_instr[25] & i_op[5] & (~ i_op[6]) )) NS = CALL_0;
+                else                       NS = FETCH;                 
+            end
 
-            EXECUTEI: begin
-                if ( i_illegal_instr_alu ) NS = CALL_0;
-                else                       NS = ALUWB;                 
-            end 
+            EXECUTEI: NS = ALUWB;
 
             JAL: begin
                 if ( instr == CSR_Type ) NS = FETCH;
@@ -390,14 +387,6 @@ module main_fsm
             end
 
             EXECUTER: begin
-                if ( i_illegal_instr_alu | i_instr[25] ) begin
-                    o_csr_write_addr  = 2'b01;  // mcause.
-                    o_csr_write_src   = 1'b1;  // s_csr_mcause.
-                    o_csr_we          = 1'b1; 
-                    o_mcause = 4'd2; // Illegal instruction.
-                    check(i_a0_reg_lsb, o_mcause);
-                end
-
                 o_alu_src_1 = 2'b10;
                 o_alu_src_2 = 2'b00;
                 case ( instr )
@@ -408,19 +397,18 @@ module main_fsm
             end
 
             ALUWB: begin
+                if ( i_illegal_instr_alu | ( i_instr[25] & i_op[5] & (~ i_op[6]) )) begin
+                    o_csr_write_addr  = 2'b01;  // mcause.
+                    o_csr_write_src   = 1'b1;  // s_csr_mcause.
+                    o_csr_we          = 1'b1; 
+                    o_mcause          = 4'd2; // Illegal instruction.
+                    check(i_a0_reg_lsb, o_mcause);
+                end
                 o_result_src   = 3'b000;
                 o_reg_write_en = 1'b1;
             end
 
             EXECUTEI: begin
-                if ( i_illegal_instr_alu ) begin
-                    o_csr_write_addr  = 2'b01;  // mcause.
-                    o_csr_write_src   = 1'b1;  // s_csr_mcause.
-                    o_csr_we          = 1'b1; 
-                    o_mcause = 4'd2; // Illegal instruction.
-                    check(i_a0_reg_lsb, o_mcause);
-                end
-
                 o_alu_src_1 = 2'b10;
                 o_alu_src_2 = 2'b01;
                 case ( instr )
