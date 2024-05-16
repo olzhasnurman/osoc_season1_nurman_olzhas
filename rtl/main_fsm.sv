@@ -41,6 +41,7 @@ module main_fsm
     output logic        o_branch,
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
+    output logic        o_reg_mem_addr_we,
     output logic        o_csr_write_src,
     output logic [ 3:0] o_mcause,
     output logic        o_csr_we,
@@ -246,6 +247,7 @@ module main_fsm
         o_start_d_cache   = 1'b0;
         o_mem_reg_we      = 1'b0;
         o_fetch_state     = 1'b0;
+        o_reg_mem_addr_we = 1'b0;
         o_mcause          = 4'b0000;
         o_csr_we          = 1'b0;
         o_csr_reg_we      = 1'b0;
@@ -313,6 +315,7 @@ module main_fsm
                 o_alu_src_2    = 2'b01;
                 o_alu_op       = 3'b000;
                 o_result_src   = 3'b010;
+                o_reg_mem_addr_we = 1'b1;
             end
 
             MEMREAD: begin
@@ -497,6 +500,7 @@ module main_fsm
                 o_start_d_cache   = 1'b0;
                 o_mem_reg_we      = 1'b0;
                 o_fetch_state     = 1'b0;
+                o_reg_mem_addr_we = 1'b0;
                 o_mcause          = 4'b0000;
                 o_csr_we          = 1'b0;
                 o_csr_reg_we      = 1'b0;

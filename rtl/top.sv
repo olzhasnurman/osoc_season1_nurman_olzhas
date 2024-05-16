@@ -74,6 +74,8 @@ module top
     // Memory signals.
     logic [ MEM_DATA_WIDTH  - 1:0 ] s_mem_read_data;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_addr_axi;
+    logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_mem_addr;
+    logic                           s_reg_mem_addr_we;
 
     // Register file signals. 
     logic [ REG_ADDR_WIDTH - 1:0 ] s_reg_addr_1;
@@ -146,7 +148,7 @@ module top
     assign s_reg_addr_2 = s_reg_instr[24:20];
     assign s_reg_addr_3 = s_reg_instr[11:7];
 
-    assign s_addr_offset = s_result[2:0];
+    assign s_addr_offset = s_reg_mem_addr[2:0];
     
     assign s_csr_jamp_addr  = s_csr_read_data >> 2;
     assign s_csr_mcause     = { 60'b0, s_mcause };
@@ -209,6 +211,7 @@ module top
         .o_addr_control         ( s_addr_control        ),
         .o_mem_reg_we           ( s_reg_mem_we          ),
         .o_fetch_state          ( s_fetch_state         ),
+        .o_reg_mem_addr_we      ( s_reg_mem_addr_we     ),
         .o_csr_write_src        ( s_csr_write_src       ),
         .o_mcause               ( s_mcause              ),
         .o_csr_we               ( s_csr_we              ),
@@ -247,7 +250,7 @@ module top
         .valid_update    ( s_data_valid_update   ),
         .lru_update      ( s_data_lru_update     ),
         .block_write_en  ( s_data_block_write_en ),
-        .i_data_addr     ( s_result              ),
+        .i_data_addr     ( s_reg_mem_addr        ),
         .i_data          ( s_reg_data_2          ),
         .i_data_block    ( i_data_read_axi       ),
         .i_store_type    ( s_func_3[1:0]         ),
@@ -330,6 +333,15 @@ module top
         .arstn        ( arstn            ),
         .i_write_data ( s_reg_pc         ),
         .o_read_data  ( s_reg_old_pc     )
+    );
+
+    // MEM ADDR Register Instance.
+    register_en MEM_ADDR_REG (
+        .clk          ( clk               ),
+        .write_en     ( s_reg_mem_addr_we ),
+        .arstn        ( arstn             ),
+        .i_write_data ( s_result          ),
+        .o_read_data  ( s_reg_mem_addr    )   
     ); 
 
     // CSR Register Instance.
@@ -409,7 +421,7 @@ module top
         .o_mux          ( s_csr_data          )
     ); 
 
-    // 2-to-1 Addr MUX Instance.
+    // 2-to-1 PC MUX Instance.
     mux2to1 ADDR_MUX (
         .control_signal ( s_pc_src   ),
         .i_mux_0        ( s_result   ),
