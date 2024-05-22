@@ -9,52 +9,23 @@ TEST_DIR = "./test/tests/list/list.txt"
 MEMORY_FILE = "./rtl/mem_sim.sv"
 RESULT_FILE = "result.txt"
 
-TEST_AM = {}
-TEST_RV_ARCH= {}
-TEST_RV = {}
+TEST_AM = []
+TEST_RV_ARCH= []
+TEST_RV = []
 TEST = {}
 
 with open(AM_TEST_DIR, 'r') as file_in:
     for line in file_in:
-            # Strip newlines and whitespace
-            line = line.strip()
-            # Check if the line contains a colon
-            if ':' in line:
-                # Split the line at the first colon
-                parts = line.split(':', 1)
-                key = parts[0].strip()
-                directory = parts[1].strip()
-                TEST_AM[key] = directory
-            else:
-                print("No colon found in the line.")
+                TEST_AM.append(line.strip())
 
 with open(RV_ARCH_TEST_DIR, 'r') as file_in:
     for line in file_in:
-            # Strip newlines and whitespace
-            line = line.strip()
-            # Check if the line contains a colon
-            if ':' in line:
-                # Split the line at the first colon
-                parts = line.split(':', 1)
-                key = parts[0].strip()
-                directory = parts[1].strip()
-                TEST_RV_ARCH[key] = directory
-            else:
-                print("No colon found in the line.")
+                TEST_RV_ARCH.append(line.strip())
 
 with open(RV_TESTS_DIR, 'r') as file_in:
     for line in file_in:
-            # Strip newlines and whitespace
-            line = line.strip()
-            # Check if the line contains a colon
-            if ':' in line:
-                # Split the line at the first colon
-                parts = line.split(':', 1)
-                key = parts[0].strip()
-                directory = parts[1].strip()
-                TEST_RV[key] = directory
-            else:
-                print("No colon found in the line.")
+                TEST_RV.append(line.strip())
+
 
 with open(TEST_DIR, 'r') as file_in:
     for line in file_in:
@@ -87,6 +58,8 @@ def clean_before():
 
 
 def compile_single(test):
+    print(test)
+    print("HELLO")
     modify_memory(TEST[test])
     os.system(COMPILE_C_COMMAND)
     os.system(VERILATE_COMMAND)
@@ -99,14 +72,14 @@ def compile_all():
 
 def compile_group(group):
     if group == 'am':
-        for key in TEST_AM.keys():
-             compile_single(key)
+        for test in TEST_AM:
+             compile_single(test)
     elif group == 'rv-arch-test':
-        for key in TEST_RV_ARCH.keys():
-             compile_single(key)
+        for test in TEST_RV_ARCH:
+             compile_single(test)
     elif group == 'rv-tests':
-        for key in TEST_RV.keys():
-             compile_single(key)
+        for test in TEST_RV:
+             compile_single(test)
     else:
         print("Unrecognized test group")
 
