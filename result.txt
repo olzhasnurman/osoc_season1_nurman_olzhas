@@ -2,7 +2,7 @@ am-add-longlong: PASS
 am-add: PASS
 am-bit: PASS
 am-bubble-sort: PASS
-am-crc32: FAIL
+am-crc32: PASS
 am-div: ILLEGAL INSTRUCTION
 am-dummy: PASS
 am-fact: ILLEGAL INSTRUCTION
