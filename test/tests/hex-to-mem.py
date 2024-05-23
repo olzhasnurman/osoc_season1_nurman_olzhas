@@ -19,21 +19,12 @@ def process_file(input_path, output_path):
                 break
             if start_processing:
                 # Extract specified character ranges and add to results
-                if len(line) > 40 :
-                    if line[6] == ' ':
-                        parts = [
-                            line[7:15],  # characters 6 to 13
-                            line[16:24],  # characters 15 to 22
-                            line[25:33],  # characters 24 to 31
-                            line[34:42]   # characters 33 to 40
-                        ]
-                    else:
-                        parts = [
-                           line[6:14],  # characters 6 to 13
-                           line[15:23],  # characters 15 to 22
-                           line[24:32],  # characters 24 to 31
-                           line[33:41]   # characters 33 to 40
-                        ]
+                parts = [
+                   line[10:18],  # characters 6 to 13
+                   line[19:27],  # characters 15 to 22
+                   line[28:36],  # characters 24 to 31
+                   line[37:45]   # characters 33 to 40
+                ]
                 results.extend(parts)
 
             if "Contents of section .data:" in line:
@@ -42,7 +33,7 @@ def process_file(input_path, output_path):
         # Write results to the output file
         with open(file_path_1, 'w') as file:
             for item in results:
-                if item == '        ':
+                if (item == '        ') | (item == ''):
                     file.write('00000000\n')
                 else: 
                     file.write(item + '\n')
