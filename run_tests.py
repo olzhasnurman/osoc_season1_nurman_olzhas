@@ -58,8 +58,6 @@ def clean_before():
 
 
 def compile_single(test):
-    print(test)
-    print("HELLO")
     modify_memory(TEST[test])
     os.system(COMPILE_C_COMMAND)
     os.system(VERILATE_COMMAND)
