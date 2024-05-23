@@ -58,11 +58,13 @@ def clean_before():
 
 
 def compile_single(test):
+    clean_before()
     modify_memory(TEST[test])
     os.system(COMPILE_C_COMMAND)
     os.system(VERILATE_COMMAND)
     os.system(MAKE_COMMAND)
     save_result(test)
+    clean_after()
 
 def compile_all():
     for key in TEST.keys():
@@ -110,11 +112,7 @@ def clean_after():
     os.system(CLEAN_COMMAND)
 
 def print_all_tests():
-    for key in TEST_AM.keys():
-         print(key)
-    for key in TEST_RV_ARCH.keys():
-         print(key)
-    for key in TEST_RV.keys():
+    for key in TEST.keys():
          print(key)
 
 def modify_memory(mem_directory):
@@ -142,9 +140,8 @@ def parse_arguments():
     return parser.parse_args()
 
 def main():
-    clean_before()
-
     args = parse_arguments()
+
     if args.compile_single:
         compile_single(args.compile_single)
     elif args.list_tests:
@@ -157,8 +154,6 @@ def main():
          clean_after()
     else:
          print("Invalid arguments")
-
-    clean_after()
          
 
 main()
