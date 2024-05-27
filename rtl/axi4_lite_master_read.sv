@@ -1,8 +1,8 @@
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
-// --------------------------------------------------------------------------------------------------------
-// This is a AXI Master protocol implementation for communication with outside memory for read operations.
-// --------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------
+// This is a AXI4-Lite Master module implementation for communication with outside memory for read operations.
+// ------------------------------------------------------------------------------------------------------------
 
 module axi4_lite_master_read
 #(
@@ -16,7 +16,6 @@ module axi4_lite_master_read
 
     // Input interface.
     input  logic [ AXI_ADDR_WIDTH - 1:0 ] i_addr,
-    input  logic [ AXI_DATA_WIDTH - 1:0 ] i_data,
     input  logic                          i_start_read,
 
     // Output interface. 
