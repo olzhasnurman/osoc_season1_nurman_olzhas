@@ -11,22 +11,22 @@ module top
               REG_ADDR_WIDTH  = 5,
               MEM_DATA_WIDTH  = 64,
               MEM_INSTR_WIDTH = 32,
-              MEM_ADDR_WIDTH  = 64
+              MEM_ADDR_WIDTH  = 64,
+              BLOCK_DATA_WIDTH = 512
 
 
 )
 // Port declerations. 
 (
     //Clock & Reset signals. 
-    input  logic         clk,
-    input  logic         i_arstn,
-    input  logic         i_read_last_axi,   // NEEDS TO BE CONNECTED TO AXI 
-    input  logic [511:0] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
-    input  logic         i_b_resp_axi,      // NEEDS TO BE CONNECTED TO AXI
-    output logic         o_start_read_axi,  // NEEDS TO BE CONNECTED TO AXI
-    output logic         o_start_write_axi, // NEEDS TO BE CONNECTED TO AXI
-    output logic [ MEM_ADDR_WIDTH - 1:0 ] o_addr, // JUST FOR SIMULATION
-    output logic [511:0] o_data_write_axi   // NEEDS TO BE CONNECTED TO AXI
+    input  logic                           clk,
+    input  logic                           i_arstn,
+    input  logic                           i_done_axi,   // NEEDS TO BE CONNECTED TO AXI 
+    input  logic [BLOCK_DATA_WIDTH - 1:0 ] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
+    output logic                           o_start_read_axi,  // NEEDS TO BE CONNECTED TO AXI
+    output logic                           o_start_write_axi, // NEEDS TO BE CONNECTED TO AXI
+    output logic [ MEM_ADDR_WIDTH  - 1:0 ] o_addr, // JUST FOR SIMULATION
+    output logic [BLOCK_DATA_WIDTH - 1:0 ] o_data_write_axi   // NEEDS TO BE CONNECTED TO AXI
 );
 
     //------------------------
@@ -184,10 +184,10 @@ module top
         .i_slt_flag             ( s_slt_flag            ),
         .i_sltu_flag            ( s_sltu_flag           ),
         .i_instr_hit            ( s_instr_hit           ),
-        .i_read_last_axi        ( i_read_last_axi       ),
+        .i_read_last_axi        ( i_done_axi            ),
         .i_data_hit             ( s_data_hit            ),
         .i_data_dirty           ( s_data_dirty          ),
-        .i_b_resp_axi           ( i_b_resp_axi          ),
+        .i_b_resp_axi           ( i_done_axi            ),
         .i_instr_addr_ma        ( s_instr_addr_ma       ),
         .i_store_addr_ma        ( s_store_addr_ma       ),
         .i_load_addr_ma         ( s_load_addr_ma        ),
