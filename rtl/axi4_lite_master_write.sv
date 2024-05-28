@@ -37,6 +37,7 @@ module axi4_lite_master_write
     input  logic                            W_READY,
     output logic [ AXI_DATA_WIDTH   - 1:0 ] W_DATA,
     output logic                            W_VALID,
+    output logic [ AXI_DATA_WIDTH/8 - 1:0 ] W_STRB,
 
     // Write Channel: Response. Ignored B_ID for now.
     input  logic [                    1:0 ] B_RESP,
@@ -48,6 +49,7 @@ module axi4_lite_master_write
     // Continious assignments.
     //-------------------------
     assign AW_PROT  = 3'b100; // Random value. NOT FINAL VALUE.
+    assign W_STRB   = 4'b1111; 
 
 
     //-------------------------

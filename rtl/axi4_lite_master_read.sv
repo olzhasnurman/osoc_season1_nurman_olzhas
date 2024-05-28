@@ -87,6 +87,7 @@ module axi4_lite_master_read
             AR_VALID <= '0;
             AR_ADDR  <= '0;
             R_READY  <= '0;
+            o_data   <= '0;
         end
 
         case ( PS )
@@ -100,7 +101,10 @@ module axi4_lite_master_read
                 AR_VALID <= '0;
             end 
 
-            READ: if ( R_VALID ) R_READY <= '0;
+            READ: if ( R_VALID ) begin
+                o_data <= R_DATA;
+                R_READY <= '0;
+            end 
 
             default: begin
                 AR_VALID <= '0;
@@ -112,6 +116,6 @@ module axi4_lite_master_read
 
     // Output signals.
     assign o_access_fault = R_RESP[1];
-    assign o_done         = ( PS == R_RESP );
+    assign o_done         = ( PS == RESP );
     
 endmodule
