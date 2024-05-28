@@ -19,17 +19,38 @@ module test_env
     // INTERNAL NETS.
     //------------------------
 
-    logic [ AXI_DATA_WIDTH - 1:0 ] s_data_mem_in;
-    logic [ AXI_DATA_WIDTH - 1:0 ] s_data_mem_out;
-    logic [ AXI_ADDR_WIDTH - 1:0 ] s_addr_mem;
-    logic                          s_we_mem;
-    logic [ AXI_ADDR_WIDTH - 1:0 ] s_addr_cache;
-    logic [ DATA_WIDTH     - 1:0 ] s_data_cache_in;
-    logic                          s_start_write;
+    // Memory module signals.
+    logic [ AXI_ADDR_WIDTH - 1:0 ] s_mem_addr;
+    logic [ AXI_DATA_WIDTH - 1:0 ] s_mem_data_in;
+    logic [ AXI_DATA_WIDTH - 1:0 ] s_mem_data_out;
+    logic                          s_mem_we;
+    logic                          s_successful_access;
+    logic                          s_successful_read;
+    logic                          s_successful_write;
+
+    // Top module signals.
+    logic                          s_count_done;
     logic                          s_start_read;
-    logic [ DATA_WIDTH     - 1:0 ] s_data_cache_out;
-    logic                          s_read_last_axi;
-    logic                          s_b_resp_axi;
+    logic                          s_start_write;
+    logic [ DATA_WIDTH     - 1:0 ] s_cache_data_in;
+    logic [ DATA_WIDTH     - 1:0 ] s_cache_data_out;
+    logic [ AXI_ADDR_WIDTH - 1:0 ] s_cache_addr;
+
+    // AXI module signals.
+    logic [ AXI_ADDR_WIDTH - 1:0 ] s_axi_addr;
+    logic [ AXI_DATA_WIDTH - 1:0 ] s_axi_data_in;
+    logic [ AXI_DATA_WIDTH - 1:0 ] s_axi_data_out;
+    logic                          s_axi_done;
+
+    // Signalling messages.
+    logic s_read_fault;
+    logic s_write_fault;
+
+    logic s_start_read_axi;
+    logic s_start_write_axi;
+
+    assign s_start_read_axi  = s_start_read  & ( ~s_count_done );
+    assign s_start_write_axi = s_start_write & ( ~s_count_done );
 
 
 
@@ -43,45 +64,70 @@ module test_env
     top TOP_M (
         .clk               ( clk              ),
         .i_arstn           ( arstn            ),
-        .i_read_last_axi   ( s_read_last_axi  ),
-        .i_data_read_axi   ( s_data_cache_in  ),
-        .i_b_resp_axi      ( s_b_resp_axi     ),
+        .i_done_axi        ( s_count_done     ),
+        .i_data_read_axi   ( s_cache_data_in  ),
         .o_start_read_axi  ( s_start_read     ),
         .o_start_write_axi ( s_start_write    ),
-        .o_addr            ( s_addr_cache     ),
-        .o_data_write_axi  ( s_data_cache_out )
+        .o_addr            ( s_cache_addr     ),
+        .o_data_write_axi  ( s_cache_data_out )
     );
 
 
     //---------------------------
     // AXI module Instance.
     //---------------------------
-    axi_top AXI_M (
-        .clk             ( clk              ),
-        .arstn           ( arstn            ),
-        .i_data_mem      ( s_data_mem_out   ),
-        .o_data_mem      ( s_data_mem_in    ),
-        .o_addr_mem      ( s_addr_mem       ),
-        .o_we_mem        ( s_we_mem         ),
-        .i_addr_cache    ( s_addr_cache     ),
-        .i_data_cache    ( s_data_cache_out ),
-        .i_start_write   ( s_start_write    ),
-        .i_start_read    ( s_start_read     ),
-        .o_data_cache    ( s_data_cache_in  ),
-        .o_read_last_axi ( s_read_last_axi  ),
-        .o_b_resp_axi    ( s_b_resp_axi     )
+    axi4_lite_top AXI4_LITE_T (
+        .clk                 ( clk                 ),
+        .arstn               ( arstn               ),
+        .i_data_mem          ( s_mem_data_out      ),
+        .i_successful_access ( s_successful_access ),
+        .i_successful_read   ( s_successful_read   ),
+        .i_successful_write  ( s_successful_write  ),
+        .o_data_mem          ( s_mem_data_in       ),
+        .o_addr_mem          ( s_mem_addr          ),
+        .o_we_mem            ( s_mem_we            ),
+        .i_addr_cache        ( s_axi_addr          ),
+        .i_data_cache        ( s_axi_data_in       ),
+        .i_start_write       ( s_start_write_axi   ),
+        .i_start_read        ( s_start_read_axi    ),
+        .o_data_cache        ( s_axi_data_out      ),
+        .o_done              ( s_axi_done          ),
+        .o_read_fault        ( s_read_fault        ),
+        .o_write_fault       ( s_write_fault       )
     );
 
     //---------------------------
     // Memory Unit Instance.
     //---------------------------
     mem_sim MEM_M (
-        .clk      ( clk            ),
-        .arstn    ( arstn          ),
-        .write_en ( s_we_mem       ),
-        .i_data   ( s_data_mem_in  ),
-        .i_addr   ( s_addr_mem     ),
-        .o_data   ( s_data_mem_out )
+        .clk                 ( clk                 ),
+        .arstn               ( arstn               ),
+        .write_en            ( s_mem_we            ),
+        .i_data              ( s_mem_data_in       ),
+        .i_addr              ( s_mem_addr          ),
+        .o_data              ( s_mem_data_out      ),
+        .o_successful_access ( s_successful_access ),
+        .o_successful_read   ( s_successful_read   ),
+        .o_successful_write  ( s_successful_write  )
+    );
+
+
+    //------------------------------------
+    // Cache data transfer unit instance.
+    //------------------------------------
+    cache_data_transfer DATA_T0 (
+        .clk                ( clk              ),
+        .arstn              ( arstn            ),
+        .i_start_read       ( s_start_read     ),
+        .i_start_write      ( s_start_write    ),
+        .i_axi_done         ( s_axi_done       ),
+        .i_data_block_cache ( s_cache_data_out ),
+        .i_data_axi         ( s_axi_data_out   ),
+        .i_addr_cache       ( s_cache_addr     ),
+        .o_count_done       ( s_count_done     ),
+        .o_data_block_cache ( s_cache_data_in  ),
+        .o_data_axi         ( s_axi_data_in    ),
+        .o_addr_axi         ( s_axi_addr       )
     );
 
 
