@@ -40,9 +40,17 @@ module mem_sim
     end
 
     assign o_data              = mem[ i_addr [20:2] ];
-    assign o_successful_access = 1'b1;
     assign o_successful_read   = 1'b1;
     assign o_successful_write  = 1'b1;
+
+    // Simulating multyple clock cycle memory access.
+    logic [ 6:0 ] s_count;
+    always_ff @( posedge clk, negedge arstn ) begin
+        if ( ~arstn ) s_count <= '0;
+        else          s_count <= s_count + '1;
+    end
+
+    assign o_successful_access = (s_count == 7'b1111111); 
 
     
 endmodule
