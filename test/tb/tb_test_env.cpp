@@ -6,8 +6,7 @@
 #include <verilated_vcd_c.h>
 #include "Vtest_env.h"
 
-#define MAX_SIM_TIME 1000000
-#define VERIF_START_TIME 7
+#define MAX_SIM_TIME 10000000
 vluint64_t sim_time = 0;
 vluint64_t posedge_cnt = 0;
 
