@@ -4,7 +4,7 @@
 // This is a memory module for simulation of outside memory unit. 
 // ---------------------------------------------------------------
 
-`define PATH_TO_MEM "./test/tests/instr/am-kernels/load-store-riscv64-nemu.txt"
+`define PATH_TO_MEM "./test/tests/instr/riscv-tests/rv64ui-p-xori.txt"
 
 module mem_sim 
 #(
@@ -22,7 +22,10 @@ module mem_sim
     input  logic [ ADDR_WIDTH - 1:0 ] i_addr,
 
     // Output signals.
-    output logic [ DATA_WIDTH - 1:0 ] o_data
+    output logic [ DATA_WIDTH - 1:0 ] o_data,
+    output logic                      o_successful_access,
+    output logic                      o_successful_read,
+    output logic                      o_successful_write
 );
     logic [ DATA_WIDTH - 1:0 ] mem [ 524287:0];
 
@@ -36,7 +39,10 @@ module mem_sim
         end
     end
 
-    assign o_data = mem[ i_addr [20:2] ];
+    assign o_data              = mem[ i_addr [20:2] ];
+    assign o_successful_access = 1'b1;
+    assign o_successful_read   = 1'b1;
+    assign o_successful_write  = 1'b1;
 
     
 endmodule
