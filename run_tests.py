@@ -58,7 +58,6 @@ def clean_before():
 
 
 def compile_single(test):
-    clean_before()
     modify_memory(TEST[test])
     os.system(COMPILE_C_COMMAND)
     os.system(VERILATE_COMMAND)
@@ -140,6 +139,7 @@ def parse_arguments():
     return parser.parse_args()
 
 def main():
+    clean_before()
     args = parse_arguments()
 
     if args.compile_single:
