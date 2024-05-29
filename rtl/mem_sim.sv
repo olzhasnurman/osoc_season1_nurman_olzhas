@@ -43,7 +43,7 @@ module mem_sim
     assign o_successful_read   = 1'b1;
     assign o_successful_write  = 1'b1;
 
-    // Simulating multyple clock cycle memory access.
+    // Simulating multiple clock cycle memory access.
     logic [ 6:0 ] s_count;
     always_ff @( posedge clk, negedge arstn ) begin
         if ( ~arstn ) s_count <= '0;
