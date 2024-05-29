@@ -75,10 +75,11 @@ module axi4_lite_slave_write
         NS = PS;
 
         case ( PS )
-            IDLE    : if ( i_start_write       ) NS = AW_WRITE; 
-            AW_WRITE: if ( AW_READY & AW_VALID ) NS = WRITE;
-            WRITE   : if ( W_READY  & W_VALID  ) NS = RESP;
-            RESP    : if ( B_READY  & B_VALID  ) NS = IDLE;  
+            IDLE    : if ( i_start_write                   ) NS = AW_WRITE; 
+            AW_WRITE: if ( AW_READY & AW_VALID             ) NS = WRITE;
+            WRITE   : if ( W_READY  & W_VALID              ) NS = RESP;
+            RESP    : if ( B_READY  & i_successful_access  ) NS = WAIT;  
+            WAIT    :                                        NS = IDLE;
 
             default: NS = PS;
         endcase

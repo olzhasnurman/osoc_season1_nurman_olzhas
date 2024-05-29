@@ -68,9 +68,9 @@ module axi4_lite_slave_read
         NS = PS;
 
         case ( PS )
-            IDLE   : if ( i_start_read        ) NS = AR_READ;
-            AR_READ: if ( AR_VALID & AR_READY ) NS = READ;
-            READ   : if ( R_VALID & R_READY   ) NS = RESP;
+            IDLE   : if ( i_start_read                    ) NS = AR_READ;
+            AR_READ: if ( AR_VALID & AR_READY             ) NS = READ;
+            READ   : if ( i_successful_access & R_READY   ) NS = RESP;
             RESP   :                            NS = IDLE;
             default: NS = PS;
         endcase
