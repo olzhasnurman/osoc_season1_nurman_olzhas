@@ -116,18 +116,18 @@ module test_env
     // Cache data transfer unit instance.
     //------------------------------------
     cache_data_transfer DATA_T0 (
-        .clk                ( clk              ),
-        .arstn              ( arstn            ),
-        .i_start_read       ( s_start_read     ),
-        .i_start_write      ( s_start_write    ),
-        .i_axi_done         ( s_axi_done       ),
-        .i_data_block_cache ( s_cache_data_out ),
-        .i_data_axi         ( s_axi_data_out   ),
-        .i_addr_cache       ( s_cache_addr     ),
-        .o_count_done       ( s_count_done     ),
-        .o_data_block_cache ( s_cache_data_in  ),
-        .o_data_axi         ( s_axi_data_in    ),
-        .o_addr_axi         ( s_axi_addr       )
+        .clk                ( clk               ),
+        .arstn              ( arstn             ),
+        .i_start_read       ( s_start_read_axi  ),
+        .i_start_write      ( s_start_write_axi ),
+        .i_axi_done         ( s_axi_done        ),
+        .i_data_block_cache ( s_cache_data_out  ),
+        .i_data_axi         ( s_axi_data_out    ),
+        .i_addr_cache       ( s_cache_addr      ),
+        .o_count_done       ( s_count_done      ),
+        .o_data_block_cache ( s_cache_data_in   ),
+        .o_data_axi         ( s_axi_data_in     ),
+        .o_addr_axi         ( s_axi_addr        )
     );
 
 

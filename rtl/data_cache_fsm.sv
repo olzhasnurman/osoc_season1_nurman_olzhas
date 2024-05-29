@@ -105,9 +105,8 @@ module data_cache_fsm
 
             COMPARE_TAG: begin
                 o_stall          = ~i_hit;
-                if ( i_hit ) begin
-                    o_lru_update = 1'b1;
-                end
+                if      ( i_hit   ) o_lru_update   = 1'b1;
+                else if ( i_dirty ) o_addr_control = 1'b0; 
             end
 
             ALLOCATE: begin
@@ -121,7 +120,6 @@ module data_cache_fsm
 
             WRITE_BACK: begin
                 o_start_write  = 1'b1;
-                o_addr_control = 1'b0;
             end
             default: begin
                 o_stall               = 1'b1;

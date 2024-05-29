@@ -129,6 +129,6 @@ module axi4_lite_master_write
 
     // Output signals.
     assign o_write_fault = B_RESP[1] & B_VALID;
-    assign o_done        = ( PS == RESP );
+    assign o_done        = ( PS == RESP ) & B_VALID;
     
 endmodule
