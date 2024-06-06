@@ -69,7 +69,7 @@ module register_file
             mem[30] <= '0;
             mem[31] <= '0;
         end
-        if ( write_en_3 ) begin
+        else if ( write_en_3 ) begin
             mem[i_addr_3] <= i_write_data_3;
             mem[ 0 ] <= '0;
         end

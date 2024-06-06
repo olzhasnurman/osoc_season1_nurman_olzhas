@@ -38,7 +38,7 @@ module csr_file
             mem[2] <= '0; // Mtvec.
             mem[3] <= '0; // Reserved.
         end
-        if ( write_en ) begin
+        else if ( write_en ) begin
             mem[i_write_addr] <= i_write_data;
         end
     end
