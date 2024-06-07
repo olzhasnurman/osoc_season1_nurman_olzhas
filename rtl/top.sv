@@ -65,7 +65,6 @@ module top
     logic [1:0] s_alu_src_control_1;
     logic [1:0] s_alu_src_control_2;
     logic [2:0] s_imm_src;
-    logic       s_pc_src;
     logic       s_reg_write_en;
     logic       s_pc_write_en;
     logic       s_mem_write_en;
@@ -102,7 +101,6 @@ module top
 
     // MUX signals.
     logic [ REG_DATA_WIDTH - 1:0 ] s_result;
-    logic [ MEM_ADDR_WIDTH - 1:0 ] s_pc_addr;
 
     // Immediate extend unit signals. 
     logic [                  24:0 ] s_imm;
@@ -112,9 +110,10 @@ module top
     logic [ MEM_DATA_WIDTH - 1:0] s_mem_load_data;
 
     // CSR signals.
-    logic [                  1:0 ] s_csr_write_addr;
-    logic [ REG_DATA_WIDTH - 1:0 ] s_csr_write_data;
-    logic                          s_csr_we;
+    logic [                  1:0 ] s_csr_write_addr_1;
+    logic [                  1:0 ] s_csr_write_addr_2;
+    logic                          s_csr_we_1;
+    logic                          s_csr_we_2;
     logic                          s_csr_reg_we;
     logic [                  1:0 ] s_csr_read_addr;
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_read_data;
@@ -123,7 +122,6 @@ module top
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_jamp_addr;
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_mcause;
     logic [                  3:0 ] s_mcause;
-    logic                          s_csr_write_src;
 
     logic [ 1:0 ] s_csr_src_control;   // 00: CSR read data, 01: CSR read data reg, 10: CSR jamp addr.
 
@@ -214,14 +212,14 @@ module top
         .o_mem_reg_we           ( s_reg_mem_we          ),
         .o_fetch_state          ( s_fetch_state         ),
         .o_reg_mem_addr_we      ( s_reg_mem_addr_we     ),
-        .o_csr_write_src        ( s_csr_write_src       ),
         .o_mcause               ( s_mcause              ),
-        .o_csr_we               ( s_csr_we              ),
+        .o_csr_we_1             ( s_csr_we_1            ),
+        .o_csr_we_2             ( s_csr_we_2            ),
         .o_csr_reg_we           ( s_csr_reg_we          ),
-        .o_csr_write_addr       ( s_csr_write_addr      ),
+        .o_csr_write_addr_1     ( s_csr_write_addr_1    ),
+        .o_csr_write_addr_2     ( s_csr_write_addr_2    ),
         .o_csr_read_addr        ( s_csr_read_addr       ),
-        .o_csr_src_control      ( s_csr_src_control     ),
-        .o_pc_src               ( s_pc_src              )
+        .o_csr_src_control      ( s_csr_src_control     )
     );
 
 
@@ -280,13 +278,16 @@ module top
 
     // Control & Status Registers.
     csr_file CSR0 (
-        .clk          ( clk              ),
-        .write_en     ( s_csr_we         ),
-        .arstn        ( arstn            ),
-        .i_read_addr  ( s_csr_read_addr  ),
-        .i_write_addr ( s_csr_write_addr ),
-        .i_write_data ( s_csr_write_data ),
-        .o_read_data  ( s_csr_read_data  )
+        .clk            ( clk                ),
+        .write_en_1     ( s_csr_we_1         ),
+        .write_en_2     ( s_csr_we_2         ),
+        .arstn          ( arstn              ),
+        .i_read_addr    ( s_csr_read_addr    ),
+        .i_write_addr_1 ( s_csr_write_addr_1 ),
+        .i_write_addr_2 ( s_csr_write_addr_2 ),
+        .i_write_data_1 ( s_csr_mcause       ),
+        .i_write_data_2 ( s_result           ),
+        .o_read_data    ( s_csr_read_data    )
     );
 
 
@@ -324,7 +325,7 @@ module top
         .clk          ( clk           ),
         .write_en     ( s_pc_write_en ),
         .arstn        ( arstn         ),
-        .i_write_data ( s_pc_addr     ),
+        .i_write_data ( s_result      ),
         .o_read_data  ( s_reg_pc      )
     ); 
 
@@ -422,22 +423,6 @@ module top
         .i_mux_2        ( s_csr_jamp_addr     ),
         .o_mux          ( s_csr_data          )
     ); 
-
-    // 2-to-1 PC MUX Instance.
-    mux2to1 ADDR_MUX (
-        .control_signal ( s_pc_src   ),
-        .i_mux_0        ( s_result   ),
-        .i_mux_1        ( s_csr_data ),
-        .o_mux          ( s_pc_addr  )   
-    );  
-
-    // 2-to-1 CSR Write Source MUX Instance.
-    mux2to1 CSR_SRC_MUX (
-        .control_signal ( s_csr_write_src  ),
-        .i_mux_0        ( s_result         ),
-        .i_mux_1        ( s_csr_mcause     ),
-        .o_mux          ( s_csr_write_data ) 
-    );
 
     // 8-to-1 Result Source MUX Instance.
     mux8to1 RESULT_MUX (

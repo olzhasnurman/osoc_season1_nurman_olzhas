@@ -32,7 +32,6 @@ module main_fsm
     output logic [ 2:0] o_result_src,
     output logic [ 1:0] o_alu_src_1,
     output logic [ 1:0] o_alu_src_2,
-    output logic        o_pc_src,
     output logic        o_reg_write_en,
     output logic        o_pc_update,
     output logic        o_mem_write_en,
@@ -43,11 +42,12 @@ module main_fsm
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
     output logic        o_reg_mem_addr_we,
-    output logic        o_csr_write_src,
     output logic [ 3:0] o_mcause,
-    output logic        o_csr_we,
+    output logic        o_csr_we_1,
+    output logic        o_csr_we_2,
     output logic        o_csr_reg_we,
-    output logic [ 1:0] o_csr_write_addr,
+    output logic [ 1:0] o_csr_write_addr_1,
+    output logic [ 1:0] o_csr_write_addr_2,
     output logic [ 1:0] o_csr_read_addr,
     output logic [ 1:0] o_csr_src_control
 );  
@@ -231,41 +231,40 @@ module main_fsm
     always_comb begin
 
         // Default values. 
-        o_alu_op          = 3'b000;
-        o_result_src      = 3'b000;
-        o_alu_src_1       = 2'b00;
-        o_alu_src_2       = 2'b00;
-        o_pc_src          = 1'b0;
-        o_reg_write_en    = 1'b0;
-        o_pc_update       = 1'b0;
-        o_mem_write_en    = 1'b0;
-        o_instr_write_en  = 1'b0;
-        o_start_i_cache   = 1'b0;
-        o_branch          = 1'b0;
-        o_start_d_cache   = 1'b0;
-        o_mem_reg_we      = 1'b0;
-        o_fetch_state     = 1'b0;
-        o_reg_mem_addr_we = 1'b0;
-        o_mcause          = 4'b0000;
-        o_csr_we          = 1'b0;
-        o_csr_reg_we      = 1'b0;
-        o_csr_write_addr  = s_csr_addr;
-        o_csr_read_addr   = s_csr_addr;
-        o_csr_src_control = 2'b00;
-        o_csr_write_src   = 1'b0;
+        o_alu_op           = 3'b000;
+        o_result_src       = 3'b000;
+        o_alu_src_1        = 2'b00;
+        o_alu_src_2        = 2'b00;
+        o_reg_write_en     = 1'b0;
+        o_pc_update        = 1'b0;
+        o_mem_write_en     = 1'b0;
+        o_instr_write_en   = 1'b0;
+        o_start_i_cache    = 1'b0;
+        o_branch           = 1'b0;
+        o_start_d_cache    = 1'b0;
+        o_mem_reg_we       = 1'b0;
+        o_fetch_state      = 1'b0;
+        o_reg_mem_addr_we  = 1'b0;
+        o_mcause           = 4'b0000;
+        o_csr_we_1         = 1'b0;
+        o_csr_we_2         = 1'b0;
+        o_csr_reg_we       = 1'b0;
+        o_csr_write_addr_1 = s_csr_addr;
+        o_csr_write_addr_2 = s_csr_addr;
+        o_csr_read_addr    = s_csr_addr;
+        o_csr_src_control  = 2'b00;
 
         case ( PS )
         /* verilator lint_off WIDTH */
             FETCH: begin
-                o_result_src = 3'b010; // Alu result
-                o_start_i_cache    = 1'b1;
-
                 if ( i_instr_addr_ma ) begin
-                    o_csr_write_addr  = 2'b01;  // mcause.
-                    o_csr_write_src   = 1'b1;  // s_csr_mcause.
-                    o_csr_we          = 1'b1; 
-                    o_mcause = 4'd0; // Instruction address misaligned.
-                    o_start_i_cache    = 1'b0;
+                    o_mcause           = 4'd0; // Instruction address misaligned.
+                    o_csr_write_addr_1 = 2'b01;  // mcause.
+                    o_csr_we_1         = 1'b1; 
+                    o_csr_write_addr_2 = 2'b00;  // mepc.
+                    o_result_src       = 3'b110; // s_old_pc.  
+                    o_csr_we_2         = 1'b1; 
+                    o_start_i_cache    = 1'b1;
                     check(i_a0_reg_lsb, o_mcause);
                 end
 
@@ -282,24 +281,30 @@ module main_fsm
                 o_alu_src_1        = 2'b00;
                 o_alu_src_2        = 2'b10;
                 o_alu_op           = 3'b000;
+                o_result_src    = 3'b010; // Alu result
+                o_start_i_cache = 1'b1;
             end 
 
             DECODE: begin
 
 
                 if ( (instr == CSR_Type) & ( ~s_func_3_reduction ) & ( ~i_func_7_4 )) begin
-                    o_csr_write_addr  = 2'b01;  // mcause.
-                    o_csr_write_src   = 1'b1;  // s_csr_mcause.
-                    o_csr_we          = 1'b1; 
                     if ( ~i_instr_22_20[0] ) o_mcause = 4'd11; // Env call from M-mode.
-                    else                o_mcause = 4'd3; // Env breakpoint.
+                    else                     o_mcause = 4'd3; // Env breakpoint.
+                    o_csr_write_addr_1 = 2'b01;  // mcause.
+                    o_csr_we_1         = 1'b1; 
+                    o_csr_write_addr_2 = 2'b00;  // mepc.
+                    o_result_src       = 3'b110; // s_old_pc.  
+                    o_csr_we_2         = 1'b1; 
                     check(i_a0_reg_lsb, o_mcause);
                 end
                 if ( instr == ILLEGAL ) begin
-                    o_csr_write_addr  = 2'b01;  // mcause.
-                    o_csr_write_src   = 1'b1;  // s_csr_mcause.
-                    o_csr_we          = 1'b1; 
-                    o_mcause = 4'd2; // Illegal instruction.
+                    o_mcause           = 4'd2; // Illegal instruction.
+                    o_csr_write_addr_1 = 2'b01;  // mcause.
+                    o_csr_we_1         = 1'b1; 
+                    o_csr_write_addr_2 = 2'b00;  // mepc.
+                    o_result_src       = 3'b110; // s_old_pc.  
+                    o_csr_we_2         = 1'b1; 
                     check(i_a0_reg_lsb, o_mcause);
                 end
 
@@ -317,28 +322,31 @@ module main_fsm
             end
 
             MEMREAD: begin
-                o_result_src    = 3'b000;
-                o_start_d_cache = 1'b1;
-
                 if ( i_load_addr_ma ) begin
-                    o_csr_write_addr  = 2'b01;  // mcause.
-                    o_csr_write_src   = 1'b1;  // s_csr_mcause.
-                    o_csr_we          = 1'b1; 
-                    o_mcause = 4'd4; // Load address misaligned.
-                    o_start_d_cache = 1'b0;
+                    o_mcause           = 4'd4; // Load address misaligned.
+                    o_csr_write_addr_1 = 2'b01;  // mcause.
+                    o_csr_we_1         = 1'b1; 
+                    o_csr_write_addr_2 = 2'b00;  // mepc.
+                    o_result_src       = 3'b110; // s_old_pc.  
+                    o_csr_we_2         = 1'b1; 
+                    o_start_d_cache    = 1'b0;
                     check(i_a0_reg_lsb, o_mcause);
                 end
 
                 if ( i_illegal_instr_load ) begin
-                    o_csr_write_addr  = 2'b01;  // mcause.
-                    o_csr_write_src   = 1'b1;  // s_csr_mcause.
-                    o_csr_we          = 1'b1; 
-                    o_mcause = 4'd2; // Illegal instruction.
-                    o_start_d_cache = 1'b0;
+                    o_mcause           = 4'd2; // Illegal instruction.
+                    o_csr_write_addr_1 = 2'b01;  // mcause.
+                    o_csr_we_1         = 1'b1; 
+                    o_csr_write_addr_2 = 2'b00;  // mepc.
+                    o_result_src       = 3'b110; // s_old_pc.  
+                    o_csr_we_2         = 1'b1; 
+                    o_start_d_cache    = 1'b0;
                     check(i_a0_reg_lsb, o_mcause);
                 end
 
                 o_alu_op        = 3'b000;
+                o_result_src    = 3'b000;
+                o_start_d_cache = 1'b1;
 
                 if ( i_stall_data ) begin
                     o_mem_reg_we    = 1'b0;
@@ -358,15 +366,14 @@ module main_fsm
             end
 
             MEMWRITE: begin
-                o_result_src    = 3'b000;
-                o_start_d_cache = 1'b1;
-
                 if ( i_store_addr_ma ) begin
-                    o_csr_write_addr  = 2'b01;  // mcause.
-                    o_csr_write_src   = 1'b1;  // s_csr_mcause.
-                    o_csr_we          = 1'b1; 
-                    o_mcause = 4'd6; // Store address misaligned.
-                    o_start_d_cache = 1'b0;
+                    o_mcause           = 4'd6; // Store address misaligned.
+                    o_csr_write_addr_1 = 2'b01;  // mcause.
+                    o_csr_we_1         = 1'b1; 
+                    o_csr_write_addr_2 = 2'b00;  // mepc.
+                    o_result_src       = 3'b110; // s_old_pc.  
+                    o_csr_we_2         = 1'b1; 
+                    o_start_d_cache    = 1'b0;
                     check(i_a0_reg_lsb, o_mcause);
                 end
 
@@ -383,7 +390,9 @@ module main_fsm
                     o_alu_src_2 = 2'b01;      
                 end
                 
-                o_alu_op    = 3'b000;
+                o_alu_op        = 3'b000;
+                o_result_src    = 3'b000;
+                o_start_d_cache = 1'b1;
                 
             end
 
@@ -399,10 +408,12 @@ module main_fsm
 
             ALUWB: begin
                 if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) begin
-                    o_csr_write_addr  = 2'b01;  // mcause.
-                    o_csr_write_src   = 1'b1;  // s_csr_mcause.
-                    o_csr_we          = 1'b1; 
-                    o_mcause          = 4'd2; // Illegal instruction.
+                    o_mcause           = 4'd2; // Illegal instruction.
+                    o_csr_write_addr_1 = 2'b01;  // mcause.
+                    o_csr_we_1         = 1'b1; 
+                    o_csr_write_addr_2 = 2'b00;  // mepc.
+                    o_result_src       = 3'b110; // s_old_pc.  
+                    o_csr_we_2         = 1'b1; 
                     check(i_a0_reg_lsb, o_mcause);
                 end
                 o_result_src   = 3'b000;
@@ -447,14 +458,8 @@ module main_fsm
             CALL_0: begin
                 o_csr_read_addr   = 2'b10;  // mtvec.
                 o_csr_src_control = 2'b10;  // s_csr_jump_addr. 
-                o_pc_src          = 1'b1;   // s_csr_data.
                 o_pc_update       = 1'b1;
-                o_csr_write_addr  = 2'b00;  // mepc.
-                o_result_src      = 3'b110; // s_old_pc.  
-                o_csr_we          = 1'b1; 
-                // $display("time =%0t", $time); // FOR SIMULATION ONLY.
-                // check(i_a0_reg_lsb, o_mcause);
-
+                o_result_src      = 3'b100;
             end
 
             CSR_EXECUTE: begin
@@ -462,7 +467,7 @@ module main_fsm
                 else               o_alu_src_1  = 2'b10;
                 o_alu_src_2  = 2'b11;
                 o_alu_op     = 3'b100;
-                o_csr_we     = 1'b1;
+                o_csr_we_2   = 1'b1;
                 o_result_src = 3'b010;
                 o_csr_reg_we = 1'b1;
             end
@@ -475,28 +480,28 @@ module main_fsm
 
 
             default: begin
-                o_alu_op          = 3'b000;
-                o_result_src      = 3'b000;
-                o_alu_src_1       = 2'b00;
-                o_alu_src_2       = 2'b00;
-                o_pc_src          = 1'b0;
-                o_reg_write_en    = 1'b0;
-                o_pc_update       = 1'b0;
-                o_mem_write_en    = 1'b0;
-                o_instr_write_en  = 1'b0;
-                o_start_i_cache   = 1'b0;
-                o_branch          = 1'b0;
-                o_start_d_cache   = 1'b0;
-                o_mem_reg_we      = 1'b0;
-                o_fetch_state     = 1'b0;
-                o_reg_mem_addr_we = 1'b0;
-                o_mcause          = 4'b0000;
-                o_csr_we          = 1'b0;
-                o_csr_reg_we      = 1'b0;
-                o_csr_write_addr  = s_csr_addr;
-                o_csr_read_addr   = s_csr_addr;
-                o_csr_src_control = 2'b00;
-                o_csr_write_src   = 1'b0;
+                o_alu_op           = 3'b000;
+                o_result_src       = 3'b000;
+                o_alu_src_1        = 2'b00;
+                o_alu_src_2        = 2'b00;
+                o_reg_write_en     = 1'b0;
+                o_pc_update        = 1'b0;
+                o_mem_write_en     = 1'b0;
+                o_instr_write_en   = 1'b0;
+                o_start_i_cache    = 1'b0;
+                o_branch           = 1'b0;
+                o_start_d_cache    = 1'b0;
+                o_mem_reg_we       = 1'b0;
+                o_fetch_state      = 1'b0;
+                o_reg_mem_addr_we  = 1'b0;
+                o_mcause           = 4'b0000;
+                o_csr_we_1         = 1'b0;
+                o_csr_we_2         = 1'b0;
+                o_csr_reg_we       = 1'b0;
+                o_csr_write_addr_1 = s_csr_addr;
+                o_csr_write_addr_2 = s_csr_addr;
+                o_csr_read_addr    = s_csr_addr;
+                o_csr_src_control  = 2'b00;
             end
         /* verilator lint_off WIDTH */
         endcase
