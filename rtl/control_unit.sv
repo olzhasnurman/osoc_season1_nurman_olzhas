@@ -14,7 +14,7 @@ module control_unit
     input  logic       arstn,
 
     // Input interface. 
-    input  logic [31:0] i_instr,
+    input  logic [ 2:0] i_instr_22_20,
     input  logic [ 6:0] i_op,
     input  logic [ 2:0] i_func_3,
     input  logic [ 6:0] i_func_7, 
@@ -109,10 +109,11 @@ module control_unit
     main_fsm M_FSM (
         .clk                  ( clk                  ),
         .arstn                ( arstn                ),
-        .i_instr              ( i_instr              ),
+        .i_instr_22_20        ( i_instr_22_20        ),
         .i_op                 ( i_op                 ),
         .i_func_3             ( i_func_3             ),
-        .i_func_7_4           ( i_func_7[4]          ), 
+        .i_func_7_4           ( i_func_7[4]          ),
+        .i_func_7_0           ( i_func_7[0]          ), 
         .i_stall_instr        ( s_stall_instr        ),
         .i_stall_data         ( s_stall_data         ),
         .i_instr_addr_ma      ( i_instr_addr_ma      ),

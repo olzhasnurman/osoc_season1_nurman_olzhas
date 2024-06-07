@@ -7,11 +7,11 @@
 module top
 // Parameters. 
 #(
-    parameter REG_DATA_WIDTH  = 64,
-              REG_ADDR_WIDTH  = 5,
-              MEM_DATA_WIDTH  = 64,
-              MEM_INSTR_WIDTH = 32,
-              MEM_ADDR_WIDTH  = 64,
+    parameter REG_DATA_WIDTH   = 64,
+              REG_ADDR_WIDTH   = 5,
+              MEM_DATA_WIDTH   = 64,
+              MEM_INSTR_WIDTH  = 32,
+              MEM_ADDR_WIDTH   = 64,
               BLOCK_DATA_WIDTH = 512
 
 
@@ -59,6 +59,7 @@ module top
     logic [6:0] s_op;
     logic [2:0] s_func_3;
     logic [6:0] s_func_7;
+    logic [2:0] s_instr_22_20;
     logic [4:0] s_alu_control;
     logic [2:0] s_result_src;
     logic [1:0] s_alu_src_control_1;
@@ -140,13 +141,14 @@ module top
     //----------------------------------
     // Continious assignmnets. 
     //----------------------------------
-    assign s_imm        = s_reg_instr[31:7];
-    assign s_op         = s_reg_instr[6:0];
-    assign s_func_3     = s_reg_instr[14:12];   
-    assign s_func_7     = s_reg_instr[31:25];
-    assign s_reg_addr_1 = s_reg_instr[19:15];
-    assign s_reg_addr_2 = s_reg_instr[24:20];
-    assign s_reg_addr_3 = s_reg_instr[11:7];
+    assign s_imm         = s_reg_instr[31:7];
+    assign s_op          = s_reg_instr[6:0];
+    assign s_func_3      = s_reg_instr[14:12];   
+    assign s_func_7      = s_reg_instr[31:25];
+    assign s_instr_22_20 = s_reg_instr[22:20]; 
+    assign s_reg_addr_1  = s_reg_instr[19:15];
+    assign s_reg_addr_2  = s_reg_instr[24:20];
+    assign s_reg_addr_3  = s_reg_instr[11:7];
 
     assign s_addr_offset = s_reg_mem_addr[2:0];
     
@@ -176,7 +178,7 @@ module top
     control_unit CU (
         .clk                    ( clk                   ), 
         .arstn                  ( arstn                 ),
-        .i_instr                ( s_reg_instr           ),
+        .i_instr_22_20          ( s_instr_22_20         ),
         .i_op                   ( s_op                  ),
         .i_func_3               ( s_func_3              ),
         .i_func_7               ( s_func_7              ),

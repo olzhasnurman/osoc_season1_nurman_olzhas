@@ -13,10 +13,11 @@ module main_fsm
     input  logic       arstn,
 
     // Input interface. 
-    input  logic [31:0] i_instr,
+    input  logic [ 2:0] i_instr_22_20,
     input  logic [ 6:0] i_op,
     input  logic [ 2:0] i_func_3,
-    input  logic        i_func_7_4, 
+    input  logic        i_func_7_4,
+    input  logic        i_func_7_0, 
     input  logic        i_stall_instr,
     input  logic        i_stall_data,
     input  logic        i_instr_addr_ma,
@@ -55,7 +56,7 @@ module main_fsm
     logic s_func_3_reduction;
     logic [1:0] s_csr_addr;
 
-    assign s_csr_addr = i_instr [22:21];
+    assign s_csr_addr = i_instr_22_20 [2:1];
     assign s_func_3_reduction = | i_func_3;
 
     // State type.
@@ -196,7 +197,7 @@ module main_fsm
             EXECUTER: NS = ALUWB;
 
             ALUWB: begin
-                if ( i_illegal_instr_alu | ( i_instr[25] & i_op[5] & (~ i_op[6]) )) NS = CALL_0;
+                if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) NS = CALL_0;
                 else                       NS = FETCH;                 
             end
 
@@ -290,7 +291,7 @@ module main_fsm
                     o_csr_write_addr  = 2'b01;  // mcause.
                     o_csr_write_src   = 1'b1;  // s_csr_mcause.
                     o_csr_we          = 1'b1; 
-                    if ( ~i_instr[20] ) o_mcause = 4'd11; // Env call from M-mode.
+                    if ( ~i_instr_22_20[0] ) o_mcause = 4'd11; // Env call from M-mode.
                     else                o_mcause = 4'd3; // Env breakpoint.
                     check(i_a0_reg_lsb, o_mcause);
                 end
@@ -397,7 +398,7 @@ module main_fsm
             end
 
             ALUWB: begin
-                if ( i_illegal_instr_alu | ( i_instr[25] & i_op[5] & (~ i_op[6]) )) begin
+                if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) begin
                     o_csr_write_addr  = 2'b01;  // mcause.
                     o_csr_write_src   = 1'b1;  // s_csr_mcause.
                     o_csr_we          = 1'b1; 
