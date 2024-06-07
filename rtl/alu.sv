@@ -30,31 +30,28 @@ module alu
     // ---------------
     // Oprations.
     // ---------------
-    enum logic [4:0] {
-        ADD   = 5'b00000,
-        SUB   = 5'b00001,
-        AND   = 5'b00010,
-        OR    = 5'b00011,
-        XOR   = 5'b00100,
-        SLL   = 5'b00101,
-        SLT   = 5'b00110,
-        SLTU  = 5'b00111,
-        SRL   = 5'b01000,
-        SRA   = 5'b01001,
+    localparam ADD   = 5'b00000;
+    localparam SUB   = 5'b00001;
+    localparam AND   = 5'b00010;
+    localparam OR    = 5'b00011;
+    localparam XOR   = 5'b00100;
+    localparam SLL   = 5'b00101;
+    localparam SLT   = 5'b00110;
+    localparam SLTU  = 5'b00111;
+    localparam SRL   = 5'b01000;
+    localparam SRA   = 5'b01001;
 
-        ADDW  = 5'b01010,
-        SUBW  = 5'b01011,
-        SLLW  = 5'b01100,
-        SRLW  = 5'b01101,
-        SRAW  = 5'b01110,
-        
-        ADDIW = 5'b01111,
+    localparam ADDW  = 5'b01010;
+    localparam SUBW  = 5'b01011;
+    localparam SLLW  = 5'b01100;
+    localparam SRLW  = 5'b01101;
+    localparam SRAW  = 5'b01110;
+    localparam ADDIW = 5'b01111;
+    
+    localparam CSRRW = 5'b10000;
+    localparam CSRRS = 5'b10001;
+    localparam CSRRC = 5'b10010;
 
-        CSRRW = 5'b10000,
-        CSRRS = 5'b10001,
-        CSRRC = 5'b10010
-
-    } t_operation;
 
 
 
