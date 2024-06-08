@@ -117,13 +117,11 @@ module top
     logic                          s_csr_reg_we;
     logic [                  1:0 ] s_csr_read_addr;
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_read_data;
-    logic [ REG_DATA_WIDTH - 1:0 ] s_csr_data;
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_read_data_reg;
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_jamp_addr;
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_mcause;
     logic [                  3:0 ] s_mcause;
 
-    logic [ 1:0 ] s_csr_src_control;   // 00: CSR read data, 01: CSR read data reg, 10: CSR jamp addr.
 
 
     // Exception cause signals.
@@ -218,8 +216,7 @@ module top
         .o_csr_reg_we           ( s_csr_reg_we          ),
         .o_csr_write_addr_1     ( s_csr_write_addr_1    ),
         .o_csr_write_addr_2     ( s_csr_write_addr_2    ),
-        .o_csr_read_addr        ( s_csr_read_addr       ),
-        .o_csr_src_control      ( s_csr_src_control     )
+        .o_csr_read_addr        ( s_csr_read_addr       )
     );
 
 
@@ -411,31 +408,22 @@ module top
         .i_mux_0        ( s_reg_data_2        ),
         .i_mux_1        ( s_imm_ext           ),
         .i_mux_2        ( 64'b0100            ),
-        .i_mux_3        ( s_csr_data          ),
+        .i_mux_3        ( s_csr_read_data     ),
         .o_mux          ( s_alu_src_data_2    )
     );
 
-    // 3-to-1 CSR MUX Instance.
-    mux3to1 CSR_MUX (
-        .control_signal ( s_csr_src_control   ),
-        .i_mux_0        ( s_csr_read_data     ),
-        .i_mux_1        ( s_csr_read_data_reg ),
-        .i_mux_2        ( s_csr_jamp_addr     ),
-        .o_mux          ( s_csr_data          )
-    ); 
-
     // 8-to-1 Result Source MUX Instance.
     mux8to1 RESULT_MUX (
-        .control_signal ( s_result_src       ),
-        .i_mux_0        ( s_reg_alu_result   ),
-        .i_mux_1        ( s_reg_mem_data     ), 
-        .i_mux_2        ( s_alu_result       ),
-        .i_mux_3        ( s_imm_ext          ),
-        .i_mux_4        ( s_csr_data         ),
-        .i_mux_5        ( s_csr_mcause       ),
-        .i_mux_6        ( s_reg_old_pc       ),
-        .i_mux_7        ( s_reg_data_1       ),
-        .o_mux          ( s_result           )
+        .control_signal ( s_result_src        ),
+        .i_mux_0        ( s_reg_alu_result    ),
+        .i_mux_1        ( s_reg_mem_data      ), 
+        .i_mux_2        ( s_alu_result        ),
+        .i_mux_3        ( s_imm_ext           ),
+        .i_mux_4        ( s_csr_read_data     ),
+        .i_mux_5        ( s_csr_read_data_reg ),
+        .i_mux_6        ( s_reg_old_pc        ),
+        .i_mux_7        ( s_csr_jamp_addr     ),
+        .o_mux          ( s_result            ) 
     );
 
 

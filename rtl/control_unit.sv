@@ -58,8 +58,7 @@ module control_unit
     output logic        o_csr_reg_we,
     output logic [ 1:0] o_csr_write_addr_1,
     output logic [ 1:0] o_csr_write_addr_2,
-    output logic [ 1:0] o_csr_read_addr,
-    output logic [ 1:0] o_csr_src_control
+    output logic [ 1:0] o_csr_read_addr
 
 ); 
 
@@ -142,8 +141,7 @@ module control_unit
         .o_csr_reg_we         ( o_csr_reg_we         ),
         .o_csr_write_addr_1   ( o_csr_write_addr_1   ),
         .o_csr_write_addr_2   ( o_csr_write_addr_2   ),
-        .o_csr_read_addr      ( o_csr_read_addr      ),
-        .o_csr_src_control    ( o_csr_src_control    )
+        .o_csr_read_addr      ( o_csr_read_addr      )
     );
 
     // Instruction cache FSM.
