@@ -19,14 +19,16 @@ module top
 // Port declerations. 
 (
     //Clock & Reset signals. 
-    input  logic                           clk,
-    input  logic                           i_arstn,
-    input  logic                           i_done_axi,   // NEEDS TO BE CONNECTED TO AXI 
-    input  logic [BLOCK_DATA_WIDTH - 1:0 ] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
-    output logic                           o_start_read_axi,  // NEEDS TO BE CONNECTED TO AXI
-    output logic                           o_start_write_axi, // NEEDS TO BE CONNECTED TO AXI
-    output logic [ MEM_ADDR_WIDTH  - 1:0 ] o_addr, // JUST FOR SIMULATION
-    output logic [BLOCK_DATA_WIDTH - 1:0 ] o_data_write_axi   // NEEDS TO BE CONNECTED TO AXI
+    input  logic                            clk,
+    input  logic                            i_arstn,
+    input  logic                            i_done_axi,   // NEEDS TO BE CONNECTED TO AXI 
+    input  logic [ BLOCK_DATA_WIDTH - 1:0 ] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
+    // input  logic [ REG_DATA_WIDTH   - 1:0 ] i_data_non_cachable,
+    output logic                            o_start_read_axi,  // NEEDS TO BE CONNECTED TO AXI
+    output logic                            o_start_write_axi, // NEEDS TO BE CONNECTED TO AXI
+    output logic [ MEM_ADDR_WIDTH   - 1:0 ] o_addr, // JUST FOR SIMULATION
+    // output logic [ REG_DATA_WIDTH   - 1:0 ] o_data_non_cacheable
+    output logic [ BLOCK_DATA_WIDTH - 1:0 ] o_data_write_axi   // NEEDS TO BE CONNECTED TO AXI
 );
 
     //------------------------
@@ -59,7 +61,6 @@ module top
     logic [6:0] s_op;
     logic [2:0] s_func_3;
     logic [6:0] s_func_7;
-    logic [2:0] s_instr_22_20;
     logic [4:0] s_alu_control;
     logic [2:0] s_result_src;
     logic [1:0] s_alu_src_control_1;
@@ -110,19 +111,28 @@ module top
     logic [ MEM_DATA_WIDTH - 1:0] s_mem_load_data;
 
     // CSR signals.
-    logic [                  1:0 ] s_csr_write_addr_1;
-    logic [                  1:0 ] s_csr_write_addr_2;
+    logic [                  2:0 ] s_csr_write_addr_1;
+    logic [                  2:0 ] s_csr_write_addr_2;
     logic                          s_csr_we_1;
     logic                          s_csr_we_2;
     logic                          s_csr_reg_we;
-    logic [                  1:0 ] s_csr_read_addr;
+    logic [                  2:0 ] s_csr_read_addr;
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_read_data;
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_read_data_reg;
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_jamp_addr;
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_mcause;
     logic [                  3:0 ] s_mcause;
 
+    // Cacheable mark.
+    logic s_cacheable;
 
+    // CLINT machine timer interrupt.
+    logic s_interrupt;
+    logic s_timer_int_call;
+    logic s_timer_int;
+    logic s_mie_mstatus;
+    logic s_mtip_mip;
+    logic s_mtie_mie;
 
     // Exception cause signals.
     logic s_instr_addr_ma;
@@ -140,8 +150,7 @@ module top
     assign s_imm         = s_reg_instr[31:7];
     assign s_op          = s_reg_instr[6:0];
     assign s_func_3      = s_reg_instr[14:12];   
-    assign s_func_7      = s_reg_instr[31:25];
-    assign s_instr_22_20 = s_reg_instr[22:20]; 
+    assign s_func_7      = s_reg_instr[31:25]; 
     assign s_reg_addr_1  = s_reg_instr[19:15];
     assign s_reg_addr_2  = s_reg_instr[24:20];
     assign s_reg_addr_3  = s_reg_instr[11:7];
@@ -149,7 +158,12 @@ module top
     assign s_addr_offset = s_reg_mem_addr[2:0];
     
     assign s_csr_jamp_addr  = s_csr_read_data >> 2;
-    assign s_csr_mcause     = { 60'b0, s_mcause };
+    assign s_csr_mcause     = { s_interrupt, 59'b0, s_mcause };
+    assign s_timer_int      = s_mie_mstatus & s_mtip_mip & s_mtie_mie;
+
+
+    assign s_cacheable = ( s_reg_mem_addr >= 64'h3000_0000 );
+
 
  
 
@@ -174,7 +188,8 @@ module top
     control_unit CU (
         .clk                    ( clk                   ), 
         .arstn                  ( arstn                 ),
-        .i_instr_22_20          ( s_instr_22_20         ),
+        .i_instr_22             ( s_reg_instr[22]       ),
+        .i_instr_20             ( s_reg_instr[20]       ),
         .i_op                   ( s_op                  ),
         .i_func_3               ( s_func_3              ),
         .i_func_7               ( s_func_7              ),
@@ -191,6 +206,7 @@ module top
         .i_load_addr_ma         ( s_load_addr_ma        ),
         .i_illegal_instr_load   ( s_illegal_instr_load  ),
         .i_a0_reg_lsb           ( s_a0_reg_lsb          ), // FOR SIMULATION ONLY.
+        .i_timer_int            ( s_timer_int           ),
         .o_alu_control          ( s_alu_control         ),
         .o_result_src           ( s_result_src          ),
         .o_alu_src_1            ( s_alu_src_control_1   ),
@@ -210,6 +226,7 @@ module top
         .o_mem_reg_we           ( s_reg_mem_we          ),
         .o_fetch_state          ( s_fetch_state         ),
         .o_reg_mem_addr_we      ( s_reg_mem_addr_we     ),
+        .o_interrupt            ( s_interrupt           ),
         .o_mcause               ( s_mcause              ),
         .o_csr_we_1             ( s_csr_we_1            ),
         .o_csr_we_2             ( s_csr_we_2            ),
@@ -275,16 +292,32 @@ module top
 
     // Control & Status Registers.
     csr_file CSR0 (
-        .clk            ( clk                ),
-        .write_en_1     ( s_csr_we_1         ),
-        .write_en_2     ( s_csr_we_2         ),
-        .arstn          ( arstn              ),
-        .i_read_addr    ( s_csr_read_addr    ),
-        .i_write_addr_1 ( s_csr_write_addr_1 ),
-        .i_write_addr_2 ( s_csr_write_addr_2 ),
-        .i_write_data_1 ( s_csr_mcause       ),
-        .i_write_data_2 ( s_result           ),
-        .o_read_data    ( s_csr_read_data    )
+        .clk              ( clk                ),
+        .write_en_1       ( s_csr_we_1         ),
+        .write_en_2       ( s_csr_we_2         ),
+        .arstn            ( arstn              ),
+        .i_read_addr      ( s_csr_read_addr    ),
+        .i_write_addr_1   ( s_csr_write_addr_1 ),
+        .i_write_addr_2   ( s_csr_write_addr_2 ),
+        .i_write_data_1   ( s_csr_mcause       ),
+        .i_write_data_2   ( s_result           ),
+        .i_timer_int_call ( s_timer_int_call   ),
+        .i_timer_int_jump ( s_interrupt        ),
+        .o_read_data      ( s_csr_read_data    ),
+        .o_mie_mstatus    ( s_mie_mstatus      ),
+        .o_mtip_mip       ( s_mtip_mip         ),
+        .o_mtie_mie       ( s_mtie_mie         )
+    );
+
+
+    // CLINT MMIO.
+    clint_mmio CLINT0 (
+        .clk              ( clk              ),
+        .arstn            ( arstn            ),
+        .write_en_1       ( 1'b0             ),
+        .write_en_2       ( 1'b0             ),
+        .i_data           ( '0               ),
+        .o_timer_int_call ( s_timer_int_call )
     );
 
 
