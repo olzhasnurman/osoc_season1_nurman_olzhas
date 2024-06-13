@@ -47,7 +47,7 @@ module mem_sim
     logic [ 6:0 ] s_count;
     always_ff @( posedge clk, negedge arstn ) begin
         if ( ~arstn ) s_count <= '0;
-        else          s_count <= s_count + '1;
+        else          s_count <= s_count + 7'b1;
     end
 
     assign o_successful_access = (s_count == 7'b1111111); 

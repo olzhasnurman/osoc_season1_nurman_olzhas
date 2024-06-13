@@ -27,7 +27,7 @@ module clint_mmio
         end
         else begin
             if ( write_en_1 ) mtime <= i_data;
-            else              mtime <= mtime + '1;
+            else              mtime <= mtime + 64'b1;
 
             if ( write_en_2 ) mtimecmp <= i_data;
         end
