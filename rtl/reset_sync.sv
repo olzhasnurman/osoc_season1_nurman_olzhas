@@ -1,22 +1,21 @@
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ----------------------------------------------------------------------------------------------
-// This is a reset syncronizer module for asynchronous reset, synchronous release implementation.
-// It ensures metastability.
+// This is a reset syncronizer module.
 // ----------------------------------------------------------------------------------------------
 
 module reset_sync 
 (
     input  logic clk,
-    input  logic arstn,
-    output logic rstn
+    input  logic arst,
+    output logic arst_sync
 );
 
     logic rst_signal;
 
-    always_ff @( posedge clk, negedge arstn ) begin
-        if ( !arstn ) { rstn, rst_signal } <= 2'b0;
-        else          { rstn, rst_signal } <= { rst_signal, 1'b1 };
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) { arst_sync, rst_signal } <= 2'b11;
+        else        { arst_sync, rst_signal } <= { rst_signal, 1'b0 };
     end
     
 endmodule

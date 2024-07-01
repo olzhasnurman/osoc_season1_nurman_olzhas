@@ -14,7 +14,7 @@ module mem_sim
 (
     // Control signals.
     input  logic clk,
-    input  logic arstn,
+    input  logic arst,
     input  logic write_en,
 
     // Input signals.
@@ -30,8 +30,8 @@ module mem_sim
     logic [ DATA_WIDTH - 1:0 ] mem [ 524287:0];
 
 
-    always_ff @( posedge clk, negedge arstn ) begin
-        if ( !arstn ) begin
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
             $readmemh(`PATH_TO_MEM, mem);
         end
         else if ( write_en ) begin
@@ -45,8 +45,8 @@ module mem_sim
 
     // Simulating multiple clock cycle memory access.
     logic [ 6:0 ] s_count;
-    always_ff @( posedge clk, negedge arstn ) begin
-        if ( ~arstn ) s_count <= '0;
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) s_count <= '0;
         else          s_count <= s_count + 7'b1;
     end
 

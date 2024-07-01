@@ -12,7 +12,7 @@ module axi4_lite_slave_read
 (
     // Control signals.
     input  logic                          clk,
-    input  logic                          arstn,
+    input  logic                          arst,
 
     // Input interface.
     input  logic [ AXI_DATA_WIDTH - 1:0 ] i_data,
@@ -56,8 +56,8 @@ module axi4_lite_slave_read
     t_state NS;
     
     // FSM: State Synchronization 
-    always_ff @( posedge clk, negedge arstn ) begin 
-        if ( ~arstn ) begin
+    always_ff @( posedge clk, posedge arst ) begin 
+        if ( arst ) begin
             PS <= IDLE;
         end
         else PS <= NS;
@@ -77,8 +77,8 @@ module axi4_lite_slave_read
     end
 
     // FSM: Output Logic.
-    always_ff @( posedge clk, negedge arstn ) begin
-        if ( ~arstn ) begin
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
             AR_READY <= '0;
             R_DATA   <= '0;
             R_VALID  <= '0;

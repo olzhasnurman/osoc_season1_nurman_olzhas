@@ -12,7 +12,7 @@ module axi4_lite_slave
 ) 
 (
     input  logic                         clk,
-    input  logic                         arstn,
+    input  logic                         arst,
     input  logic [ AXI_DATA_WIDTH - 1:0] i_data,
     input  logic                         i_start_read,
     input  logic                         i_start_write,
@@ -76,7 +76,7 @@ module axi4_lite_slave
     // AXI4-Lite Slave: Write.
     axi4_lite_slave_write AXI4_LITE_SLV_W (
         .clk                 ( clk                 ),
-        .arstn               ( arstn               ),
+        .arst                ( arst                ),
         .i_start_write       ( i_start_write       ),
         .i_successful_access ( i_successful_access ),
         .i_successful_write  ( i_successful_write  ),
@@ -99,7 +99,7 @@ module axi4_lite_slave
     // AXI4-Lite Slave: Read.
     axi4_lite_slave_read AXI4_LITE_SLV_R (
         .clk                 ( clk                 ),
-        .arstn               ( arstn               ),
+        .arst                ( arst                ),
         .i_data              ( i_data              ),
         .i_start_read        ( i_start_read        ),
         .i_successful_access ( i_successful_access ),

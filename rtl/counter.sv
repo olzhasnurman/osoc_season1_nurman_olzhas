@@ -12,7 +12,7 @@ module counter
 (   
     // Countrol logic
     input  logic clk,
-    input  logic arstn,
+    input  logic arst,
     input  logic run,
     input  logic restartn,
 
@@ -22,9 +22,9 @@ module counter
 
     logic [ $clog2( SIZE ) - 1:0 ] s_count;
 
-    always_ff @( posedge clk, negedge arstn ) begin
-        if      ( ~arstn | ~restartn ) s_count <= '0;
-        else if ( run                ) s_count <= s_count + 4'b1; 
+    always_ff @( posedge clk, posedge arst ) begin
+        if      ( arst | ~restartn ) s_count <= '0;
+        else if ( run              ) s_count <= s_count + 4'b1; 
 
         if ( (s_count == LIMIT) & run ) o_done <= 1'b1;
         else                            o_done <= 1'b0;

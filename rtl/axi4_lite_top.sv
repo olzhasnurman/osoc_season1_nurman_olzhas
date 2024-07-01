@@ -12,7 +12,7 @@ module axi4_lite_top
 ) 
 (
     input logic clk,
-    input logic arstn,
+    input logic arst,
 
     // Memory interface.
     input  logic [ AXI_DATA_WIDTH - 1:0 ] i_data_mem,
@@ -81,7 +81,7 @@ module axi4_lite_top
     // AXI master instance.
     axi4_lite_master AXI4_LITE_M (
         .clk           ( clk           ),
-        .arstn         ( arstn         ),
+        .arst          ( arst          ),
         .i_addr        ( i_addr_cache  ),
         .i_data        ( i_data_cache  ),
         .i_start_write ( i_start_write ),
@@ -115,7 +115,7 @@ module axi4_lite_top
     // AXI slave instance.
     axi4_lite_slave AXI4_LITE_S (
         .clk                 ( clk                 ),
-        .arstn               ( arstn               ),
+        .arst                ( arst                ),
         .i_data              ( i_data_mem          ),
         .i_start_read        ( i_start_read        ),
         .i_start_write       ( i_start_write       ),

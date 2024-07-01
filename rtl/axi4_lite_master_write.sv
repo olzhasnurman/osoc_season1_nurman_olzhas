@@ -12,7 +12,7 @@ module axi4_lite_master_write
 (
     // Control signals.
     input  logic                          clk,
-    input  logic                          arstn,
+    input  logic                          arst,
 
     // Input interface.
     input  logic [ AXI_ADDR_WIDTH - 1:0 ] i_addr,
@@ -68,8 +68,8 @@ module axi4_lite_master_write
     t_state NS;
     
     // FSM: State Synchronization 
-    always_ff @( posedge clk, negedge arstn ) begin 
-        if ( ~arstn ) begin
+    always_ff @( posedge clk, posedge arst ) begin 
+        if ( arst ) begin
             PS <= IDLE;
         end
         else PS <= NS;
@@ -90,8 +90,8 @@ module axi4_lite_master_write
     end
 
     // FSM: Output Logic.
-    always_ff @( posedge clk, negedge arstn ) begin
-        if ( ~arstn ) begin
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
             AW_VALID <= 1'b0;
             AW_ADDR  <= '0;
             W_VALID  <= 1'b0;

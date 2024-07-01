@@ -10,7 +10,7 @@ module main_fsm
 (
     // Common clock & reset.
     input  logic       clk,
-    input  logic       arstn,
+    input  logic       arst,
 
     // Input interface. 
     input  logic        i_instr_22,
@@ -132,8 +132,8 @@ module main_fsm
     // FSM 
     // -----------------------------------
     // FSM: Synchronization.
-    always_ff @( posedge clk, negedge arstn ) begin
-        if (!arstn) begin
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
             PS <= FETCH;
         end
         else PS <= NS;

@@ -13,7 +13,7 @@ module cache_data_transfer
 (
     // Control signals.
     input  logic                          clk,
-    input  logic                          arstn,
+    input  logic                          arst,
 
     // Input interface.
     input  logic                          i_start_read,
@@ -44,7 +44,7 @@ module cache_data_transfer
     // Counter module instance.
     counter COUNT0 (
         .clk      ( clk          ),
-        .arstn    ( arstn        ),
+        .arst     ( arst         ),
         .run      ( i_axi_done   ),
         .restartn ( s_start      ),
         .o_done   ( o_count_done )
@@ -62,7 +62,7 @@ module cache_data_transfer
     // FIFO module instance.
     fifo FIFO0 (
         .clk          ( clk                ),
-        .arstn        ( arstn              ),
+        .arst         ( arst               ),
         .write_en     ( i_axi_done         ),
         .start_write  ( i_start_write      ),
         .start_read   ( i_start_read       ),

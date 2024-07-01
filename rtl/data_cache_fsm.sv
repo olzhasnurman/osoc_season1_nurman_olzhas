@@ -11,7 +11,7 @@ module data_cache_fsm
 (
     // Clock & Reset.
     input  logic clk,
-    input  logic arstn,
+    input  logic arst,
 
     // Input Interface.
     input  logic i_start_check,
@@ -46,8 +46,8 @@ module data_cache_fsm
     t_state NS;
 
     // FSM: PS Syncronization.
-    always_ff @( posedge clk, negedge arstn ) begin
-        if ( ~arstn ) begin
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
             PS <= IDLE;
         end
         else PS <= NS;

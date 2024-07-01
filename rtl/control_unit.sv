@@ -11,7 +11,7 @@ module control_unit
 (
     // Common clock & reset.
     input  logic       clk,
-    input  logic       arstn,
+    input  logic       arst,
 
     // Input interface. 
     input  logic        i_instr_22,
@@ -110,7 +110,7 @@ module control_unit
     // Main FSM module instance. 
     main_fsm M_FSM (
         .clk                  ( clk                    ),
-        .arstn                ( arstn                  ),
+        .arst                 ( arst                   ),
         .i_instr_22           ( i_instr_22             ),
         .i_instr_20           ( i_instr_20             ),
         .i_op                 ( i_op                   ),
@@ -154,7 +154,7 @@ module control_unit
     // Instruction cache FSM.
     instr_cache_fsm I_C_FSM (
         .clk              ( clk                    ),
-        .arstn            ( arstn                  ),
+        .arst             ( arst                   ),
         .i_start_check    ( s_start_instr_cache    ),
         .i_hit            ( i_instr_hit            ),
         .i_r_last         ( i_read_last_axi        ),
@@ -166,7 +166,7 @@ module control_unit
     // Data cache FSM.
     data_cache_fsm D_C_FSM (
         .clk                   ( clk                 ),
-        .arstn                 ( arstn               ),
+        .arst                  ( arst                ),
         .i_start_check         ( s_start_data_cache  ),
         .i_hit                 ( i_data_hit          ),
         .i_dirty               ( i_data_dirty        ),
@@ -201,7 +201,7 @@ module control_unit
     // Illegal instruction flag flip-flop.
     register # (.DATA_WIDTH (1) ) II_ALU_FF (
         .clk          ( clk                    ),
-        .arstn        ( arstn                  ),
+        .arst         ( arst                   ),
         .i_write_data ( s_illegal_instr_alu    ),
         .o_read_data  ( s_illegal_instr_alu_ff )
     );

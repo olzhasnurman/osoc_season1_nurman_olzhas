@@ -12,7 +12,7 @@ module axi4_lite_master
 (
     // Control signals.
     input  logic                          clk,
-    input  logic                          arstn,
+    input  logic                          arst,
 
     // Input interface.
     input  logic [ AXI_ADDR_WIDTH - 1:0 ] i_addr,
@@ -79,7 +79,7 @@ module axi4_lite_master
     // AXI4-Lite Master: Write.
     axi4_lite_master_write AXI4_LITE_MST_W (
         .clk           ( clk           ),
-        .arstn         ( arstn         ),
+        .arst          ( arst          ),
         .i_addr        ( i_addr        ),
         .i_data        ( i_data        ),
         .i_start_write ( i_start_write ),
@@ -101,7 +101,7 @@ module axi4_lite_master
     // AXI4-Lite Master: Read.
     axi4_lite_master_read AXI4_LITE_MST_R (
         .clk            ( clk            ),
-        .arstn          ( arstn          ),
+        .arst           ( arst           ),
         .i_addr         ( i_addr         ),
         .i_start_read   ( i_start_read   ),
         .o_data         ( o_data         ),

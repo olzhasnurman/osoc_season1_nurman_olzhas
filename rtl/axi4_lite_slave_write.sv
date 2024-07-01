@@ -12,7 +12,7 @@ module axi4_lite_slave_write
 (
     // Control signals.
     input  logic                          clk,
-    input  logic                          arstn,
+    input  logic                          arst,
 
     // Input interface.
     input  logic                          i_start_write,
@@ -63,8 +63,8 @@ module axi4_lite_slave_write
     t_state NS;
     
     // FSM: State Synchronization 
-    always_ff @( posedge clk, negedge arstn ) begin 
-        if ( ~arstn ) begin
+    always_ff @( posedge clk, posedge arst ) begin 
+        if ( arst ) begin
             PS <= IDLE;
         end
         else PS <= NS;
@@ -86,8 +86,8 @@ module axi4_lite_slave_write
     end
 
     // FSM: Output Logic.
-    always_ff @( posedge clk, negedge arstn ) begin
-        if ( ~arstn ) begin
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
             AW_READY   <= 1'b0;
             o_addr     <= '0;
             o_data     <= '0;

@@ -12,7 +12,7 @@ module test_env
 ) 
 (
     input logic clk,
-    input logic arstn
+    input logic arst
 );
 
     //------------------------
@@ -63,7 +63,7 @@ module test_env
     //--------------------------------
     top TOP_M (
         .clk               ( clk              ),
-        .i_arstn           ( arstn            ),
+        .i_arst            ( arst             ),
         .i_done_axi        ( s_count_done     ),
         .i_data_read_axi   ( s_cache_data_in  ),
         .o_start_read_axi  ( s_start_read     ),
@@ -78,7 +78,7 @@ module test_env
     //---------------------------
     axi4_lite_top AXI4_LITE_T (
         .clk                 ( clk                 ),
-        .arstn               ( arstn               ),
+        .arst                ( arst                ),
         .i_data_mem          ( s_mem_data_out      ),
         .i_successful_access ( s_successful_access ),
         .i_successful_read   ( s_successful_read   ),
@@ -101,7 +101,7 @@ module test_env
     //---------------------------
     mem_sim MEM_M (
         .clk                 ( clk                 ),
-        .arstn               ( arstn               ),
+        .arst                ( arst                ),
         .write_en            ( s_mem_we            ),
         .i_data              ( s_mem_data_in       ),
         .i_addr              ( s_mem_addr          ),
@@ -117,7 +117,7 @@ module test_env
     //------------------------------------
     cache_data_transfer DATA_T0 (
         .clk                ( clk               ),
-        .arstn              ( arstn             ),
+        .arst               ( arst              ),
         .i_start_read       ( s_start_read_axi  ),
         .i_start_write      ( s_start_write_axi ),
         .i_axi_done         ( s_axi_done        ),

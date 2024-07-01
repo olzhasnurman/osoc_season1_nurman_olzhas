@@ -16,7 +16,7 @@ module data_cache
 (
     // Control signals.
     input  logic                       clk,
-    input  logic                       arstn,
+    input  logic                       arst,
     input  logic                       write_en,
     input  logic                       valid_update,
     input  logic                       lru_update,
@@ -350,8 +350,8 @@ module data_cache
     end
 
     // Modify dirty bit. 
-    always_ff @( posedge clk, negedge arstn ) begin
-        if ( ~ arstn ) begin
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
             // For 4-way set associative cache.
             dirty_mem [ 0 ] <= '0;
             dirty_mem [ 1 ] <= '0;
@@ -367,8 +367,8 @@ module data_cache
     end
 
     // Write valid bit. 
-    always_ff @( posedge clk, negedge arstn ) begin
-        if ( ~ arstn ) begin
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
             // For 4-way set associative cache.
             valid_mem [ 0 ] <= '0;
             valid_mem [ 1 ] <= '0;
@@ -381,8 +381,8 @@ module data_cache
     end
 
     // Write LRU set.
-    always_ff @( posedge clk, negedge arstn ) begin
-        if ( ~arstn ) begin
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
             lru_set <= '0;
         end
         else if ( lru_update ) begin

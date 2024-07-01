@@ -20,7 +20,7 @@ module top
 (
     //Clock & Reset signals. 
     input  logic                            clk,
-    input  logic                            i_arstn,
+    input  logic                            i_arst,
     input  logic                            i_done_axi,   // NEEDS TO BE CONNECTED TO AXI 
     input  logic [ BLOCK_DATA_WIDTH - 1:0 ] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
     // input  logic [ REG_DATA_WIDTH   - 1:0 ] i_data_non_cachable,
@@ -36,7 +36,7 @@ module top
     //------------------------
 
     // Reset signal.
-    logic arstn;
+    logic arst;
 
     // Instruction cache signals.
     logic s_instr_cache_we;
@@ -176,9 +176,9 @@ module top
     // Reset Synchronizer Instance.
     //------------------------------
     reset_sync RST_SYNC (
-        .clk   ( clk     ),
-        .arstn ( i_arstn ),
-        .rstn  ( arstn   )
+        .clk       ( clk    ),
+        .arst      ( i_arst ),
+        .arst_sync ( arst   )
     );
 
 
@@ -187,7 +187,7 @@ module top
     //---------------------------
     control_unit CU (
         .clk                    ( clk                   ), 
-        .arstn                  ( arstn                 ),
+        .arst                   ( arst                  ),
         .i_instr_22             ( s_reg_instr[22]       ),
         .i_instr_20             ( s_reg_instr[20]       ),
         .i_op                   ( s_op                  ),
@@ -246,7 +246,7 @@ module top
     register_file REG_FILE (
         .clk            ( clk               ),
         .write_en_3     ( s_reg_write_en    ),
-        .arstn          ( arstn             ),
+        .arst           ( arst              ),
         .i_addr_1       ( s_reg_addr_1      ),
         .i_addr_2       ( s_reg_addr_2      ),
         .i_addr_3       ( s_reg_addr_3      ),
@@ -259,7 +259,7 @@ module top
     // Data Cache.
     data_cache D_CACHE (
         .clk             ( clk                   ),
-        .arstn           ( arstn                 ),
+        .arst            ( arst                  ),
         .write_en        ( s_mem_write_en        ),
         .valid_update    ( s_data_valid_update   ),
         .lru_update      ( s_data_lru_update     ),
@@ -281,7 +281,7 @@ module top
     instr_cache I_CACHE (
         .clk             ( clk              ),
         .write_en        ( s_instr_cache_we ),
-        .arstn           ( arstn            ),
+        .arst            ( arst             ),
         .i_instr_addr    ( s_reg_pc         ),
         .i_inst          ( i_data_read_axi  ),
         .o_instr         ( s_instr_read     ),
@@ -295,7 +295,7 @@ module top
         .clk              ( clk                ),
         .write_en_1       ( s_csr_we_1         ),
         .write_en_2       ( s_csr_we_2         ),
-        .arstn            ( arstn              ),
+        .arst             ( arst               ),
         .i_read_addr      ( s_csr_read_addr    ),
         .i_write_addr_1   ( s_csr_write_addr_1 ),
         .i_write_addr_2   ( s_csr_write_addr_2 ),
@@ -313,7 +313,7 @@ module top
     // CLINT MMIO.
     clint_mmio CLINT0 (
         .clk              ( clk              ),
-        .arstn            ( arstn            ),
+        .arst             ( arst             ),
         .write_en_1       ( 1'b0             ),
         .write_en_2       ( 1'b0             ),
         .i_data           ( '0               ),
@@ -345,7 +345,7 @@ module top
     register_en # (.DATA_WIDTH (MEM_INSTR_WIDTH)) INSTR_REG (
         .clk          ( clk              ),
         .write_en     ( s_instr_write_en ),
-        .arstn        ( arstn            ),
+        .arst         ( arst             ),
         .i_write_data ( s_instr_read     ),
         .o_read_data  ( s_reg_instr      )
     );
@@ -354,7 +354,7 @@ module top
     register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) PC_REG (
         .clk          ( clk           ),
         .write_en     ( s_pc_write_en ),
-        .arstn        ( arstn         ),
+        .arst         ( arst          ),
         .i_write_data ( s_result      ),
         .o_read_data  ( s_reg_pc      )
     ); 
@@ -363,7 +363,7 @@ module top
     register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) OLD_PC_REG (
         .clk          ( clk              ),
         .write_en     ( s_instr_write_en ),
-        .arstn        ( arstn            ),
+        .arst         ( arst             ),
         .i_write_data ( s_reg_pc         ),
         .o_read_data  ( s_reg_old_pc     )
     );
@@ -372,7 +372,7 @@ module top
     register_en MEM_ADDR_REG (
         .clk          ( clk               ),
         .write_en     ( s_reg_mem_addr_we ),
-        .arstn        ( arstn             ),
+        .arst         ( arst              ),
         .i_write_data ( s_result          ),
         .o_read_data  ( s_reg_mem_addr    )   
     ); 
@@ -381,7 +381,7 @@ module top
     register_en # (.DATA_WIDTH (REG_DATA_WIDTH)) CSR_REG (
         .clk          ( clk                 ),
         .write_en     ( s_csr_reg_we        ),
-        .arstn        ( arstn               ),
+        .arst         ( arst                ),
         .i_write_data ( s_csr_read_data     ),
         .o_read_data  ( s_csr_read_data_reg )
     );  
@@ -389,7 +389,7 @@ module top
     // R1 Register Instance.
     register R1 (
         .clk          ( clk               ),
-        .arstn        ( arstn             ),
+        .arst         ( arst              ),
         .i_write_data ( s_reg_read_data_1 ),
         .o_read_data  ( s_reg_data_1      )
     );
@@ -397,7 +397,7 @@ module top
     // R2 Register Instance.
     register R2 (
         .clk          ( clk               ),
-        .arstn        ( arstn             ),
+        .arst         ( arst              ),
         .i_write_data ( s_reg_read_data_2 ),
         .o_read_data  ( s_reg_data_2      )
     );
@@ -405,7 +405,7 @@ module top
     // ALU Result Register Instance.
     register REG_ALU_RESULT (
         .clk          ( clk              ),
-        .arstn        ( arstn            ),
+        .arst         ( arst             ),
         .i_write_data ( s_alu_result     ),
         .o_read_data  ( s_reg_alu_result )
     );
@@ -413,7 +413,7 @@ module top
     // Memory Data Register. 
     register_en MEM_DATA (
         .clk          ( clk                ),
-        .arstn        ( arstn              ),
+        .arst         ( arst               ),
         .write_en     ( s_reg_mem_we       ),
         .i_write_data ( s_mem_load_data    ),
         .o_read_data  ( s_reg_mem_data     )

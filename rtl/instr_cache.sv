@@ -15,7 +15,7 @@ module instr_cache
     // Control signals.
     input  logic                       clk,
     input  logic                       write_en,
-    input  logic                       arstn,
+    input  logic                       arst,
     
     // Input Interface.
     input  logic [ ADDR_WIDTH  - 1:0 ] i_instr_addr,
@@ -71,8 +71,8 @@ module instr_cache
     logic [ BLOCK_WIDTH - 1:0 ] mem [ BLOCK_COUNT - 1:0 ];
 
     // Write logic.
-    always_ff @( posedge clk, negedge arstn ) begin
-        if ( ~arstn ) begin
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
             valid_mem <= '0;
         end
         else if ( write_en ) begin
