@@ -46,7 +46,7 @@ rv-arch-test-bgeu: PASS
 rv-arch-test-blt: PASS
 rv-arch-test-bltu: PASS
 rv-arch-test-bne: PASS
-rv-arch-test-fence: ILLEGAL INSTRUCTION
+rv-arch-test-fence: PASS
 rv-arch-test-jalr: PASS
 rv-arch-test-lb-align: PASS
 rv-arch-test-lbu-align: PASS
