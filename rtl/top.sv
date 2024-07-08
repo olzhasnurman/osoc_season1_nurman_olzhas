@@ -23,11 +23,9 @@ module top
     input  logic                            i_arst,
     input  logic                            i_done_axi,   // NEEDS TO BE CONNECTED TO AXI 
     input  logic [ BLOCK_DATA_WIDTH - 1:0 ] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
-    // input  logic [ REG_DATA_WIDTH   - 1:0 ] i_data_non_cachable,
     output logic                            o_start_read_axi,  // NEEDS TO BE CONNECTED TO AXI
     output logic                            o_start_write_axi, // NEEDS TO BE CONNECTED TO AXI
     output logic [ MEM_ADDR_WIDTH   - 1:0 ] o_addr, // JUST FOR SIMULATION
-    // output logic [ REG_DATA_WIDTH   - 1:0 ] o_data_non_cacheable
     output logic [ BLOCK_DATA_WIDTH - 1:0 ] o_data_write_axi   // NEEDS TO BE CONNECTED TO AXI
 );
 
@@ -123,8 +121,8 @@ module top
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_mcause;
     logic [                  3:0 ] s_mcause;
 
-    // Cacheable mark.
-    logic s_cacheable;
+    // Invalidate instructions in I Cache.
+    logic s_invalidate_instr;
 
     // CLINT machine timer interrupt.
     logic s_interrupt;
@@ -147,22 +145,19 @@ module top
     //----------------------------------
     // Continious assignmnets. 
     //----------------------------------
-    assign s_imm         = s_reg_instr[31:7];
-    assign s_op          = s_reg_instr[6:0];
+    assign s_imm         = s_reg_instr[31:7 ];
+    assign s_op          = s_reg_instr[ 6:0 ];
     assign s_func_3      = s_reg_instr[14:12];   
     assign s_func_7      = s_reg_instr[31:25]; 
     assign s_reg_addr_1  = s_reg_instr[19:15];
     assign s_reg_addr_2  = s_reg_instr[24:20];
-    assign s_reg_addr_3  = s_reg_instr[11:7];
+    assign s_reg_addr_3  = s_reg_instr[11:7 ];
 
     assign s_addr_offset = s_reg_mem_addr[2:0];
     
     assign s_csr_jamp_addr  = s_csr_read_data >> 2;
     assign s_csr_mcause     = { s_interrupt, 59'b0, s_mcause };
     assign s_timer_int      = s_mie_mstatus & s_mtip_mip & s_mtie_mie;
-
-
-    assign s_cacheable = ( s_reg_mem_addr >= 64'h3000_0000 );
 
 
  
@@ -226,6 +221,7 @@ module top
         .o_mem_reg_we           ( s_reg_mem_we          ),
         .o_fetch_state          ( s_fetch_state         ),
         .o_reg_mem_addr_we      ( s_reg_mem_addr_we     ),
+        .o_invalidate_instr     ( s_invalidate_instr    ),
         .o_interrupt            ( s_interrupt           ),
         .o_mcause               ( s_mcause              ),
         .o_csr_we_1             ( s_csr_we_1            ),
@@ -279,14 +275,15 @@ module top
 
     // Instruction Cache.
     instr_cache I_CACHE (
-        .clk             ( clk              ),
-        .write_en        ( s_instr_cache_we ),
-        .arst            ( arst             ),
-        .i_instr_addr    ( s_reg_pc         ),
-        .i_inst          ( i_data_read_axi  ),
-        .o_instr         ( s_instr_read     ),
-        .o_hit           ( s_instr_hit      ),
-        .o_instr_addr_ma ( s_instr_addr_ma  )
+        .clk                ( clk                ),
+        .write_en           ( s_instr_cache_we   ),
+        .arst               ( arst               ),
+        .i_instr_addr       ( s_reg_pc           ),
+        .i_inst             ( i_data_read_axi    ),
+        .i_invalidate_instr ( s_invalidate_instr ),
+        .o_instr            ( s_instr_read       ),
+        .o_hit              ( s_instr_hit        ),
+        .o_instr_addr_ma    ( s_instr_addr_ma    )
     );
 
 
@@ -411,7 +408,7 @@ module top
     );
 
     // Memory Data Register. 
-    register_en MEM_DATA (
+    register_en REG_MEM_DATA (
         .clk          ( clk                ),
         .arst         ( arst               ),
         .write_en     ( s_reg_mem_we       ),

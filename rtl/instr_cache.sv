@@ -20,6 +20,7 @@ module instr_cache
     // Input Interface.
     input  logic [ ADDR_WIDTH  - 1:0 ] i_instr_addr,
     input  logic [ BLOCK_WIDTH - 1:0 ] i_inst,
+    input  logic                       i_invalidate_instr,
 
     // Output Interface.
     output logic [ WORD_SIZE   - 1:0 ] o_instr,
@@ -70,14 +71,20 @@ module instr_cache
     // Instruction memory.
     logic [ BLOCK_WIDTH - 1:0 ] mem [ BLOCK_COUNT - 1:0 ];
 
-    // Write logic.
+    // Valid write logic.
     always_ff @( posedge clk, posedge arst ) begin
-        if ( arst ) begin
+        if ( arst | i_invalidate_instr ) begin
             valid_mem <= '0;
         end
         else if ( write_en ) begin
-            tag_mem  [ s_index ] <= s_tag_in;
             valid_mem[ s_index ] <= 1'b1;
+        end
+    end
+
+    // Write logic.
+    always_ff @( posedge clk ) begin
+        if ( write_en ) begin
+            tag_mem  [ s_index ] <= s_tag_in;
             mem      [ s_index ] <= i_inst;
         end
     end

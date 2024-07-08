@@ -45,6 +45,7 @@ module main_fsm
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
     output logic        o_reg_mem_addr_we,
+    output logic        o_invalidate_instr,
     output logic        o_interrupt,
     output logic [ 3:0] o_mcause,
     output logic        o_csr_we_1,
@@ -77,9 +78,9 @@ module main_fsm
         BRANCH      = 4'b1010,
         LOADI       = 4'b1011,
         CALL_0      = 4'b1100,
-        // CALL_1      = 4'b1101,
-        CSR_EXECUTE = 4'b1110,
-        CSR_WB      = 4'b1111
+        CSR_EXECUTE = 4'b1101,
+        CSR_WB      = 4'b1110,
+        FENCE_I     = 4'b1111
     } t_state;
 
     // State variables. 
@@ -99,7 +100,7 @@ module main_fsm
         J_Type      = 4'b1000,
         U_Type_ALU  = 4'b1001,
         U_Type_LOAD = 4'b1010,
-        // FENCE_Type  = 4'b1011,
+        FENCE_Type  = 4'b1011,
         CSR_Type    = 4'b1100,
         ILLEGAL     = 4'b1101
     } t_instruction;
@@ -121,7 +122,7 @@ module main_fsm
             7'b1101111: instr = J_Type;
             7'b0010111: instr = U_Type_ALU;
             7'b0110111: instr = U_Type_LOAD; 
-            // 7'b0001111: instr = FENCE_Type;
+            7'b0001111: instr = FENCE_Type;
             7'b1110011: instr = CSR_Type;
             default:    instr = ILLEGAL;
         endcase
@@ -163,7 +164,7 @@ module main_fsm
                     J_Type     : NS = JAL;
                     U_Type_ALU : NS = ALUWB;
                     U_Type_LOAD: NS = LOADI; 
-                    // FENCE_Type : NS = FETCH; // NOT IMPLEMENTED.
+                    FENCE_Type : NS = FENCE_I; // ONLY FENCE.I is IMPLEMENTED.
                     CSR_Type   : begin
                         if ( s_func_3_reduction ) NS = CSR_EXECUTE; // CSR.
                         else if ( i_func_7_4    ) NS = JAL;         // MRET. PROBLEM: NOT FINISHED.
@@ -201,7 +202,7 @@ module main_fsm
 
             ALUWB: begin
                 if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) NS = CALL_0;
-                else                       NS = FETCH;                 
+                else                                                               NS = FETCH;                 
             end
 
             EXECUTEI: NS = ALUWB;
@@ -224,6 +225,8 @@ module main_fsm
             end 
 
             CSR_WB: NS = FETCH;
+
+            FENCE_I: NS = FETCH;
 
             default: NS = PS;
         endcase
@@ -248,6 +251,7 @@ module main_fsm
         o_mem_reg_we       = 1'b0;
         o_fetch_state      = 1'b0;
         o_reg_mem_addr_we  = 1'b0;
+        o_invalidate_instr = 1'b0;
         o_interrupt        = 1'b0;
         o_mcause           = 4'b0000;
         o_csr_we_1         = 1'b0;
@@ -280,7 +284,7 @@ module main_fsm
 
                 if ( i_instr_addr_ma ) begin
                     o_mcause           = 4'd0; // Instruction address misaligned.
-                    o_interrupt        = 1'b1;
+                    o_interrupt        = 1'b0;
                     o_csr_write_addr_1 = 3'b100;  // mcause.
                     o_csr_we_1         = 1'b1; 
                     o_csr_write_addr_2 = 3'b101;  // mepc.
@@ -482,6 +486,8 @@ module main_fsm
                 o_result_src      = 3'b101; // s_csr_read_data_reg
             end
 
+            FENCE_I: o_invalidate_instr = 1'b1;
+
 
             default: begin
                 o_alu_op           = 3'b000;
@@ -498,6 +504,7 @@ module main_fsm
                 o_mem_reg_we       = 1'b0;
                 o_fetch_state      = 1'b0;
                 o_reg_mem_addr_we  = 1'b0;
+                o_invalidate_instr = 1'b0;
                 o_interrupt        = 1'b0;
                 o_mcause           = 4'b0000;
                 o_csr_we_1         = 1'b0;
