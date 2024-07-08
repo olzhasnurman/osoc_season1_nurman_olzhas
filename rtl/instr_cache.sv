@@ -6,7 +6,7 @@
 
 module ysyx_201979054_instr_cache 
 #(
-    parameter BLOCK_COUNT   = 256,
+    parameter BLOCK_COUNT   = 4,
               WORD_SIZE     = 32,
               BLOCK_WIDTH   = 512,
               ADDR_WIDTH    = 64
@@ -32,13 +32,13 @@ module ysyx_201979054_instr_cache
     localparam WORD_COUNT     = BLOCK_WIDTH/WORD_SIZE; // 16 bits.
 
     localparam WORD_OFFSET_W  = $clog2( WORD_COUNT );  // 4 bit.
-    localparam BLOCK_NUMBER_W = $clog2( BLOCK_COUNT ); // 8 bit.
+    localparam BLOCK_NUMBER_W = $clog2( BLOCK_COUNT ); // 2 bit.
     localparam BYTE_OFFSET_W  = $clog2( WORD_SIZE/8 ); // 2 bit.
 
     localparam TAG_MSB         = ADDR_WIDTH - 1;                                 // 63.
-    localparam TAG_LSB         = BLOCK_NUMBER_W + WORD_OFFSET_W + BYTE_OFFSET_W; // 14.
-    localparam TAG_WIDTH       = TAG_MSB - TAG_LSB + 1;                          // 50
-    localparam INDEX_MSB       = TAG_LSB - 1;                                    // 13.
+    localparam TAG_LSB         = BLOCK_NUMBER_W + WORD_OFFSET_W + BYTE_OFFSET_W; // 8.
+    localparam TAG_WIDTH       = TAG_MSB - TAG_LSB + 1;                          // 56
+    localparam INDEX_MSB       = TAG_LSB - 1;                                    // 7.
     localparam INDEX_LSB       = WORD_OFFSET_W + BYTE_OFFSET_W;                  // 6.
     localparam WORD_OFFSET_MSB = INDEX_LSB - 1;                                  // 5.
     localparam WORD_OFFSET_LSB = BYTE_OFFSET_W;                                  // 2.

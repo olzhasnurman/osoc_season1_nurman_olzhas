@@ -363,7 +363,7 @@ module ysyx_201979054_datapath
     );
 
     // PC Register Instance.
-    ysyx_201979054_register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) PC_REG (
+    ysyx_201979054_register_pc # (.DATA_WIDTH (MEM_ADDR_WIDTH)) PC_REG (
         .clk          ( clk           ),
         .write_en     ( s_pc_write_en ),
         .arst         ( arst          ),

@@ -6,10 +6,10 @@
 
 module ysyx_201979054_data_cache 
 #(
-    parameter SET_COUNT   = 256,
+    parameter SET_COUNT   = 2,
               WORD_SIZE   = 32,
               BLOCK_WIDTH = 512,
-              N           = 4,
+              N           = 2,
               ADDR_WIDTH  = 64,
               REG_WIDTH   = 64
 ) 
@@ -44,13 +44,13 @@ module ysyx_201979054_data_cache
     localparam WORD_COUNT     = BLOCK_WIDTH/WORD_SIZE; // 16 bits.
 
     localparam WORD_OFFSET_W  = $clog2( WORD_COUNT  ); // 4 bits.
-    localparam BLOCK_NUMBER_W = $clog2( SET_COUNT );   // 8 bits.
+    localparam BLOCK_NUMBER_W = $clog2( SET_COUNT );   // 1 bits.
     localparam BYTE_OFFSET_W  = $clog2( WORD_SIZE/8 ); // 2 bits.
 
     localparam TAG_MSB         = ADDR_WIDTH - 1;                                 // 63.
-    localparam TAG_LSB         = BLOCK_NUMBER_W + WORD_OFFSET_W + BYTE_OFFSET_W; // 14.
-    localparam TAG_WIDTH       = TAG_MSB - TAG_LSB + 1;                          // 50
-    localparam INDEX_MSB       = TAG_LSB - 1;                                    // 13.
+    localparam TAG_LSB         = BLOCK_NUMBER_W + WORD_OFFSET_W + BYTE_OFFSET_W; // 7.
+    localparam TAG_WIDTH       = TAG_MSB - TAG_LSB + 1;                          // 57
+    localparam INDEX_MSB       = TAG_LSB - 1;                                    // 6.
     localparam INDEX_LSB       = WORD_OFFSET_W + BYTE_OFFSET_W;                  // 6.
     localparam WORD_OFFSET_MSB = INDEX_LSB - 1;                                  // 5.
     localparam WORD_OFFSET_LSB = BYTE_OFFSET_W;                                  // 2.
@@ -135,18 +135,14 @@ module ysyx_201979054_data_cache
     always_comb begin
         s_hit[0] = valid_mem[ 0 ][ s_index ] & ( tag_mem [ s_index ][ 0 ] == s_tag_in );
         s_hit[1] = valid_mem[ 1 ][ s_index ] & ( tag_mem [ s_index ][ 1 ] == s_tag_in );
-        s_hit[2] = valid_mem[ 2 ][ s_index ] & ( tag_mem [ s_index ][ 2 ] == s_tag_in );
-        s_hit[3] = valid_mem[ 3 ][ s_index ] & ( tag_mem [ s_index ][ 3 ] == s_tag_in );
 
         o_hit = | s_hit;
 
         if ( o_hit ) begin
             casez ( s_hit )
-                4'bzzz1: s_match = 2'b00;
-                4'bzz10: s_match = 2'b01;
-                4'bz100: s_match = 2'b10;
-                4'b1000: s_match = 2'b11;
-                default: s_match = 2'b00;
+                2'bz1: s_match = 1'b0;
+                2'b10: s_match = 1'b1;
+                default: s_match = 1'b0;
             endcase  
             
         end
@@ -155,17 +151,13 @@ module ysyx_201979054_data_cache
 
     // Find LRU.
     always_comb begin
-        s_lru_found[0] = lru_mem[0][ s_index ] == 2'b00;
-        s_lru_found[1] = lru_mem[1][ s_index ] == 2'b00;
-        s_lru_found[2] = lru_mem[2][ s_index ] == 2'b00;
-        s_lru_found[3] = lru_mem[3][ s_index ] == 2'b00;
+        s_lru_found[0] = lru_mem[0][ s_index ] == 1'b0;
+        s_lru_found[1] = lru_mem[1][ s_index ] == 1'b0;
 
         casez ( s_lru_found )
-            4'bzzz1: s_lru = 2'b00;
-            4'bzz10: s_lru = 2'b01;
-            4'bz100: s_lru = 2'b10;
-            4'b1000: s_lru = 2'b11;
-            default: s_lru = 2'b00;
+            2'bz1: s_lru = 1'b0;
+            2'b10: s_lru = 1'b1;
+            default: s_lru = 1'b0;
         endcase  
     end
 
@@ -352,11 +344,9 @@ module ysyx_201979054_data_cache
     // Modify dirty bit. 
     always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) begin
-            // For 4-way set associative cache.
+            // For 2-way set associative cache.
             dirty_mem [ 0 ] <= '0;
             dirty_mem [ 1 ] <= '0;
-            dirty_mem [ 2 ] <= '0;
-            dirty_mem [ 3 ] <= '0;
         end
         else if ( write_en ) begin
             dirty_mem[ s_match ][ s_index ] <= 1'b1;
@@ -369,11 +359,9 @@ module ysyx_201979054_data_cache
     // Write valid bit. 
     always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) begin
-            // For 4-way set associative cache.
+            // For 2-way set associative cache.
             valid_mem [ 0 ] <= '0;
             valid_mem [ 1 ] <= '0;
-            valid_mem [ 2 ] <= '0;
-            valid_mem [ 3 ] <= '0;
         end
         else if ( valid_update ) begin
             valid_mem[ s_lru ][ s_index ] <= 1'b1;
@@ -394,19 +382,17 @@ module ysyx_201979054_data_cache
     integer j;
     always_ff @( posedge clk ) begin
         if ( lru_update ) begin
-                lru_mem[ s_match ][ s_index ] <= 2'b11;
+                lru_mem[ s_match ][ s_index ] <= 1'b1;
                 for ( j = 0; j < N; j++ ) begin
                     if ( lru_mem[ j ][ s_index ] > lru_mem[ s_match ][ s_index ] ) begin
-                        lru_mem[ j ][ s_index ] <= lru_mem[ j ][ s_index ] - 2'b01;
+                        lru_mem[ j ][ s_index ] <= lru_mem[ j ][ s_index ] - 1'b1;
                     end
                 end
         end
         else if ( ~ lru_set[ s_index ] ) begin
             // For 4-way set associative cache.
-            lru_mem [ 0 ][ s_index ] <= 2'b00;
-            lru_mem [ 1 ][ s_index ] <= 2'b01;
-            lru_mem [ 2 ][ s_index ] <= 2'b10;
-            lru_mem [ 3 ][ s_index ] <= 2'b11;
+            lru_mem [ 0 ][ s_index ] <= 1'b0;
+            lru_mem [ 1 ][ s_index ] <= 1'b1;
         end
     end
 
