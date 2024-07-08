@@ -27,7 +27,6 @@ module ysyx_201979054_main_fsm
     input  logic        i_load_addr_ma,
     input  logic        i_illegal_instr_load,
     input  logic        i_illegal_instr_alu,
-    input  logic        i_a0_reg_lsb, // FOR SIMULATION ONLY.
     input  logic        i_timer_int, 
     input  logic        i_cacheable_flag,
     input  logic        i_done_axi,
@@ -59,7 +58,6 @@ module ysyx_201979054_main_fsm
     output logic [ 2:0] o_csr_write_addr_2,
     output logic [ 2:0] o_csr_read_addr
 );  
-    import "DPI-C" function void check(byte a0, byte mcause);
 
     logic s_func_3_reduction;
     logic [2:0] s_csr_addr;
@@ -277,7 +275,6 @@ module ysyx_201979054_main_fsm
         o_csr_read_addr    = s_csr_addr;
 
         case ( PS )
-        /* verilator lint_off WIDTH */
             FETCH: begin
                 o_result_src    = 3'b010; // Alu result
                 o_start_i_cache = 1'b1;
@@ -306,7 +303,6 @@ module ysyx_201979054_main_fsm
                     o_result_src       = 3'b110; // s_old_pc.  
                     o_csr_we_2         = 1'b1; 
                     o_start_i_cache    = 1'b0;
-                    check(i_a0_reg_lsb, o_mcause);
                 end
 
                 if ( i_stall_instr ) begin
@@ -333,7 +329,6 @@ module ysyx_201979054_main_fsm
                     o_csr_write_addr_2 = 3'b101;  // mepc.
                     o_result_src       = 3'b110; // s_old_pc.  
                     o_csr_we_2         = 1'b1; 
-                    check(i_a0_reg_lsb, o_mcause);
                 end
                 if ( instr == ILLEGAL ) begin
                     o_mcause           = 4'd2; // Illegal instruction.
@@ -342,7 +337,6 @@ module ysyx_201979054_main_fsm
                     o_csr_write_addr_2 = 3'b101;  // mepc.
                     o_result_src       = 3'b110; // s_old_pc.  
                     o_csr_we_2         = 1'b1; 
-                    check(i_a0_reg_lsb, o_mcause);
                 end
             end
 
@@ -374,7 +368,6 @@ module ysyx_201979054_main_fsm
                     o_result_src       = 3'b110; // s_old_pc.  
                     o_csr_we_2         = 1'b1; 
                     o_start_d_cache    = 1'b0;
-                    check(i_a0_reg_lsb, o_mcause);
                 end
 
                 if ( i_illegal_instr_load ) begin
@@ -385,7 +378,6 @@ module ysyx_201979054_main_fsm
                     o_result_src       = 3'b110; // s_old_pc.  
                     o_csr_we_2         = 1'b1; 
                     o_start_d_cache    = 1'b0;
-                    check(i_a0_reg_lsb, o_mcause);
                     // $display("time =%0t", $time); // FOR SIMULATION ONLY.
                 end 
 
@@ -418,7 +410,6 @@ module ysyx_201979054_main_fsm
                     o_result_src       = 3'b110; // s_old_pc.  
                     o_csr_we_2         = 1'b1; 
                     o_start_d_cache    = 1'b0;
-                    check(i_a0_reg_lsb, o_mcause);
                 end
 
                 if ( i_stall_data ) begin
@@ -452,7 +443,6 @@ module ysyx_201979054_main_fsm
                 //     o_csr_write_addr_2 = 3'b101;  // mepc.
                 //     o_result_src       = 3'b110; // s_old_pc.  
                 //     o_csr_we_2         = 1'b1; 
-                //     check(i_a0_reg_lsb, o_mcause);
                 // end
             end
 
@@ -541,7 +531,6 @@ module ysyx_201979054_main_fsm
                 o_csr_write_addr_2 = s_csr_addr;
                 o_csr_read_addr    = s_csr_addr;
             end
-        /* verilator lint_off WIDTH */
         endcase
     end
     

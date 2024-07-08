@@ -31,7 +31,6 @@ module  ysyx_201979054_control_unit
     input logic         i_store_addr_ma,
     input logic         i_load_addr_ma,
     input logic         i_illegal_instr_load,
-    input logic         i_a0_reg_lsb, // FOR SIMULATION ONLY.
     input logic         i_timer_int,
     input  logic        i_cacheable_flag,
 
@@ -129,7 +128,6 @@ module  ysyx_201979054_control_unit
         .i_load_addr_ma       ( i_load_addr_ma         ),
         .i_illegal_instr_load ( i_illegal_instr_load   ),
         .i_illegal_instr_alu  ( s_illegal_instr_alu_ff ),
-        .i_a0_reg_lsb         ( i_a0_reg_lsb           ), // FOR SIMULATION ONLY.
         .i_timer_int          ( i_timer_int            ),
         .i_cacheable_flag     ( i_cacheable_flag       ),
         .i_done_axi           ( i_read_last_axi        ),
