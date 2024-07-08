@@ -1,5 +1,5 @@
 
-elf/riscv-arch-test/sltu-riscv64-nemu.bin:     file format binary
+bin/riscv-arch-test/sltu-riscv64-nemu.bin:     file format binary
 
 Contents of section .data:
  80000000 13040000 17810100 1301c1ff efc0c011  ................

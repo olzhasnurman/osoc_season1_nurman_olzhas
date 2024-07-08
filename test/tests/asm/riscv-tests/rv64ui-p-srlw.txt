@@ -1,5 +1,5 @@
 
-elf/riscv-tests/rv64ui-p-srlw:     file format binary
+bin/riscv-tests/rv64ui-p-srlw:     file format binary
 
 Contents of section .data:
  80001000 6f000005 732f2034 930f8000 6308ff03  o...s/ 4....c...

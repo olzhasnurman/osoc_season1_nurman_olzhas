@@ -1,5 +1,5 @@
 
-elf/riscv-arch-test/misalign1-jalr-riscv64-nemu.bin:     file format binary
+bin/riscv-arch-test/misalign1-jalr-riscv64-nemu.bin:     file format binary
 
 Contents of section .data:
  80000000 13040000 17b10000 1301c1ff ef00c051  ...............Q

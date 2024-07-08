@@ -8,6 +8,7 @@ am-kernels/dummy-riscv64-nemu.bin
 am-kernels/fact-riscv64-nemu.bin
 am-kernels/fib-riscv64-nemu.bin
 am-kernels/goldbach-riscv64-nemu.bin
+am-kernels/hello-flash-riscv64-nemu.bin
 am-kernels/hello-str-riscv64-nemu.bin
 am-kernels/if-else-riscv64-nemu.bin
 am-kernels/leap-year-riscv64-nemu.bin

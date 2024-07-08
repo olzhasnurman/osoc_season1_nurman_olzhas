@@ -1,5 +1,5 @@
 
-elf/am-kernels/leap-year-riscv64-nemu.bin:     file format binary
+bin/am-kernels/leap-year-riscv64-nemu.bin:     file format binary
 
 Contents of section .data:
  80000000 13040000 17910000 1301c1ff ef00000c  ................

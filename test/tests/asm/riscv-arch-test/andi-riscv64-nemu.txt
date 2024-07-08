@@ -1,5 +1,5 @@
 
-elf/riscv-arch-test/andi-riscv64-nemu.bin:     file format binary
+bin/riscv-arch-test/andi-riscv64-nemu.bin:     file format binary
 
 Contents of section .data:
  80000000 13040000 17210100 1301c1ff ef60d078  .....!.......`.x
