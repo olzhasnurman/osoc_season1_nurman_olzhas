@@ -4,7 +4,7 @@
 // This is fifo module that is used to store and output data as a queue in caching system.
 // ----------------------------------------------------------------------------------------
 
-module fifo 
+module ysyx_201979054_fifo 
 #(
     parameter AXI_DATA_WIDTH = 32,
               FIFO_WIDTH     = 512

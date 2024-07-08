@@ -4,7 +4,7 @@
 // This module facilitates the data transfer between cache and AXI interfaces.
 // -----------------------------------------------------------------------------
 
-module cache_data_transfer 
+module ysyx_201979054_cache_data_transfer 
 #(
     parameter AXI_DATA_WIDTH = 32,
               AXI_ADDR_WIDTH = 64,
@@ -42,7 +42,7 @@ module cache_data_transfer
     //-----------------------------------
 
     // Counter module instance.
-    counter COUNT0 (
+    ysyx_201979054_counter COUNT0 (
         .clk      ( clk          ),
         .arst     ( arst         ),
         .run      ( i_axi_done   ),
@@ -51,7 +51,7 @@ module cache_data_transfer
     );
 
     // Address increment module instance.
-    addr_increment ADD_INC0 (
+    ysyx_201979054_addr_increment ADD_INC0 (
         .clk    ( clk          ),
         .run    ( s_start      ),
         .enable ( i_axi_done   ),
@@ -60,7 +60,7 @@ module cache_data_transfer
     );
 
     // FIFO module instance.
-    fifo FIFO0 (
+    ysyx_201979054_fifo FIFO0 (
         .clk          ( clk                ),
         .arst         ( arst               ),
         .write_en     ( i_axi_done         ),

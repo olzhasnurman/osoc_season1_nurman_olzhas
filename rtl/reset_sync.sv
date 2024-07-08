@@ -4,7 +4,7 @@
 // This is a reset syncronizer module.
 // ----------------------------------------------------------------------------------------------
 
-module reset_sync 
+module ysyx_201979054_reset_sync 
 (
     input  logic clk,
     input  logic arst,

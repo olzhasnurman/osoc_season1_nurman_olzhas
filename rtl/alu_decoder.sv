@@ -5,13 +5,14 @@
 // op[5], alu_op, func_3, func_7[5] signals. 
 // -----------------------------------------------------------------------
 
-module alu_decoder 
+module ysyx_201979054_alu_decoder 
 // Port delerations. 
 (
     // Input interface.
     input  logic [2:0] i_alu_op,
     input  logic [2:0] i_func_3,
     input  logic       i_func_7_5,
+    input  logic       i_func_7_0,
     input  logic       i_op_5,
 
     // Output interface. 
@@ -62,15 +63,22 @@ module alu_decoder
             // I & R Type W.
             3'b011: 
                 case ( i_func_3 )
-                    3'b000: 
-                        case ( s_op_func_7 )
-                            2'b11:   o_alu_control = 5'b01011; // SUBW.
-                            2'b10:   o_alu_control = 5'b01010; // ADDW.
-                            default: o_alu_control = 5'b01111; // ADDIW.
-                        endcase
+                    3'b000:
+                        if ( i_func_7_0 ) begin 
+                            if ( i_op_5 ) o_alu_control = 5'b10100; // MULW.
+                            else          o_alu_control = 5'b01111; // ADDIW. 
+                        end
+                        else begin
+                            case ( s_op_func_7 )
+                                2'b11:   o_alu_control = 5'b01011; // SUBW.
+                                2'b10:   o_alu_control = 5'b01010; // ADDW.
+                                default: o_alu_control = 5'b01111; // ADDIW.
+                            endcase
+                        end 
                     3'b001: o_alu_control = 5'b01100; // SLLIW or SLLW
                     3'b101: if ( i_func_7_5 ) o_alu_control = 5'b01110; // SRAIW or SRAW.
                             else              o_alu_control = 5'b01101; // SRLIW or SRLW. 
+                    3'b100: o_alu_control = 5'b10011; // DIVW.
                     default: begin
                         o_alu_control   = 5'b00000;
                         o_illegal_instr = 1'b1;                        

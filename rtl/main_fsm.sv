@@ -5,7 +5,7 @@
 // This is a main fsm unit that controls all the control signals based on instruction input. 
 // -----------------------------------------------------------------------------------------
 
-module main_fsm   
+module ysyx_201979054_main_fsm   
 // Port decleration. 
 (
     // Common clock & reset.
@@ -29,6 +29,8 @@ module main_fsm
     input  logic        i_illegal_instr_alu,
     input  logic        i_a0_reg_lsb, // FOR SIMULATION ONLY.
     input  logic        i_timer_int, 
+    input  logic        i_cacheable_flag,
+    input  logic        i_done_axi,
 
     // Output interface.
     output logic [ 2:0] o_alu_op,
@@ -45,6 +47,8 @@ module main_fsm
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
     output logic        o_reg_mem_addr_we,
+    output logic        o_start_read_nc,
+    output logic        o_start_write_nc,
     output logic        o_invalidate_instr,
     output logic        o_interrupt,
     output logic [ 3:0] o_mcause,
@@ -185,7 +189,11 @@ module main_fsm
             end
 
             MEMREAD: begin
-                if ( i_load_addr_ma | i_illegal_instr_load ) NS = CALL_0; 
+                if ( i_load_addr_ma | i_illegal_instr_load ) NS = CALL_0;
+                else if ( ~ i_cacheable_flag ) begin
+                    if ( i_done_axi )                        NS = MEMWB;
+                    else                                     NS = PS;
+                end
                 else if ( i_stall_data )                     NS = PS;
                 else                                         NS = MEMWB;
             end
@@ -194,6 +202,10 @@ module main_fsm
 
             MEMWRITE: begin
                 if ( i_store_addr_ma )   NS = CALL_0;
+                else if ( ~ i_cacheable_flag ) begin
+                    if ( i_done_axi )    NS = FETCH;
+                    else                 NS = PS;
+                end
                 else if ( i_stall_data ) NS = PS;
                 else                     NS = FETCH;
             end
@@ -201,8 +213,9 @@ module main_fsm
             EXECUTER: NS = ALUWB;
 
             ALUWB: begin
-                if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) NS = CALL_0;
-                else                                                               NS = FETCH;                 
+                // if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) NS = CALL_0;
+                // else                       NS = FETCH;    
+                NS = FETCH;             
             end
 
             EXECUTEI: NS = ALUWB;
@@ -251,6 +264,8 @@ module main_fsm
         o_mem_reg_we       = 1'b0;
         o_fetch_state      = 1'b0;
         o_reg_mem_addr_we  = 1'b0;
+        o_start_read_nc    = 1'b0;
+        o_start_write_nc   = 1'b0;
         o_invalidate_instr = 1'b0;
         o_interrupt        = 1'b0;
         o_mcause           = 4'b0000;
@@ -346,6 +361,11 @@ module main_fsm
                 o_alu_src_1     = 2'b10;
                 o_alu_src_2     = 2'b01; 
 
+                if ( ~ i_cacheable_flag ) begin
+                    o_start_d_cache = 1'b0;
+                    o_start_read_nc = 1'b1;
+                end
+
                 if ( i_load_addr_ma ) begin
                     o_mcause           = 4'd4; // Load address misaligned.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
@@ -385,6 +405,11 @@ module main_fsm
                 o_alu_src_1     = 2'b10;
                 o_alu_src_2     = 2'b01;
 
+                if ( ~ i_cacheable_flag ) begin
+                    o_start_d_cache  = 1'b0;
+                    o_start_write_nc = 1'b1;
+                end
+
                 if ( i_store_addr_ma ) begin
                     o_mcause           = 4'd6; // Store address misaligned.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
@@ -420,15 +445,15 @@ module main_fsm
                 o_result_src   = 3'b000;
                 o_reg_write_en = 1'b1;
                 
-                if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) begin
-                    o_mcause           = 4'd2; // Illegal instruction.
-                    o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
-                    o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
-                    check(i_a0_reg_lsb, o_mcause);
-                end
+                // if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) begin
+                //     o_mcause           = 4'd2; // Illegal instruction.
+                //     o_csr_write_addr_1 = 3'b100;  // mcause.
+                //     o_csr_we_1         = 1'b1; 
+                //     o_csr_write_addr_2 = 3'b101;  // mepc.
+                //     o_result_src       = 3'b110; // s_old_pc.  
+                //     o_csr_we_2         = 1'b1; 
+                //     check(i_a0_reg_lsb, o_mcause);
+                // end
             end
 
             EXECUTEI: begin
@@ -504,6 +529,8 @@ module main_fsm
                 o_mem_reg_we       = 1'b0;
                 o_fetch_state      = 1'b0;
                 o_reg_mem_addr_we  = 1'b0;
+                o_start_read_nc    = 1'b0;
+                o_start_write_nc   = 1'b0;
                 o_invalidate_instr = 1'b0;
                 o_interrupt        = 1'b0;
                 o_mcause           = 4'b0000;

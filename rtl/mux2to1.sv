@@ -5,7 +5,7 @@
 // It can choose either PCNext or calculated result.
 // ------------------------------------------------------
 
-module mux2to1
+module ysyx_201979054_mux2to1
 // Parameters. 
 #(
     parameter ADDR_WIDTH = 64

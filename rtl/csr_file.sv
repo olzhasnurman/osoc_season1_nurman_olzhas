@@ -4,7 +4,7 @@
 // This is a csr file component of processor based on RISC-V architecture.
 // ----------------------------------------------------------------------------
 
-module csr_file
+module ysyx_201979054_csr_file
 // Parameters.
 #(
     parameter DATA_WIDTH = 64,

@@ -5,7 +5,7 @@
 // by 4 when seding data in burst using AXI4-Lite protocol.
 // ---------------------------------------------------------------
 
-module addr_increment 
+module ysyx_201979054_addr_increment 
 #(
     parameter AXI_ADDR_WIDTH = 64
 ) 

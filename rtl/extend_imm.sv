@@ -4,7 +4,7 @@
 // This is a module to extend immediate input depending on type of instruction.
 // ----------------------------------------------------------------------------
 
-module extend_imm
+module ysyx_201979054_extend_imm
 // Parameters.
 #(
     parameter IMM_WIDTH = 25,

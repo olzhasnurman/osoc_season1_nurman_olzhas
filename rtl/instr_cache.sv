@@ -4,7 +4,7 @@
 // This is a instruction cache for for direct mapped cache.
 // -------------------------------------------------------------------
 
-module instr_cache 
+module ysyx_201979054_instr_cache 
 #(
     parameter BLOCK_COUNT   = 256,
               WORD_SIZE     = 32,

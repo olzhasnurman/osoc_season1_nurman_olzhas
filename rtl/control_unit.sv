@@ -6,7 +6,7 @@
 //  controls all the control signals based on instruction input. 
 // -------------------------------------------------------------------------------------
 
-module control_unit   
+module  ysyx_201979054_control_unit   
 // Port decleration. 
 (
     // Common clock & reset.
@@ -33,6 +33,7 @@ module control_unit
     input logic         i_illegal_instr_load,
     input logic         i_a0_reg_lsb, // FOR SIMULATION ONLY.
     input logic         i_timer_int,
+    input  logic        i_cacheable_flag,
 
     // Output interface.
     output logic [ 4:0] o_alu_control,
@@ -54,6 +55,8 @@ module control_unit
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
     output logic        o_reg_mem_addr_we,
+    output logic        o_start_read_nc,
+    output logic        o_start_write_nc,
     output logic        o_invalidate_instr,
     output logic        o_interrupt,
     output logic [ 3:0] o_mcause,
@@ -109,7 +112,7 @@ module control_unit
     //-------------------------------------
 
     // Main FSM module instance. 
-    main_fsm M_FSM (
+    ysyx_201979054_main_fsm M_FSM (
         .clk                  ( clk                    ),
         .arst                 ( arst                   ),
         .i_instr_22           ( i_instr_22             ),
@@ -128,6 +131,8 @@ module control_unit
         .i_illegal_instr_alu  ( s_illegal_instr_alu_ff ),
         .i_a0_reg_lsb         ( i_a0_reg_lsb           ), // FOR SIMULATION ONLY.
         .i_timer_int          ( i_timer_int            ),
+        .i_cacheable_flag     ( i_cacheable_flag       ),
+        .i_done_axi           ( i_read_last_axi        ),
         .o_alu_op             ( s_alu_op               ),
         .o_result_src         ( o_result_src           ),
         .o_alu_src_1          ( o_alu_src_1            ),
@@ -142,6 +147,8 @@ module control_unit
         .o_mem_reg_we         ( o_mem_reg_we           ),
         .o_fetch_state        ( o_fetch_state          ),
         .o_reg_mem_addr_we    ( o_reg_mem_addr_we      ),
+        .o_start_read_nc      ( o_start_read_nc        ),
+        .o_start_write_nc     ( o_start_write_nc       ),
         .o_invalidate_instr   ( o_invalidate_instr     ),
         .o_interrupt          ( o_interrupt            ),
         .o_mcause             ( o_mcause               ),
@@ -154,7 +161,7 @@ module control_unit
     );
 
     // Instruction cache FSM.
-    instr_cache_fsm I_C_FSM (
+    ysyx_201979054_instr_cache_fsm I_C_FSM (
         .clk              ( clk                    ),
         .arst             ( arst                   ),
         .i_start_check    ( s_start_instr_cache    ),
@@ -166,7 +173,7 @@ module control_unit
     );
 
     // Data cache FSM.
-    data_cache_fsm D_C_FSM (
+    ysyx_201979054_data_cache_fsm D_C_FSM (
         .clk                   ( clk                 ),
         .arst                  ( arst                ),
         .i_start_check         ( s_start_data_cache  ),
@@ -185,23 +192,24 @@ module control_unit
 
 
     // ALU decoder module.
-    alu_decoder ALU_DECODER (
+    ysyx_201979054_alu_decoder ALU_DECODER (
         .i_alu_op        ( s_alu_op            ),
         .i_func_3        ( i_func_3            ),
         .i_func_7_5      ( i_func_7[5]         ),
+        .i_func_7_0      ( i_func_7[0]         ),
         .i_op_5          ( i_op[5]             ),
         .o_alu_control   ( o_alu_control       ),
         .o_illegal_instr ( s_illegal_instr_alu )
     );
 
     // Instruction decoder. 
-    instr_decoder INSTR_DECODER (
+    ysyx_201979054_instr_decoder INSTR_DECODER (
         .i_op      ( i_op      ),
         .o_imm_src ( o_imm_src )
     );
 
     // Illegal instruction flag flip-flop.
-    register # (.DATA_WIDTH (1) ) II_ALU_FF (
+    ysyx_201979054_register # (.DATA_WIDTH (1) ) II_ALU_FF (
         .clk          ( clk                    ),
         .arst         ( arst                   ),
         .i_write_data ( s_illegal_instr_alu    ),

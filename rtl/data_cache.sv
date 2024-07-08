@@ -4,7 +4,7 @@
 // This is a data cache implemneted using 4-way set associative cache.
 // -------------------------------------------------------------------
 
-module data_cache 
+module ysyx_201979054_data_cache 
 #(
     parameter SET_COUNT   = 256,
               WORD_SIZE   = 32,

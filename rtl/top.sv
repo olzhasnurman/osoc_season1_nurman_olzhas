@@ -4,7 +4,7 @@
 // This is a top module in RISC-V architecture. It connects datapath units & control unit.
 // ---------------------------------------------------------------------------------------
 
-module top
+module ysyx_201979054_datapath
 // Parameters. 
 #(
     parameter REG_DATA_WIDTH   = 64,
@@ -23,9 +23,14 @@ module top
     input  logic                            i_arst,
     input  logic                            i_done_axi,   // NEEDS TO BE CONNECTED TO AXI 
     input  logic [ BLOCK_DATA_WIDTH - 1:0 ] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
+    input  logic [ REG_DATA_WIDTH   - 1:0 ] i_data_non_cacheable,
+    output logic [ REG_DATA_WIDTH   - 1:0 ] o_data_non_cacheable,
     output logic                            o_start_read_axi,  // NEEDS TO BE CONNECTED TO AXI
     output logic                            o_start_write_axi, // NEEDS TO BE CONNECTED TO AXI
+    output logic                            o_start_read_axi_nc,
+    output logic                            o_start_write_axi_nc,
     output logic [ MEM_ADDR_WIDTH   - 1:0 ] o_addr, // JUST FOR SIMULATION
+    output logic [ MEM_ADDR_WIDTH   - 1:0 ] o_addr_non_cacheable,
     output logic [ BLOCK_DATA_WIDTH - 1:0 ] o_data_write_axi   // NEEDS TO BE CONNECTED TO AXI
 );
 
@@ -100,6 +105,7 @@ module top
 
     // MUX signals.
     logic [ REG_DATA_WIDTH - 1:0 ] s_result;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_mem_data;
 
     // Immediate extend unit signals. 
     logic [                  24:0 ] s_imm;
@@ -121,7 +127,8 @@ module top
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_mcause;
     logic [                  3:0 ] s_mcause;
 
-    // Invalidate instructions in I Cache.
+    // Cacheable mark.
+    logic s_cacheable_flag;
     logic s_invalidate_instr;
 
     // CLINT machine timer interrupt.
@@ -160,6 +167,14 @@ module top
     assign s_timer_int      = s_mie_mstatus & s_mtip_mip & s_mtie_mie;
 
 
+    assign s_cacheable_flag  = ( s_reg_mem_addr >= 64'h3000_0000 );
+
+    assign o_addr_non_cacheable = s_reg_mem_addr;
+    assign o_data_non_cacheable = s_reg_data_2;
+
+    assign s_mem_data = s_cacheable_flag ? s_reg_mem_data : i_data_non_cacheable;
+
+
  
 
 
@@ -170,7 +185,7 @@ module top
     //------------------------------
     // Reset Synchronizer Instance.
     //------------------------------
-    reset_sync RST_SYNC (
+    ysyx_201979054_reset_sync RST_SYNC (
         .clk       ( clk    ),
         .arst      ( i_arst ),
         .arst_sync ( arst   )
@@ -180,7 +195,7 @@ module top
     //---------------------------
     // Control Unit Instance.
     //---------------------------
-    control_unit CU (
+    ysyx_201979054_control_unit CU (
         .clk                    ( clk                   ), 
         .arst                   ( arst                  ),
         .i_instr_22             ( s_reg_instr[22]       ),
@@ -202,6 +217,7 @@ module top
         .i_illegal_instr_load   ( s_illegal_instr_load  ),
         .i_a0_reg_lsb           ( s_a0_reg_lsb          ), // FOR SIMULATION ONLY.
         .i_timer_int            ( s_timer_int           ),
+        .i_cacheable_flag       ( s_cacheable_flag      ),
         .o_alu_control          ( s_alu_control         ),
         .o_result_src           ( s_result_src          ),
         .o_alu_src_1            ( s_alu_src_control_1   ),
@@ -221,6 +237,8 @@ module top
         .o_mem_reg_we           ( s_reg_mem_we          ),
         .o_fetch_state          ( s_fetch_state         ),
         .o_reg_mem_addr_we      ( s_reg_mem_addr_we     ),
+        .o_start_read_nc        ( o_start_read_axi_nc   ),
+        .o_start_write_nc       ( o_start_write_axi_nc  ),
         .o_invalidate_instr     ( s_invalidate_instr    ),
         .o_interrupt            ( s_interrupt           ),
         .o_mcause               ( s_mcause              ),
@@ -239,7 +257,7 @@ module top
     //--------------------------------
 
     // Register File Instance.
-    register_file REG_FILE (
+    ysyx_201979054_register_file REG_FILE (
         .clk            ( clk               ),
         .write_en_3     ( s_reg_write_en    ),
         .arst           ( arst              ),
@@ -253,7 +271,7 @@ module top
     );
 
     // Data Cache.
-    data_cache D_CACHE (
+    ysyx_201979054_data_cache D_CACHE (
         .clk             ( clk                   ),
         .arst            ( arst                  ),
         .write_en        ( s_mem_write_en        ),
@@ -274,7 +292,7 @@ module top
     );
 
     // Instruction Cache.
-    instr_cache I_CACHE (
+    ysyx_201979054_instr_cache I_CACHE (
         .clk                ( clk                ),
         .write_en           ( s_instr_cache_we   ),
         .arst               ( arst               ),
@@ -288,7 +306,7 @@ module top
 
 
     // Control & Status Registers.
-    csr_file CSR0 (
+    ysyx_201979054_csr_file CSR0 (
         .clk              ( clk                ),
         .write_en_1       ( s_csr_we_1         ),
         .write_en_2       ( s_csr_we_2         ),
@@ -308,7 +326,7 @@ module top
 
 
     // CLINT MMIO.
-    clint_mmio CLINT0 (
+    ysyx_201979054_clint_mmio CLINT0 (
         .clk              ( clk              ),
         .arst             ( arst             ),
         .write_en_1       ( 1'b0             ),
@@ -322,7 +340,7 @@ module top
     //------------------------------
     // ALU Instance. 
     //------------------------------
-    alu ALU (   
+    ysyx_201979054_alu ALU (   
         .alu_control     ( s_alu_control    ),
         .i_src_1         ( s_alu_src_data_1 ),
         .i_src_2         ( s_alu_src_data_2 ),
@@ -339,7 +357,7 @@ module top
     //-----------------------------------------
 
     // Instruction Register Instance. 
-    register_en # (.DATA_WIDTH (MEM_INSTR_WIDTH)) INSTR_REG (
+    ysyx_201979054_register_en # (.DATA_WIDTH (MEM_INSTR_WIDTH)) INSTR_REG (
         .clk          ( clk              ),
         .write_en     ( s_instr_write_en ),
         .arst         ( arst             ),
@@ -348,7 +366,7 @@ module top
     );
 
     // PC Register Instance.
-    register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) PC_REG (
+    ysyx_201979054_register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) PC_REG (
         .clk          ( clk           ),
         .write_en     ( s_pc_write_en ),
         .arst         ( arst          ),
@@ -357,7 +375,7 @@ module top
     ); 
 
     // Old PC Register Instance.
-    register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) OLD_PC_REG (
+    ysyx_201979054_register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) OLD_PC_REG (
         .clk          ( clk              ),
         .write_en     ( s_instr_write_en ),
         .arst         ( arst             ),
@@ -366,7 +384,7 @@ module top
     );
 
     // MEM ADDR Register Instance.
-    register_en MEM_ADDR_REG (
+    ysyx_201979054_register_en MEM_ADDR_REG (
         .clk          ( clk               ),
         .write_en     ( s_reg_mem_addr_we ),
         .arst         ( arst              ),
@@ -375,7 +393,7 @@ module top
     ); 
 
     // CSR Register Instance.
-    register_en # (.DATA_WIDTH (REG_DATA_WIDTH)) CSR_REG (
+    ysyx_201979054_register_en # (.DATA_WIDTH (REG_DATA_WIDTH)) CSR_REG (
         .clk          ( clk                 ),
         .write_en     ( s_csr_reg_we        ),
         .arst         ( arst                ),
@@ -384,7 +402,7 @@ module top
     );  
 
     // R1 Register Instance.
-    register R1 (
+    ysyx_201979054_register R1 (
         .clk          ( clk               ),
         .arst         ( arst              ),
         .i_write_data ( s_reg_read_data_1 ),
@@ -392,7 +410,7 @@ module top
     );
 
     // R2 Register Instance.
-    register R2 (
+    ysyx_201979054_register R2 (
         .clk          ( clk               ),
         .arst         ( arst              ),
         .i_write_data ( s_reg_read_data_2 ),
@@ -400,7 +418,7 @@ module top
     );
 
     // ALU Result Register Instance.
-    register REG_ALU_RESULT (
+    ysyx_201979054_register REG_ALU_RESULT (
         .clk          ( clk              ),
         .arst         ( arst             ),
         .i_write_data ( s_alu_result     ),
@@ -408,7 +426,7 @@ module top
     );
 
     // Memory Data Register. 
-    register_en REG_MEM_DATA (
+    ysyx_201979054_register_en REG_MEM_DATA (
         .clk          ( clk                ),
         .arst         ( arst               ),
         .write_en     ( s_reg_mem_we       ),
@@ -423,7 +441,7 @@ module top
     //----------------------
 
     // 4-to-1 ALU Source 1 MUX Instance.
-    mux4to1 ALU_MUX_1 (
+    ysyx_201979054_mux4to1 ALU_MUX_1 (
         .control_signal ( s_alu_src_control_1 ),
         .i_mux_0        ( s_reg_pc            ),
         .i_mux_1        ( s_reg_old_pc        ),
@@ -433,7 +451,7 @@ module top
     );
 
     // 4-to-1 ALU Source 2 MUX Instance.
-    mux4to1 ALU_MUX_2 (
+    ysyx_201979054_mux4to1 ALU_MUX_2 (
         .control_signal ( s_alu_src_control_2 ),
         .i_mux_0        ( s_reg_data_2        ),
         .i_mux_1        ( s_imm_ext           ),
@@ -443,10 +461,10 @@ module top
     );
 
     // 8-to-1 Result Source MUX Instance.
-    mux8to1 RESULT_MUX (
+    ysyx_201979054_mux8to1 RESULT_MUX (
         .control_signal ( s_result_src        ),
         .i_mux_0        ( s_reg_alu_result    ),
-        .i_mux_1        ( s_reg_mem_data      ), 
+        .i_mux_1        ( s_mem_data          ), 
         .i_mux_2        ( s_alu_result        ),
         .i_mux_3        ( s_imm_ext           ),
         .i_mux_4        ( s_csr_read_data     ),
@@ -462,7 +480,7 @@ module top
     //---------------------------------------
     // Immiediate Extension Module Instance.
     //---------------------------------------
-    extend_imm I_EXT (
+    ysyx_201979054_extend_imm I_EXT (
         .control_signal ( s_imm_src ),
         .i_imm          ( s_imm     ),
         .o_imm_ext      ( s_imm_ext )
@@ -471,7 +489,7 @@ module top
     //------------------------------
     // LOAD Instruction mux. 
     //------------------------------
-    load_mux LOAD_MUX (
+    ysyx_201979054_load_mux LOAD_MUX (
         .i_func_3        ( s_func_3             ),
         .i_data          ( s_mem_read_data      ),
         .i_addr_offset   ( s_addr_offset        ),

@@ -4,7 +4,7 @@
 // This is a Arithmetic Logic Unit (ALU).
 // --------------------------------------
 
-module alu 
+module ysyx_201979054_alu 
 // Parameters.
 #(
     parameter DATA_WIDTH    = 64,
@@ -52,6 +52,9 @@ module alu
     localparam CSRRS = 5'b10001;
     localparam CSRRC = 5'b10010;
 
+    localparam DIVW  = 5'b10011;
+    localparam MULW  = 5'b10100;
+
 
 
 
@@ -78,6 +81,9 @@ module alu
     logic [ WORD_WIDTH - 1:0 ] s_sllw_out;
     logic [ WORD_WIDTH - 1:0 ] s_srlw_out;
     logic [ WORD_WIDTH - 1:0 ] s_sraw_out;
+
+    logic [ WORD_WIDTH - 1:0 ] s_divw_out;
+    logic [ WORD_WIDTH - 1:0 ] s_mulw_out;
 
     // Flag signals. 
     // logic s_carry_flag_add;
@@ -109,6 +115,9 @@ module alu
     assign s_sllw_out = i_src_1[31:0] << i_src_2[4:0];
     assign s_srlw_out = i_src_1[31:0] >> i_src_2[4:0];
     assign s_sraw_out = $unsigned($signed(i_src_1[31:0]) >>> i_src_2[4:0]);
+
+    assign s_divw_out = $unsigned( $signed( i_src_1 [ 31:0 ] ) / $signed( i_src_2 [ 31:0] ) );
+    assign s_mulw_out = $unsigned( $signed( i_src_1 [ 31:0 ] ) * $signed( i_src_2 [ 31:0] ) );
 
 
     // Flags. 
@@ -149,6 +158,9 @@ module alu
             CSRRW: o_alu_result = i_src_1;
             CSRRS: o_alu_result = s_or_out;
             CSRRC: o_alu_result = ( ~ i_src_1) & i_src_2;
+
+            DIVW : o_alu_result = { { 32{s_divw_out[31]} }, s_divw_out };
+            MULW : o_alu_result = { { 32{s_mulw_out[31]} }, s_mulw_out[31:0] };
 
             default: begin
                 o_alu_result    = 'b0;

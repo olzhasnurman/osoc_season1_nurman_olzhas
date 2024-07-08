@@ -4,7 +4,7 @@
 // This is a counter module that counts the number of transferred data bursts through AXI4-Lite interface.
 // --------------------------------------------------------------------------------------------------------
 
-module counter 
+module ysyx_201979054_counter 
 #(
     parameter LIMIT          = 4'b1111,
               SIZE           = 16 

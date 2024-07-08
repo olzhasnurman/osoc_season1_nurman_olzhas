@@ -4,7 +4,7 @@
 // This is a nonarchitectural register with write enable signal.
 // -------------------------------------------------------------
 
-module clint_mmio 
+module ysyx_201979054_clint_mmio 
 #(
     parameter REG_WIDTH = 64
 ) 
