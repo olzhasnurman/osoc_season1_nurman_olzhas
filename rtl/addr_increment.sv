@@ -7,7 +7,8 @@
 
 module ysyx_201979054_addr_increment 
 #(
-    parameter AXI_ADDR_WIDTH = 64
+    parameter AXI_ADDR_WIDTH = 64,
+              INCR_VAL       = 64'd4
 ) 
 (
     // Control Signal.
@@ -26,7 +27,7 @@ module ysyx_201979054_addr_increment
 
     always_ff @( posedge clk ) begin
         if      ( ~run   ) s_addr <= i_addr;
-        else if ( enable ) s_addr <= s_addr + 64'd4;
+        else if ( enable ) s_addr <= s_addr + INCR_VAL;
     end
 
     assign o_addr = s_addr;
