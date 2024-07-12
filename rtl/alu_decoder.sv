@@ -47,15 +47,19 @@ module ysyx_201979054_alu_decoder
                     3'b100: o_alu_control = 5'b00100; // xor instruction.
 
                     3'b101: 
-                        case ( i_func_7_5 )
-                            1'b0:   o_alu_control = 5'b01000; // srl & srli instructions.
-                            1'b1:   o_alu_control = 5'b01001; // sra & srai instructions. 
-                            default: o_alu_control = '0; 
-                        endcase
+                        if ( i_op_5 & i_func_7_0 ) o_alu_control = 5'b10101; // DIVU.
+                        else begin
+                            case ( i_func_7_5 )
+                                1'b0:   o_alu_control = 5'b01000; // srl & srli instructions.
+                                1'b1:   o_alu_control = 5'b01001; // sra & srai instructions. 
+                                default: o_alu_control = '0; 
+                            endcase
+                        end
 
                     3'b110: o_alu_control = 5'b00011; // or instruction.
 
-                    3'b111: o_alu_control = 5'b00010; // and instruction.
+                    3'b111: if ( i_op_5 & i_func_7_0 ) o_alu_control = 5'b10111; // REMU instruction.
+                            else                       o_alu_control = 5'b00010; // and instruction.
 
                     default: o_alu_control = 5'b00000; // add instrucito for default. 
                 endcase
@@ -76,9 +80,11 @@ module ysyx_201979054_alu_decoder
                             endcase
                         end 
                     3'b001: o_alu_control = 5'b01100; // SLLIW or SLLW
-                    3'b101: if ( i_func_7_5 ) o_alu_control = 5'b01110; // SRAIW or SRAW.
-                            else              o_alu_control = 5'b01101; // SRLIW or SRLW. 
+                    3'b101: if      ( i_func_7_0 ) o_alu_control = 5'b10110; // DIVUW.     
+                            else if ( i_func_7_5 ) o_alu_control = 5'b01110; // SRAIW or SRAW.
+                            else                   o_alu_control = 5'b01101; // SRLIW or SRLW. 
                     3'b100: o_alu_control = 5'b10011; // DIVW.
+                    3'b111: o_alu_control = 5'b11000; // REMUW.
                     default: begin
                         o_alu_control   = 5'b00000;
                         o_illegal_instr = 1'b1;                        
