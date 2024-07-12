@@ -120,6 +120,8 @@ module ysyx_201979054_data_cache_fsm
 
             WRITE_BACK: begin
                 o_start_write  = 1'b1;
+                if ( i_b_resp ) o_addr_control = 1'b1;
+                else            o_addr_control = 1'b0;
             end
             default: begin
                 o_stall               = 1'b1;
