@@ -7,7 +7,8 @@
 
 module ysyx_201979054_addr_increment 
 #(
-    parameter AXI_ADDR_WIDTH = 64
+    parameter AXI_ADDR_WIDTH = 64,
+              INCR_VAL       = 64'd4
 ) 
 (
     // Control Signal.
@@ -26,7 +27,7 @@ module ysyx_201979054_addr_increment
 
     always_ff @( posedge clk ) begin
         if      ( ~run   ) s_addr <= i_addr;
-        else if ( enable ) s_addr <= s_addr + 64'd4;
+        else if ( enable ) s_addr <= s_addr + INCR_VAL;
     end
 
     assign o_addr = s_addr;
@@ -87,6 +88,10 @@ module ysyx_201979054_alu
 
     localparam DIVW  = 5'b10011;
     localparam MULW  = 5'b10100;
+    localparam DIVU  = 5'b10101; 
+    localparam DIVUW = 5'b10110;
+    localparam REMU  = 5'b10111;
+    localparam REMUW = 5'b11000;
 
 
 
@@ -117,6 +122,11 @@ module ysyx_201979054_alu
 
     logic [ WORD_WIDTH - 1:0 ] s_divw_out;
     logic [ WORD_WIDTH - 1:0 ] s_mulw_out;
+    logic [ DATA_WIDTH - 1:0 ] s_divu_out;
+    logic [ WORD_WIDTH - 1:0 ] s_divuw_out;
+    logic [ DATA_WIDTH - 1:0 ] s_remu_out;
+    logic [ WORD_WIDTH - 1:0 ] s_remuw_out;
+
 
     // Flag signals. 
     // logic s_carry_flag_add;
@@ -149,8 +159,13 @@ module ysyx_201979054_alu
     assign s_srlw_out = i_src_1[31:0] >> i_src_2[4:0];
     assign s_sraw_out = $unsigned($signed(i_src_1[31:0]) >>> i_src_2[4:0]);
 
-    assign s_divw_out = $unsigned( $signed( i_src_1 [ 31:0 ] ) / $signed( i_src_2 [ 31:0] ) );
-    assign s_mulw_out = $unsigned( $signed( i_src_1 [ 31:0 ] ) * $signed( i_src_2 [ 31:0] ) );
+    assign s_divw_out  = $unsigned( $signed( i_src_1 [ 31:0 ] ) / $signed( i_src_2 [ 31:0] ) );
+    assign s_mulw_out  = $unsigned( $signed( i_src_1 [ 31:0 ] ) * $signed( i_src_2 [ 31:0] ) );
+    assign s_divu_out  = i_src_1 / i_src_2;
+    assign s_divuw_out = i_src_1 [ 31:0 ] / i_src_2 [ 31:0];
+    assign s_remu_out  = i_src_1 % i_src_2;
+    assign s_remuw_out = i_src_1 [ 31:0 ] % i_src_2 [ 31:0];
+
 
 
     // Flags. 
@@ -194,6 +209,11 @@ module ysyx_201979054_alu
 
             DIVW : o_alu_result = { { 32{s_divw_out[31]} }, s_divw_out };
             MULW : o_alu_result = { { 32{s_mulw_out[31]} }, s_mulw_out[31:0] };
+            DIVU : o_alu_result = s_divu_out;
+            DIVUW: o_alu_result = { 32'b0, s_divuw_out };
+            REMU : o_alu_result =  s_remu_out;
+            REMUW: o_alu_result = { 32'b0, s_remuw_out };
+
 
             default: begin
                 o_alu_result    = 'b0;
@@ -250,15 +270,19 @@ module ysyx_201979054_alu_decoder
                     3'b100: o_alu_control = 5'b00100; // xor instruction.
 
                     3'b101: 
-                        case ( i_func_7_5 )
-                            1'b0:   o_alu_control = 5'b01000; // srl & srli instructions.
-                            1'b1:   o_alu_control = 5'b01001; // sra & srai instructions. 
-                            default: o_alu_control = '0; 
-                        endcase
+                        if ( i_op_5 & i_func_7_0 ) o_alu_control = 5'b10101; // DIVU.
+                        else begin
+                            case ( i_func_7_5 )
+                                1'b0:   o_alu_control = 5'b01000; // srl & srli instructions.
+                                1'b1:   o_alu_control = 5'b01001; // sra & srai instructions. 
+                                default: o_alu_control = '0; 
+                            endcase
+                        end
 
                     3'b110: o_alu_control = 5'b00011; // or instruction.
 
-                    3'b111: o_alu_control = 5'b00010; // and instruction.
+                    3'b111: if ( i_op_5 & i_func_7_0 ) o_alu_control = 5'b10111; // REMU instruction.
+                            else                       o_alu_control = 5'b00010; // and instruction.
 
                     default: o_alu_control = 5'b00000; // add instrucito for default. 
                 endcase
@@ -279,9 +303,11 @@ module ysyx_201979054_alu_decoder
                             endcase
                         end 
                     3'b001: o_alu_control = 5'b01100; // SLLIW or SLLW
-                    3'b101: if ( i_func_7_5 ) o_alu_control = 5'b01110; // SRAIW or SRAW.
-                            else              o_alu_control = 5'b01101; // SRLIW or SRLW. 
+                    3'b101: if      ( i_func_7_0 ) o_alu_control = 5'b10110; // DIVUW.     
+                            else if ( i_func_7_5 ) o_alu_control = 5'b01110; // SRAIW or SRAW.
+                            else                   o_alu_control = 5'b01101; // SRLIW or SRLW. 
                     3'b100: o_alu_control = 5'b10011; // DIVW.
+                    3'b111: o_alu_control = 5'b11000; // REMUW.
                     default: begin
                         o_alu_control   = 5'b00000;
                         o_illegal_instr = 1'b1;                        
@@ -540,7 +566,10 @@ module ysyx_201979054_cache_data_transfer
 #(
     parameter AXI_DATA_WIDTH = 32,
               AXI_ADDR_WIDTH = 64,
-              BLOCK_WIDTH    = 512
+              BLOCK_WIDTH    = 512,
+              COUNT_LIMIT    = 4'b1111,
+              COUNT_TO       = 16,
+              ADDR_INCR_VAL  = 64'd4
 ) 
 (
     // Control signals.
@@ -574,7 +603,10 @@ module ysyx_201979054_cache_data_transfer
     //-----------------------------------
 
     // Counter module instance.
-    ysyx_201979054_counter COUNT0 (
+    ysyx_201979054_counter # (
+        .LIMIT ( COUNT_LIMIT ), 
+        .SIZE  ( COUNT_TO    )  
+    ) COUNT0 (
         .clk      ( clk          ),
         .arst     ( arst         ),
         .run      ( i_axi_done   ),
@@ -583,7 +615,10 @@ module ysyx_201979054_cache_data_transfer
     );
 
     // Address increment module instance.
-    ysyx_201979054_addr_increment ADD_INC0 (
+    ysyx_201979054_addr_increment # (
+        .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH ),
+        .INCR_VAL       ( ADDR_INCR_VAL  )
+    ) ADD_INC0 (
         .clk    ( clk          ),
         .run    ( s_start      ),
         .enable ( i_axi_done   ),
@@ -592,7 +627,10 @@ module ysyx_201979054_cache_data_transfer
     );
 
     // FIFO module instance.
-    ysyx_201979054_fifo FIFO0 (
+    ysyx_201979054_fifo # (
+        .AXI_DATA_WIDTH ( AXI_DATA_WIDTH ),
+        .FIFO_WIDTH     ( BLOCK_WIDTH    )
+    ) FIFO0 (
         .clk          ( clk                ),
         .arst         ( arst               ),
         .write_en     ( i_axi_done         ),
@@ -884,9 +922,9 @@ module ysyx_201979054_counter
 
     always_ff @( posedge clk, posedge arst ) begin
         if      ( arst | ~restartn ) s_count <= '0;
-        else if ( run              ) s_count <= s_count + 4'b1; 
+        else if ( run              ) s_count <= s_count + 1; 
 
-        if ( (s_count == LIMIT) & run ) o_done <= 1'b1;
+        if ( (s_count == LIMIT ) & run ) o_done <= 1'b1;
         else                            o_done <= 1'b0;
     end
     
@@ -1018,14 +1056,20 @@ module ysyx_201979054 (
 
     logic [ 511:0 ] s_data_block_write_top;
     logic [ 511:0 ] s_data_block_read_top;
+    logic [ 511:0 ] s_data_block_read_top_axi4;
+    logic [ 511:0 ] s_data_block_read_top_apb;
     logic [  63:0 ] s_data_non_cacheable_r;
     logic [  63:0 ] s_data_non_cacheable_w;
     logic [  63:0 ] s_addr;
     logic [  63:0 ] s_addr_non_cacheable;
     logic [  63:0 ] s_addr_calc;
+    logic [  63:0 ] s_addr_calc_axi4;
+    logic [  63:0 ] s_addr_calc_apb;
 
     logic [ 31:0 ] s_read_axi_fifo;
-    logic [ 31:0 ] s_write_axi_fifo;
+    logic [ 63:0 ] s_write_axi_fifo;
+    logic [ 63:0 ] s_write_axi_fifo_axi4;
+    logic [ 31:0 ] s_write_axi_fifo_apb;
 
     logic [ 31:0 ] s_addr_axi;
     logic [ 63:0 ] s_write_axi;
@@ -1044,13 +1088,27 @@ module ysyx_201979054 (
     logic s_start_write_axi_cache;
 
     logic s_count_done;
+    logic s_count_done_axi4;
+    logic s_count_done_apb;
     logic s_done;
 
     logic [ 2:0 ] s_axi_size;
+    logic [ 2:0 ] s_axi_size_cache;
     logic [ 7:0 ] s_axi_strb;
+    logic [ 7:0 ] s_axi_strb_cache;
 
-    // WILL BE REMOVED.
-    // assign s_write_req_non_cacheable = 1'b0;
+    logic s_axi4_access;
+
+    assign s_axi4_access = ( s_addr >= 64'h4000_0000 );
+
+    assign s_axi_strb_cache      = s_axi4_access ? 8'hFF : 8'h0F;
+    assign s_axi_size_cache      = s_axi4_access ? 3'b11 : 3'b10;
+    assign s_write_axi_fifo      = s_axi4_access ? s_write_axi_fifo_axi4 : { s_write_axi_fifo_apb, s_write_axi_fifo_apb };
+    assign s_addr_calc           = s_axi4_access ? s_addr_calc_axi4 : s_addr_calc_apb;
+    assign s_data_block_read_top = s_axi4_access ? s_data_block_read_top_axi4 : s_data_block_read_top_apb;
+
+
+    assign s_count_done = s_count_done_apb | s_count_done_axi4;
 
     assign s_start_read_axi_cache  = s_read_req  & ( ~ s_count_done );
     assign s_start_read_axi        = s_read_req_non_cacheable | s_start_read_axi_cache;
@@ -1061,16 +1119,19 @@ module ysyx_201979054 (
     assign io_master_wlast = s_axi_wlast;
     assign s_axi_rlast     = io_master_rlast; 
     assign s_addr_axi      = ( s_read_req_non_cacheable | s_write_req_non_cacheable ) ? s_addr_non_cacheable [ 31:0 ] : s_addr_calc [ 31:0 ];
-    assign s_axi_size      = ( s_read_req_non_cacheable | s_write_req_non_cacheable ) ? 3'b00 : 3'b10;
-    assign s_axi_strb      = s_write_req_non_cacheable  ? 8'h01 : 8'h0F;
+    assign s_axi_size      = ( s_read_req_non_cacheable | s_write_req_non_cacheable ) ? 3'b00 : s_axi_size_cache;
+    assign s_axi_strb      = s_write_req_non_cacheable  ? 8'h01 : s_axi_strb_cache;
 
     assign s_read_axi_fifo        = s_read_axi [ 31:0 ];
     assign s_data_non_cacheable_r = { 56'b0 , s_reg_read_axi [ 7:0 ]};
-    assign s_write_axi            = s_write_req_non_cacheable ? { 8 { s_data_non_cacheable_w [ 7:0 ] } } : { s_write_axi_fifo, s_write_axi_fifo };
+    assign s_write_axi            = s_write_req_non_cacheable ? { 8 { s_data_non_cacheable_w [ 7:0 ] } } : s_write_axi_fifo;
 
     assign s_done = ( s_count_done ) | ( s_axi_wrlast & s_read_req_non_cacheable ) | ( s_axi_wrlast & s_write_req_non_cacheable );
     
 
+    //-----------------------------
+    // Top datapath unit instance.
+    //-----------------------------
     ysyx_201979054_datapath TOP0 (
         .clk                  ( clock                     ),
         .i_arst               ( reset                     ),
@@ -1088,6 +1149,10 @@ module ysyx_201979054 (
     );
 
 
+
+    //-----------------------
+    // AXI4 Master Instance.
+    //-----------------------
     ysyx_201979054_axi4_master AXI4_M0 (
         .clk          ( clock             ),
         .arst         ( reset             ),
@@ -1133,26 +1198,65 @@ module ysyx_201979054 (
     );
 
 
-    //------------------------------------
-    // Cache data transfer unit instance.
-    //------------------------------------
-    ysyx_201979054_cache_data_transfer DATA_T0 (
-        .clk                ( clock                   ),
-        .arst               ( reset                   ),
-        .i_start_read       ( s_start_read_axi_cache  ),
-        .i_start_write      ( s_start_write_axi_cache ),
-        .i_axi_done         ( s_axi_wrlast            ),
-        .i_data_block_cache ( s_data_block_write_top  ),
-        .i_data_axi         ( s_read_axi_fifo         ),
-        .i_addr_cache       ( s_addr                  ),
-        .o_count_done       ( s_count_done            ),
-        .o_data_block_cache ( s_data_block_read_top   ),
-        .o_data_axi         ( s_write_axi_fifo        ),
-        .o_addr_axi         ( s_addr_calc             )
+    //-------------------------------------------
+    // Cache data transfer unit instance for APB.
+    //-------------------------------------------
+    ysyx_201979054_cache_data_transfer # (
+        .AXI_DATA_WIDTH ( 32      ),
+        .AXI_ADDR_WIDTH ( 64      ),
+        .BLOCK_WIDTH    ( 512     ),
+        .COUNT_LIMIT    ( 4'b1111 ),
+        .COUNT_TO       ( 16      ),
+        .ADDR_INCR_VAL  ( 64'd4   ) 
+    ) DATA_T_APB (
+        .clk                ( clock                     ),
+        .arst               ( reset                     ),
+        .i_start_read       ( s_start_read_axi_cache & ( ~s_axi4_access )    ),
+        .i_start_write      ( s_start_write_axi_cache & ( ~s_axi4_access )   ),
+        .i_axi_done         ( s_axi_wrlast              ),
+        .i_data_block_cache ( s_data_block_write_top    ),
+        .i_data_axi         ( s_read_axi_fifo           ),
+        .i_addr_cache       ( s_addr                    ),
+        .o_count_done       ( s_count_done_apb          ),
+        .o_data_block_cache ( s_data_block_read_top_apb ),
+        .o_data_axi         ( s_write_axi_fifo_apb      ),
+        .o_addr_axi         ( s_addr_calc_apb           )
     );
 
 
+
+
+    //---------------------------------------------
+    // Cache data transfer unit instance for AXI4.
+    //---------------------------------------------
+    ysyx_201979054_cache_data_transfer # (
+        .AXI_DATA_WIDTH ( 64     ),
+        .AXI_ADDR_WIDTH ( 64     ),
+        .BLOCK_WIDTH    ( 512    ),
+        .COUNT_LIMIT    ( 3'b111 ),
+        .COUNT_TO       ( 8      ),
+        .ADDR_INCR_VAL  ( 64'd8  ) 
+    ) DATA_T_AXI4 (
+        .clk                ( clock                      ),
+        .arst               ( reset                      ),
+        .i_start_read       ( s_start_read_axi_cache & s_axi4_access     ),
+        .i_start_write      ( s_start_write_axi_cache & s_axi4_access    ),
+        .i_axi_done         ( s_axi_wrlast               ),
+        .i_data_block_cache ( s_data_block_write_top     ),
+        .i_data_axi         ( s_read_axi                 ), // ++
+        .i_addr_cache       ( s_addr                     ),
+        .o_count_done       ( s_count_done_axi4          ), // ++
+        .o_data_block_cache ( s_data_block_read_top_axi4 ), // +
+        .o_data_axi         ( s_write_axi_fifo_axi4      ), // +
+        .o_addr_axi         ( s_addr_calc_axi4           )  // +
+    );
+
+
+
+
+    //-------------------------
     // Memory Data Register. 
+    //-------------------------
     ysyx_201979054_register_en REG_AXI_DATA (
         .clk          ( clock          ),
         .arst         ( reset          ),
@@ -1841,6 +1945,8 @@ module ysyx_201979054_data_cache_fsm
 
             WRITE_BACK: begin
                 o_start_write  = 1'b1;
+                if ( i_b_resp ) o_addr_control = 1'b1;
+                else            o_addr_control = 1'b0;
             end
             default: begin
                 o_stall               = 1'b1;
@@ -1948,10 +2054,10 @@ module ysyx_201979054_fifo
     always_ff @( posedge clk, posedge arst ) begin
         if      ( arst ) o_data_block <= '0;
         else if ( ( ~start_write ) & ( ~start_read ) ) o_data_block <= i_data_block;
-        else if ( write_en ) o_data_block <= { i_data, o_data_block[ FIFO_WIDTH - 1:32 ] }; 
+        else if ( write_en ) o_data_block <= { i_data, o_data_block[ FIFO_WIDTH - 1:AXI_DATA_WIDTH ] }; 
     end
 
-    assign o_data = o_data_block[31:0];
+    assign o_data = o_data_block [ AXI_DATA_WIDTH - 1:0 ];
     
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
@@ -3316,6 +3422,7 @@ module ysyx_201979054_datapath
     // Cacheable mark.
     logic s_cacheable_flag;
     logic s_invalidate_instr;
+    logic s_clint_mmio_flag;
 
     // CLINT machine timer interrupt.
     logic s_interrupt;
@@ -3353,6 +3460,7 @@ module ysyx_201979054_datapath
 
 
     assign s_cacheable_flag  = ( s_reg_mem_addr >= 64'h3000_0000 );
+    assign s_clint_mmio_flag = ( s_reg_mem_addr >= 64'h0200_0000 ) & ( s_reg_mem_addr <= 64'h0200_ffff );
 
     assign o_addr_non_cacheable = s_reg_mem_addr;
     assign o_data_non_cacheable = s_reg_data_2;

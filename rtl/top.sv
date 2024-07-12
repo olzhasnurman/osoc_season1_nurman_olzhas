@@ -130,6 +130,7 @@ module ysyx_201979054_datapath
     // Cacheable mark.
     logic s_cacheable_flag;
     logic s_invalidate_instr;
+    logic s_clint_mmio_flag;
 
     // CLINT machine timer interrupt.
     logic s_interrupt;
@@ -167,6 +168,7 @@ module ysyx_201979054_datapath
 
 
     assign s_cacheable_flag  = ( s_reg_mem_addr >= 64'h3000_0000 );
+    assign s_clint_mmio_flag = ( s_reg_mem_addr >= 64'h0200_0000 ) & ( s_reg_mem_addr <= 64'h0200_ffff );
 
     assign o_addr_non_cacheable = s_reg_mem_addr;
     assign o_data_non_cacheable = s_reg_data_2;
