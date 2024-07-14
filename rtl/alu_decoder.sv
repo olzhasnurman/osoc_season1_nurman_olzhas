@@ -85,6 +85,7 @@ module ysyx_201979054_alu_decoder
                             else                   o_alu_control = 5'b01101; // SRLIW or SRLW. 
                     3'b100: o_alu_control = 5'b10011; // DIVW.
                     3'b111: o_alu_control = 5'b11000; // REMUW.
+                    3'b110: o_alu_control = 5'b11001; // REMW
                     default: begin
                         o_alu_control   = 5'b00000;
                         o_illegal_instr = 1'b1;                        
