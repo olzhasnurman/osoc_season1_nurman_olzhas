@@ -23,13 +23,13 @@ module ysyx_201979054_addr_increment
     output logic [ AXI_ADDR_WIDTH - 1:0 ] o_addr
 );
 
-    logic [ AXI_ADDR_WIDTH - 1:0 ] s_addr;
+    logic [ AXI_ADDR_WIDTH - 1:0 ] s_count;
 
     always_ff @( posedge clk ) begin
-        if      ( ~run   ) s_addr <= i_addr;
-        else if ( enable ) s_addr <= s_addr + INCR_VAL;
+        if      ( ~run   ) s_count <= '0;
+        else if ( enable ) s_count <= s_count + INCR_VAL;
     end
 
-    assign o_addr = s_addr;
+    assign o_addr = i_addr + s_count;
     
 endmodule
