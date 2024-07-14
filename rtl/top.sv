@@ -78,6 +78,7 @@ module ysyx_201979054_datapath
     // Memory signals.
     logic [ MEM_DATA_WIDTH  - 1:0 ] s_mem_read_data;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_addr_axi;
+    logic [ MEM_ADDR_WIDTH  - 1:0 ] s_out_addr;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_mem_addr;
     logic                           s_reg_mem_addr_we;
 
@@ -400,6 +401,14 @@ module ysyx_201979054_datapath
         .o_read_data  ( s_csr_read_data_reg )
     );  
 
+    // Output addr Register Instance.
+    ysyx_201979054_register OUTADDR_REG (
+        .clk          ( clk        ),
+        .arst         ( arst       ),
+        .i_write_data ( s_out_addr ),
+        .o_read_data  ( o_addr     )
+    ); 
+
     // R1 Register Instance.
     ysyx_201979054_register R1 (
         .clk          ( clk               ),
@@ -499,7 +508,6 @@ module ysyx_201979054_datapath
 
 
     // FOR SIMULATION. 
-    assign o_addr = s_fetch_state ? { s_reg_pc[MEM_ADDR_WIDTH - 1:6 ], 6'b0 } : s_addr_axi; // For a cache line size of 512 bits. e.g. 16 words in 1 line.
-
+    assign s_out_addr = s_fetch_state ? { s_reg_pc[MEM_ADDR_WIDTH - 1:6 ], 6'b0 } : s_addr_axi; // For a cache line size of 512 bits. e.g. 16 words in 1 line.
     
 endmodule
