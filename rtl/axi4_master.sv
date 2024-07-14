@@ -21,6 +21,8 @@ module ysyx_201979054_axi4_master
     input  logic [  1:0 ] i_axi_burst,
     input  logic [  7:0 ] i_axi_strb,
     output logic [ 63:0 ] o_read_data,
+    output logic          o_axi_done,
+    output logic          o_axi_handshake,
 
     // AXI4 Master Bus: Write Interface.
     input  logic 	      i_awready,   // +
@@ -56,6 +58,7 @@ module ysyx_201979054_axi4_master
     input  logic 	      i_rlast    // +
 
 );
+    logic s_wlast;
 
     //---------------------------
     // Continious assignments.
@@ -67,6 +70,7 @@ module ysyx_201979054_axi4_master
     assign o_awlen     = i_axi_len;
     assign o_awsize    = i_axi_size;
     assign o_awburst   = i_axi_burst;
+    assign o_wdata     = i_write_data;
 
     //-------------------------
     // Write FSM.
@@ -101,10 +105,10 @@ module ysyx_201979054_axi4_master
             IDLE    : if ( i_write_req           ) NS = AW_WRITE;
                  else if ( i_read_req            ) NS = AR_READ;
             AW_WRITE: if ( o_awvalid & i_awready ) NS = WRITE;
-            WRITE   : if ( o_wlast               ) NS = BRESP;
+            WRITE   : if ( o_wlast & i_wready    ) NS = BRESP;
             BRESP   : if ( i_bvalid & o_bready   ) NS = IDLE;
             AR_READ : if ( o_arvalid & i_arready ) NS = READ;
-            READ    : if ( i_rlast               ) NS = IDLE;
+            READ    : if ( s_rlast               ) NS = IDLE;
             default : NS = PS;
         endcase
 
@@ -118,7 +122,6 @@ module ysyx_201979054_axi4_master
             o_awaddr  <= '0;
 
             o_wvalid  <= 1'b0;
-            o_wdata   <= '0;
             o_wstrb   <= i_axi_strb;
 
             o_bready  <= 1'b0;
@@ -161,11 +164,9 @@ module ysyx_201979054_axi4_master
                 AW_WRITE: begin
                     if ( i_awready ) o_awvalid <= 1'b0;
                     o_wvalid  <= 1'b1;
-                    o_wdata   <= i_write_data;
                 end 
     
                 WRITE: begin
-                    if ( i_wready ) o_wdata <= i_write_data;
                     if ( o_wlast & i_wready ) begin
                         o_wvalid <= 1'b0;
                         o_bready <= 1'b1;
@@ -182,7 +183,7 @@ module ysyx_201979054_axi4_master
                     o_rready  <= 1'b1;
                 end
     
-                READ: if ( i_rlast ) begin
+                READ: if ( s_rlast ) begin
                     o_rready  <= 1'b0; 
                     o_arid    <= o_arid + 4'b1; 
                 end
@@ -193,7 +194,6 @@ module ysyx_201979054_axi4_master
                     o_awaddr  <= '0;
     
                     o_wvalid  <= 1'b0;
-                    o_wdata   <= '0;
                     o_wstrb   <= i_axi_strb;
     
                     o_bready  <= 1'b0;
@@ -213,10 +213,19 @@ module ysyx_201979054_axi4_master
 
     logic [ 7:0 ] s_count;
     always_ff @( posedge clk ) begin
-        if      ( ~ ( i_write_req | i_read_req ) ) s_count <= i_axi_len - 8'b1;
+        if      ( PS == AW_WRITE ) s_count <= i_axi_len + 8'd0;
         else if ( i_wready & o_wvalid            ) s_count <= s_count - 8'b1;
     end
 
-    assign o_wlast = ( s_count == 8'b0 ) | ( ( i_axi_len == 8'b0 ) & ( PS == WRITE ) );
+    assign s_wlast = ( s_count == 8'b0 ) & ( PS == WRITE );
+    assign o_wlast = s_wlast | ( ( i_axi_len == 8'b0 ) & ( PS == WRITE ) );
+
+    assign o_axi_done = ( ( i_bvalid ) & ( i_bresp == 2'b0 ) & ( o_bready ) ) | ( ( s_rlast ) );
+    assign o_axi_handshake = ( i_wready & o_wvalid ) | ( o_rready & i_rvalid );
+
+    logic s_rlast;
+    always_ff @( posedge clk ) begin
+        s_rlast <= i_rlast;
+    end
     
 endmodule
