@@ -59,6 +59,8 @@ module ysyx_201979054_alu
     localparam REMU  = 5'b10111;
     localparam REMUW = 5'b11000;
     localparam REMW  = 5'b11001;
+    localparam REM   = 5'b11010;
+    localparam MUL   = 5'b11011;
 
 
 
@@ -94,6 +96,8 @@ module ysyx_201979054_alu
     logic [ DATA_WIDTH - 1:0 ] s_remu_out;
     logic [ WORD_WIDTH - 1:0 ] s_remuw_out;
     logic [ WORD_WIDTH - 1:0 ] s_remw_out;
+    logic [ DATA_WIDTH - 1:0 ] s_rem_out;
+    logic [ DATA_WIDTH - 1:0 ] s_mul_out;
 
 
     // Flag signals. 
@@ -134,6 +138,8 @@ module ysyx_201979054_alu
     assign s_remu_out  = i_src_1 % i_src_2;
     assign s_remuw_out = i_src_1 [ 31:0 ] % i_src_2 [ 31:0];
     assign s_remw_out  = $unsigned( $signed( i_src_1 [ 31:0 ] ) % $signed( i_src_2 [ 31:0] ) );
+    assign s_rem_out   = $unsigned( $signed( i_src_1 ) % $signed( i_src_2 ) );
+    assign s_mul_out   = $unsigned( $signed( i_src_1 ) * $signed( i_src_2 ) );
 
 
 
@@ -183,6 +189,8 @@ module ysyx_201979054_alu
             REMU : o_alu_result =  s_remu_out;
             REMUW: o_alu_result = { 32'b0, s_remuw_out };
             REMW : o_alu_result = { { 32{s_remw_out[31]} }, s_remw_out };
+            REM  : o_alu_result =  s_rem_out;
+            MUL  : o_alu_result =  s_mul_out;
 
 
             default: begin

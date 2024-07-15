@@ -35,8 +35,9 @@ module ysyx_201979054_alu_decoder
             // I & R Type.
             3'b010: 
                 case (i_func_3)
-                    3'b000: if ( s_op_func_7 == 2'b11 ) o_alu_control = 5'b00001; // sub instruciton.
-                            else                        o_alu_control = 5'b00000; // add & addi instruciton.
+                    3'b000: if      ( i_op_5 & i_func_7_0  ) o_alu_control = 5'b11011; // MUL instruction. 
+                            else if ( s_op_func_7 == 2'b11 ) o_alu_control = 5'b00001; // sub instruciton.
+                            else                             o_alu_control = 5'b00000; // add & addi instruciton.
 
                     3'b001: o_alu_control = 5'b00101; // sll & slli instructions.
 
@@ -56,7 +57,8 @@ module ysyx_201979054_alu_decoder
                             endcase
                         end
 
-                    3'b110: o_alu_control = 5'b00011; // or instruction.
+                    3'b110: if ( i_op_5 & i_func_7_0 ) o_alu_control = 5'b11010; // REM instruction. 
+                            else                       o_alu_control = 5'b00011; // or instruction.
 
                     3'b111: if ( i_op_5 & i_func_7_0 ) o_alu_control = 5'b10111; // REMU instruction.
                             else                       o_alu_control = 5'b00010; // and instruction.
