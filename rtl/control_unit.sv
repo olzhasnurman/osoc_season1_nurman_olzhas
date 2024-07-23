@@ -32,7 +32,9 @@ module  ysyx_201979054_control_unit
     input logic         i_load_addr_ma,
     input logic         i_illegal_instr_load,
     input logic         i_timer_int,
+    input logic         i_software_int,
     input  logic        i_cacheable_flag,
+    input  logic        i_clint_mmio_flag,
 
     // Output interface.
     output logic [ 4:0] o_alu_control,
@@ -57,6 +59,8 @@ module  ysyx_201979054_control_unit
     output logic        o_start_read_nc,
     output logic        o_start_write_nc,
     output logic        o_invalidate_instr,
+    output logic        o_write_en_clint,
+    output logic        o_mret_instr,
     output logic        o_interrupt,
     output logic [ 3:0] o_mcause,
     output logic        o_csr_we_1,
@@ -87,6 +91,8 @@ module  ysyx_201979054_control_unit
     // Illegalal instruction flag.
     logic s_illegal_instr_alu;
     logic s_illegal_instr_alu_ff;
+
+    logic s_icache_in_idle;
 
     assign o_pc_write       = s_pc_update | ( s_branch );
 
@@ -121,6 +127,7 @@ module  ysyx_201979054_control_unit
         .i_func_7_4           ( i_func_7[4]            ),
         .i_func_7_0           ( i_func_7[0]            ), 
         .i_func_7_1           ( i_func_7[1]            ),
+        .i_func_7_6           ( i_func_7[6]            ),
         .i_stall_instr        ( s_stall_instr          ),
         .i_stall_data         ( s_stall_data           ),
         .i_instr_addr_ma      ( i_instr_addr_ma        ),
@@ -129,8 +136,11 @@ module  ysyx_201979054_control_unit
         .i_illegal_instr_load ( i_illegal_instr_load   ),
         .i_illegal_instr_alu  ( s_illegal_instr_alu_ff ),
         .i_timer_int          ( i_timer_int            ),
+        .i_software_int       ( i_software_int         ),
         .i_cacheable_flag     ( i_cacheable_flag       ),
         .i_done_axi           ( i_read_last_axi        ),
+        .i_clint_mmio_flag    ( i_clint_mmio_flag      ),
+        .i_icache_idle        ( s_icache_in_idle       ),
         .o_alu_op             ( s_alu_op               ),
         .o_result_src         ( o_result_src           ),
         .o_alu_src_1          ( o_alu_src_1            ),
@@ -148,6 +158,8 @@ module  ysyx_201979054_control_unit
         .o_start_read_nc      ( o_start_read_nc        ),
         .o_start_write_nc     ( o_start_write_nc       ),
         .o_invalidate_instr   ( o_invalidate_instr     ),
+        .o_write_en_clint     ( o_write_en_clint       ),
+        .o_mret_instr         ( o_mret_instr           ),
         .o_interrupt          ( o_interrupt            ),
         .o_mcause             ( o_mcause               ),
         .o_csr_we_1           ( o_csr_we_1             ),
@@ -167,7 +179,8 @@ module  ysyx_201979054_control_unit
         .i_r_last         ( i_read_last_axi        ),
         .o_stall          ( s_stall_instr          ),
         .o_instr_write_en ( o_instr_cache_write_en ),
-        .o_start_read     ( s_start_read_instr     )
+        .o_start_read     ( s_start_read_instr     ),
+        .o_in_idle        ( s_icache_in_idle       )
     );
 
     // Data cache FSM.

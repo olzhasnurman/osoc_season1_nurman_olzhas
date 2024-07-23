@@ -20,6 +20,7 @@ module ysyx_201979054_main_fsm
     input  logic        i_func_7_4,
     input  logic        i_func_7_0, 
     input  logic        i_func_7_1,
+    input  logic        i_func_7_6,
     input  logic        i_stall_instr,
     input  logic        i_stall_data,
     input  logic        i_instr_addr_ma,
@@ -27,9 +28,12 @@ module ysyx_201979054_main_fsm
     input  logic        i_load_addr_ma,
     input  logic        i_illegal_instr_load,
     input  logic        i_illegal_instr_alu,
-    input  logic        i_timer_int, 
+    input  logic        i_timer_int,
+    input  logic        i_software_int, 
     input  logic        i_cacheable_flag,
     input  logic        i_done_axi,
+    input  logic        i_clint_mmio_flag,
+    input  logic        i_icache_idle,
 
     // Output interface.
     output logic [ 2:0] o_alu_op,
@@ -49,6 +53,8 @@ module ysyx_201979054_main_fsm
     output logic        o_start_read_nc,
     output logic        o_start_write_nc,
     output logic        o_invalidate_instr,
+    output logic        o_write_en_clint,
+    output logic        o_mret_instr,
     output logic        o_interrupt,
     output logic [ 3:0] o_mcause,
     output logic        o_csr_we_1,
@@ -148,7 +154,7 @@ module ysyx_201979054_main_fsm
 
         case ( PS )
             FETCH: begin
-                if ( i_instr_addr_ma | i_timer_int ) NS = CALL_0;
+                if ( ( i_instr_addr_ma | i_timer_int | i_software_int ) & i_icache_idle ) NS = CALL_0;
                 else if ( i_stall_instr            ) NS = PS;
                 else                                 NS = DECODE;
             end 
@@ -189,7 +195,7 @@ module ysyx_201979054_main_fsm
             MEMREAD: begin
                 if ( i_load_addr_ma | i_illegal_instr_load ) NS = CALL_0;
                 else if ( ~ i_cacheable_flag ) begin
-                    if ( i_done_axi )                        NS = MEMWB;
+                    if ( i_done_axi | i_clint_mmio_flag )    NS = MEMWB;
                     else                                     NS = PS;
                 end
                 else if ( i_stall_data )                     NS = PS;
@@ -200,6 +206,7 @@ module ysyx_201979054_main_fsm
 
             MEMWRITE: begin
                 if ( i_store_addr_ma )   NS = CALL_0;
+                else if ( i_clint_mmio_flag  ) NS = FETCH;
                 else if ( ~ i_cacheable_flag ) begin
                     if ( i_done_axi )    NS = FETCH;
                     else                 NS = PS;
@@ -265,6 +272,8 @@ module ysyx_201979054_main_fsm
         o_start_read_nc    = 1'b0;
         o_start_write_nc   = 1'b0;
         o_invalidate_instr = 1'b0;
+        o_write_en_clint   = 1'b0;
+        o_mret_instr       = 1'b0;
         o_interrupt        = 1'b0;
         o_mcause           = 4'b0000;
         o_csr_we_1         = 1'b0;
@@ -283,9 +292,9 @@ module ysyx_201979054_main_fsm
                 o_alu_src_2     = 2'b10;
                 o_alu_op        = 3'b000;
 
-                if ( i_timer_int ) begin
-                    o_mcause           = 4'd7; // Machine timer interrupt.
-                    o_interrupt        = 1'b1;
+                if ( i_instr_addr_ma ) begin
+                    o_mcause           = 4'd0; // Instruction address misaligned.
+                    o_interrupt        = 1'b0;
                     o_csr_write_addr_1 = 3'b100;  // mcause.
                     o_csr_we_1         = 1'b1; 
                     o_csr_write_addr_2 = 3'b101;  // mepc.
@@ -294,9 +303,10 @@ module ysyx_201979054_main_fsm
                     o_start_i_cache    = 1'b0;
                 end
 
-                if ( i_instr_addr_ma ) begin
-                    o_mcause           = 4'd0; // Instruction address misaligned.
-                    o_interrupt        = 1'b0;
+                if ( ( i_software_int | i_timer_int ) & i_icache_idle ) begin
+                    if ( i_timer_int ) o_mcause = 4'd7; // Machine timer interrupt.
+                    else               o_mcause = 4'd3; // Machine software interrupt.
+                    o_interrupt        = 1'b1;
                     o_csr_write_addr_1 = 3'b100;  // mcause.
                     o_csr_we_1         = 1'b1; 
                     o_csr_write_addr_2 = 3'b101;  // mepc.
@@ -321,14 +331,19 @@ module ysyx_201979054_main_fsm
                 o_alu_src_2  = 2'b01;
                 o_alu_op     = 3'b000;
 
-                if ( (instr == CSR_Type) & ( ~s_func_3_reduction ) & ( ~i_func_7_4 )) begin
-                    if ( ~i_instr_20 ) o_mcause = 4'd11; // Env call from M-mode.
-                    else               o_mcause = 4'd3; // Env breakpoint.
-                    o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
-                    o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                if ( (instr == CSR_Type) & ( ~s_func_3_reduction ) ) begin
+                    if ( i_func_7_4 ) begin
+                        o_mret_instr = 1'b1;
+                    end
+                    else begin
+                        if ( ~i_instr_20 ) o_mcause = 4'd11; // Env call from M-mode.
+                        else               o_mcause = 4'd3; // Env breakpoint.
+                        o_csr_write_addr_1 = 3'b100;  // mcause.
+                        o_csr_we_1         = 1'b1; 
+                        o_csr_write_addr_2 = 3'b101;  // mepc.
+                        o_result_src       = 3'b110; // s_old_pc.  
+                        o_csr_we_2         = 1'b1;   
+                    end
                 end
                 if ( instr == ILLEGAL ) begin
                     o_mcause           = 4'd2; // Illegal instruction.
@@ -357,7 +372,7 @@ module ysyx_201979054_main_fsm
 
                 if ( ~ i_cacheable_flag ) begin
                     o_start_d_cache = 1'b0;
-                    o_start_read_nc = 1'b1;
+                    o_start_read_nc = ~ i_clint_mmio_flag;
                 end
 
                 if ( i_load_addr_ma ) begin
@@ -368,6 +383,7 @@ module ysyx_201979054_main_fsm
                     o_result_src       = 3'b110; // s_old_pc.  
                     o_csr_we_2         = 1'b1; 
                     o_start_d_cache    = 1'b0;
+                    o_start_read_nc    = 1'b0;
                 end
 
                 if ( i_illegal_instr_load ) begin
@@ -378,6 +394,7 @@ module ysyx_201979054_main_fsm
                     o_result_src       = 3'b110; // s_old_pc.  
                     o_csr_we_2         = 1'b1; 
                     o_start_d_cache    = 1'b0;
+                    o_start_read_nc    = 1'b0;
                     // $display("time =%0t", $time); // FOR SIMULATION ONLY.
                 end 
 
@@ -402,6 +419,11 @@ module ysyx_201979054_main_fsm
                     o_start_write_nc = 1'b1;
                 end
 
+                if ( i_clint_mmio_flag ) begin
+                    o_start_d_cache  = 1'b0;
+                    o_write_en_clint = 1'b1;
+                    o_start_write_nc = 1'b0;
+                end
                 if ( i_store_addr_ma ) begin
                     o_mcause           = 4'd6; // Store address misaligned.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
@@ -410,6 +432,8 @@ module ysyx_201979054_main_fsm
                     o_result_src       = 3'b110; // s_old_pc.  
                     o_csr_we_2         = 1'b1; 
                     o_start_d_cache    = 1'b0;
+                    o_start_write_nc   = 1'b0;
+                    o_write_en_clint   = 1'b0;
                 end
 
                 if ( i_stall_data ) begin
@@ -494,11 +518,21 @@ module ysyx_201979054_main_fsm
                 o_csr_we_2   = 1'b1;
                 o_result_src = 3'b010;
                 o_csr_reg_we = 1'b1;
+                if ( i_func_7_6 ) begin 
+                    o_csr_write_addr_2 = 3'b001; // Mhartid.
+                    o_csr_read_addr    = 3'b001; // Mhartid.
+                end
+                else begin 
+                    o_csr_write_addr_2 = s_csr_addr;
+                    o_csr_read_addr    = s_csr_addr;
+                end
             end
 
             CSR_WB: begin
                 o_reg_write_en    = 1'b1;
                 o_result_src      = 3'b101; // s_csr_read_data_reg
+                if ( i_func_7_6 ) o_csr_read_addr = 3'b001; // Mhartid.
+                else              o_csr_read_addr = s_csr_addr;
             end
 
             FENCE_I: o_invalidate_instr = 1'b1;
@@ -522,6 +556,8 @@ module ysyx_201979054_main_fsm
                 o_start_read_nc    = 1'b0;
                 o_start_write_nc   = 1'b0;
                 o_invalidate_instr = 1'b0;
+                o_write_en_clint   = 1'b0;
+                o_mret_instr       = 1'b0;
                 o_interrupt        = 1'b0;
                 o_mcause           = 4'b0000;
                 o_csr_we_1         = 1'b0;

@@ -98,6 +98,7 @@ module ysyx_201979054_datapath
     logic [ MEM_INSTR_WIDTH - 1:0 ] s_reg_instr;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_pc;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_old_pc;
+    logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_pc_val;
     logic [ REG_DATA_WIDTH  - 1:0 ] s_reg_data_1;
     logic [ REG_DATA_WIDTH  - 1:0 ] s_reg_data_2;
     logic [ REG_DATA_WIDTH  - 1:0 ] s_reg_alu_result;
@@ -127,19 +128,28 @@ module ysyx_201979054_datapath
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_jamp_addr;
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_mcause;
     logic [                  3:0 ] s_mcause;
+    logic                          s_mret_instr;
 
     // Cacheable mark.
     logic s_cacheable_flag;
     logic s_invalidate_instr;
+
+    // CLINT Signals.
     logic s_clint_mmio_flag;
+    logic s_clint_write_en;
+    logic [ REG_DATA_WIDTH - 1:0 ] s_clint_read_data;
 
     // CLINT machine timer interrupt.
     logic s_interrupt;
     logic s_timer_int_call;
+    logic s_software_int_call;
     logic s_timer_int;
+    logic s_software_int;
     logic s_mie_mstatus;
     logic s_mtip_mip;
+    logic s_msip_mip;
     logic s_mtie_mie;
+    logic s_msie_mie;
 
     // Exception cause signals.
     logic s_instr_addr_ma;
@@ -163,9 +173,10 @@ module ysyx_201979054_datapath
 
     assign s_addr_offset = s_reg_mem_addr[2:0];
     
-    assign s_csr_jamp_addr  = s_csr_read_data >> 2;
+    assign s_csr_jamp_addr  = ( s_csr_read_data >> 2 ) << 2;
     assign s_csr_mcause     = { s_interrupt, 59'b0, s_mcause };
     assign s_timer_int      = s_mie_mstatus & s_mtip_mip & s_mtie_mie;
+    assign s_software_int   = s_mie_mstatus & s_msip_mip & s_msie_mie;
 
 
     assign s_cacheable_flag  = ( s_reg_mem_addr >= 64'h3000_0000 );
@@ -174,7 +185,9 @@ module ysyx_201979054_datapath
     assign o_addr_non_cacheable = s_reg_mem_addr;
     assign o_data_non_cacheable = s_reg_data_2;
 
-    assign s_mem_data = s_cacheable_flag ? s_reg_mem_data : i_data_non_cacheable;
+    assign s_mem_data = s_cacheable_flag ? s_reg_mem_data : ( s_clint_mmio_flag ? s_clint_read_data : i_data_non_cacheable);
+
+    assign s_reg_pc_val = s_fetch_state ? s_reg_pc : s_reg_old_pc;
 
 
  
@@ -218,7 +231,9 @@ module ysyx_201979054_datapath
         .i_load_addr_ma         ( s_load_addr_ma        ),
         .i_illegal_instr_load   ( s_illegal_instr_load  ),
         .i_timer_int            ( s_timer_int           ),
+        .i_software_int         ( s_software_int        ),
         .i_cacheable_flag       ( s_cacheable_flag      ),
+        .i_clint_mmio_flag      ( s_clint_mmio_flag     ),
         .o_alu_control          ( s_alu_control         ),
         .o_result_src           ( s_result_src          ),
         .o_alu_src_1            ( s_alu_src_control_1   ),
@@ -241,6 +256,8 @@ module ysyx_201979054_datapath
         .o_start_read_nc        ( o_start_read_axi_nc   ),
         .o_start_write_nc       ( o_start_write_axi_nc  ),
         .o_invalidate_instr     ( s_invalidate_instr    ),
+        .o_write_en_clint       ( s_clint_write_en      ),
+        .o_mret_instr           ( s_mret_instr          ),
         .o_interrupt            ( s_interrupt           ),
         .o_mcause               ( s_mcause              ),
         .o_csr_we_1             ( s_csr_we_1            ),
@@ -307,32 +324,38 @@ module ysyx_201979054_datapath
 
     // Control & Status Registers.
     ysyx_201979054_csr_file CSR0 (
-        .clk              ( clk                ),
-        .write_en_1       ( s_csr_we_1         ),
-        .write_en_2       ( s_csr_we_2         ),
-        .arst             ( arst               ),
-        .i_read_addr      ( s_csr_read_addr    ),
-        .i_write_addr_1   ( s_csr_write_addr_1 ),
-        .i_write_addr_2   ( s_csr_write_addr_2 ),
-        .i_write_data_1   ( s_csr_mcause       ),
-        .i_write_data_2   ( s_result           ),
-        .i_timer_int_call ( s_timer_int_call   ),
-        .i_timer_int_jump ( s_interrupt        ),
-        .o_read_data      ( s_csr_read_data    ),
-        .o_mie_mstatus    ( s_mie_mstatus      ),
-        .o_mtip_mip       ( s_mtip_mip         ),
-        .o_mtie_mie       ( s_mtie_mie         )
+        .clk                 ( clk                 ),
+        .write_en_1          ( s_csr_we_1          ),
+        .write_en_2          ( s_csr_we_2          ),
+        .arst                ( arst                ),
+        .i_read_addr         ( s_csr_read_addr     ),
+        .i_write_addr_1      ( s_csr_write_addr_1  ),
+        .i_write_addr_2      ( s_csr_write_addr_2  ),
+        .i_write_data_1      ( s_csr_mcause        ),
+        .i_write_data_2      ( s_result            ),
+        .i_timer_int_call    ( s_timer_int_call    ),
+        .i_software_int_call ( s_software_int_call ),
+        .i_interrupt_jump    ( s_interrupt         ),
+        .i_mret_instr        ( s_mret_instr        ),
+        .o_read_data         ( s_csr_read_data     ),
+        .o_mie_mstatus       ( s_mie_mstatus       ),
+        .o_mtip_mip          ( s_mtip_mip          ),
+        .o_msip_mip          ( s_msip_mip          ),
+        .o_mtie_mie          ( s_mtie_mie          ),
+        .o_msie_mie          ( s_msie_mie          )
     );
 
 
     // CLINT MMIO.
     ysyx_201979054_clint_mmio CLINT0 (
-        .clk              ( clk              ),
-        .arst             ( arst             ),
-        .write_en_1       ( 1'b0             ),
-        .write_en_2       ( 1'b0             ),
-        .i_data           ( '0               ),
-        .o_timer_int_call ( s_timer_int_call )
+        .clk                 ( clk                     ),
+        .arst                ( arst                    ),
+        .write_en            ( s_clint_write_en        ),
+        .i_addr              ( s_reg_mem_addr[ 14:13 ] ),
+        .i_data              ( s_reg_data_2            ),
+        .o_data              ( s_clint_read_data       ),
+        .o_timer_int_call    ( s_timer_int_call        ),
+        .o_software_int_call ( s_software_int_call     )
     );
 
 
@@ -477,7 +500,7 @@ module ysyx_201979054_datapath
         .i_mux_3        ( s_imm_ext           ),
         .i_mux_4        ( s_csr_read_data     ),
         .i_mux_5        ( s_csr_read_data_reg ),
-        .i_mux_6        ( s_reg_old_pc        ),
+        .i_mux_6        ( s_reg_pc_val        ),
         .i_mux_7        ( s_csr_jamp_addr     ),
         .o_mux          ( s_result            ) 
     );

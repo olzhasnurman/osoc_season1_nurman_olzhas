@@ -18,7 +18,8 @@ module ysyx_201979054_instr_cache_fsm
     // Output Interface.
     output logic o_stall,
     output logic o_instr_write_en,
-    output logic o_start_read
+    output logic o_start_read,
+    output logic o_in_idle
 );
 
     //------------------------------
@@ -104,5 +105,7 @@ module ysyx_201979054_instr_cache_fsm
             end
         endcase
     end
+
+    assign o_in_idle = ( PS == IDLE ); 
     
 endmodule
