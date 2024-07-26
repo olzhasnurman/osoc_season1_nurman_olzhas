@@ -46,6 +46,7 @@ module ysyx_201979054_main_fsm
     output logic        o_instr_write_en, 
     output logic        o_start_i_cache,
     output logic        o_start_d_cache, 
+    output logic        o_start_write_th,
     output logic        o_branch,
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
@@ -72,23 +73,24 @@ module ysyx_201979054_main_fsm
     assign s_func_3_reduction = | i_func_3;
 
     // State type.
-    typedef enum logic [3:0] {
-        FETCH       = 4'b0000,
-        DECODE      = 4'b0001,
-        MEMADDR     = 4'b0010,
-        MEMREAD     = 4'b0011,
-        MEMWB       = 4'b0100,
-        MEMWRITE    = 4'b0101,
-        EXECUTER    = 4'b0110,
-        ALUWB       = 4'b0111,
-        EXECUTEI    = 4'b1000,
-        JAL         = 4'b1001,
-        BRANCH      = 4'b1010,
-        LOADI       = 4'b1011,
-        CALL_0      = 4'b1100,
-        CSR_EXECUTE = 4'b1101,
-        CSR_WB      = 4'b1110,
-        FENCE_I     = 4'b1111
+    typedef enum logic [4:0] {
+        FETCH       = 5'b00000,
+        DECODE      = 5'b00001,
+        MEMADDR     = 5'b00010,
+        MEMREAD     = 5'b00011,
+        MEMWB       = 5'b00100,
+        MEMWRITE    = 5'b00101,
+        EXECUTER    = 5'b00110,
+        ALUWB       = 5'b00111,
+        EXECUTEI    = 5'b01000,
+        JAL         = 5'b01001,
+        BRANCH      = 5'b01010,
+        LOADI       = 5'b01011,
+        CALL_0      = 5'b01100,
+        CSR_EXECUTE = 5'b01101,
+        CSR_WB      = 5'b01110,
+        FENCE_I     = 5'b01111,
+        WRITE_TH    = 5'b10000
     } t_state;
 
     // State variables. 
@@ -212,7 +214,12 @@ module ysyx_201979054_main_fsm
                     else                 NS = PS;
                 end
                 else if ( i_stall_data ) NS = PS;
-                else                     NS = FETCH;
+                else                     NS = WRITE_TH;
+            end
+
+            WRITE_TH: begin
+                if ( i_stall_data ) NS = PS;
+                else                NS = FETCH;
             end
 
             EXECUTER: NS = ALUWB;
@@ -266,6 +273,7 @@ module ysyx_201979054_main_fsm
         o_start_i_cache    = 1'b0;
         o_branch           = 1'b0;
         o_start_d_cache    = 1'b0;
+        o_start_write_th   = 1'b0;
         o_mem_reg_we       = 1'b0;
         o_fetch_state      = 1'b0;
         o_reg_mem_addr_we  = 1'b0;
@@ -445,6 +453,10 @@ module ysyx_201979054_main_fsm
                     o_mem_reg_we    = 1'b1;      
                 end
             end
+        
+            WRITE_TH: begin
+                o_start_write_th = 1'b1;
+            end
 
             EXECUTER: begin
                 o_alu_src_1 = 2'b10;
@@ -550,6 +562,7 @@ module ysyx_201979054_main_fsm
                 o_start_i_cache    = 1'b0;
                 o_branch           = 1'b0;
                 o_start_d_cache    = 1'b0;
+                o_start_write_th   = 1'b0;
                 o_mem_reg_we       = 1'b0;
                 o_fetch_state      = 1'b0;
                 o_reg_mem_addr_we  = 1'b0;

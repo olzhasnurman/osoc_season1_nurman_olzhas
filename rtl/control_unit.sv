@@ -87,6 +87,7 @@ module  ysyx_201979054_control_unit
     logic s_stall_data;
     logic s_start_read_data;
     logic s_start_data_cache;
+    logic s_start_write_th;
 
     // Illegalal instruction flag.
     logic s_illegal_instr_alu;
@@ -151,6 +152,7 @@ module  ysyx_201979054_control_unit
         .o_instr_write_en     ( o_instr_write_en       ),
         .o_start_i_cache      ( s_start_instr_cache    ),
         .o_start_d_cache      ( s_start_data_cache     ),
+        .o_start_write_th     ( s_start_write_th       ),
         .o_branch             ( s_instr_branch         ),
         .o_mem_reg_we         ( o_mem_reg_we           ),
         .o_fetch_state        ( o_fetch_state          ),
@@ -188,6 +190,7 @@ module  ysyx_201979054_control_unit
         .clk                   ( clk                 ),
         .arst                  ( arst                ),
         .i_start_check         ( s_start_data_cache  ),
+        .i_start_write         ( s_start_write_th    ),
         .i_hit                 ( i_data_hit          ),
         .i_dirty               ( i_data_dirty        ),
         .i_r_last              ( i_read_last_axi     ),

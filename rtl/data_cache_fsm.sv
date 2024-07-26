@@ -15,6 +15,7 @@ module ysyx_201979054_data_cache_fsm
 
     // Input Interface.
     input  logic i_start_check,
+    input  logic i_start_write,
     input  logic i_hit,
     input  logic i_dirty,
     input  logic i_r_last,
@@ -58,9 +59,8 @@ module ysyx_201979054_data_cache_fsm
         NS = PS;
 
         case ( PS )
-            IDLE: if ( i_start_check ) begin
-                NS = COMPARE_TAG;
-            end
+            IDLE: if      ( i_start_check ) NS = COMPARE_TAG;
+                  else if ( i_start_write ) NS = WRITE_BACK;
 
             COMPARE_TAG: begin
                 if ( i_hit ) begin
@@ -80,7 +80,8 @@ module ysyx_201979054_data_cache_fsm
 
             WRITE_BACK: begin
                 if ( i_b_resp ) begin
-                    NS = ALLOCATE;
+                    if ( i_start_write ) NS = COMPARE_TAG;
+                    else                 NS = ALLOCATE;
                 end
             end
 
@@ -120,7 +121,7 @@ module ysyx_201979054_data_cache_fsm
 
             WRITE_BACK: begin
                 o_start_write  = 1'b1;
-                if ( i_b_resp ) o_addr_control = 1'b1;
+                if ( i_b_resp | i_start_write ) o_addr_control = 1'b1;
                 else            o_addr_control = 1'b0;
             end
             default: begin
