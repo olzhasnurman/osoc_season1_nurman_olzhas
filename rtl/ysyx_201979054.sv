@@ -1040,6 +1040,8 @@ module ysyx_201979054 (
     //--------------------------------
     // Internal nets.
     //--------------------------------
+    logic arst;
+
     logic s_write_req;
     logic s_read_req;
     logic s_read_req_non_cacheable;
@@ -1114,12 +1116,29 @@ module ysyx_201979054 (
 
     assign s_done = ( s_count_done ) | ( s_axi_done & ( s_read_req_non_cacheable | s_write_req_non_cacheable ) ) | ( s_axi4_access & s_axi_done ); 
 
+
+
+    //-----------------------------------
+    // LOWER LEVEL MODULE INSTANTIATIONS.
+    //-----------------------------------
+
+    //------------------------------
+    // Reset Synchronizer Instance.
+    //------------------------------
+    ysyx_201979054_reset_sync RST_SYNC (
+        .clk       ( clk    ),
+        .arst      ( reset  ),
+        .arst_sync ( arst   )
+    );
+
+
+
     //-----------------------------
     // Top datapath unit instance.
     //-----------------------------
     ysyx_201979054_datapath TOP0 (
         .clk                  ( clock                     ),
-        .i_arst               ( reset                     ),
+        .i_arst               ( arst                      ),
         .i_done_axi           ( s_done                    ),
         .i_data_read_axi      ( s_data_block_read_top     ),
         .i_data_non_cacheable ( s_data_non_cacheable_r    ),
@@ -1140,7 +1159,7 @@ module ysyx_201979054 (
     //-----------------------
     ysyx_201979054_axi4_master AXI4_M0 (
         .clk          ( clock             ),
-        .arst         ( reset             ),
+        .arst         ( arst              ),
         .io_interrupt ( io_interrupt      ),
         .i_write_req  ( s_start_write_axi ),
         .i_read_req   ( s_start_read_axi  ),
@@ -1197,7 +1216,7 @@ module ysyx_201979054 (
         .ADDR_INCR_VAL  ( 32'd4   ) 
     ) DATA_T_APB (
         .clk                ( clock                     ),
-        .arst               ( reset                     ),
+        .arst               ( arst                      ),
         .i_start_read       ( s_start_read_axi_cache & ( ~s_axi4_access )    ),
         .i_start_write      ( s_start_write_axi_cache & ( ~s_axi4_access )   ),
         .i_axi_done         ( s_axi_handshake                ),
@@ -1219,7 +1238,7 @@ module ysyx_201979054 (
         .FIFO_WIDTH     ( 512 )
     ) FIFO_0 (
         .clk          ( clock                                       ),
-        .arst         ( reset                                       ),
+        .arst         ( arst                                        ),
         .write_en     ( s_axi_handshake                             ),
         .start_read   ( s_start_read_axi_cache  & ( s_axi4_access ) ),
         .start_write  ( s_start_write_axi_cache & ( s_axi4_access ) ),
@@ -1235,7 +1254,7 @@ module ysyx_201979054 (
     //-------------------------
     ysyx_201979054_register_en #( .DATA_WIDTH(8) ) REG_AXI_DATA (
         .clk          ( clock           ),
-        .arst         ( reset           ),
+        .arst         ( arst            ),
         .write_en     ( s_axi_handshake ),
         .i_write_data ( s_read_axi[7:0] ),
         .o_read_data  ( s_reg_read_axi  )
@@ -3358,7 +3377,7 @@ module ysyx_201979054_datapath
 (
     //Clock & Reset signals. 
     input  logic                            clk,
-    input  logic                            i_arst,
+    input  logic                            arst,
     input  logic                            i_done_axi,   // NEEDS TO BE CONNECTED TO AXI 
     input  logic [ BLOCK_DATA_WIDTH - 1:0 ] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
     input  logic [ REG_DATA_WIDTH   - 1:0 ] i_data_non_cacheable,
@@ -3375,9 +3394,6 @@ module ysyx_201979054_datapath
     //------------------------
     // INTERNAL NETS.
     //------------------------
-
-    // Reset signal.
-    logic arst;
 
     // Instruction cache signals.
     logic s_instr_cache_we;
@@ -3532,15 +3548,6 @@ module ysyx_201979054_datapath
     //-----------------------------------
     // LOWER LEVEL MODULE INSTANTIATIONS.
     //-----------------------------------
-
-    //------------------------------
-    // Reset Synchronizer Instance.
-    //------------------------------
-    ysyx_201979054_reset_sync RST_SYNC (
-        .clk       ( clk    ),
-        .arst      ( i_arst ),
-        .arst_sync ( arst   )
-    );
 
 
     //---------------------------

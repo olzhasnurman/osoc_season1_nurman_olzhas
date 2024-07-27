@@ -21,7 +21,7 @@ module ysyx_201979054_datapath
 (
     //Clock & Reset signals. 
     input  logic                            clk,
-    input  logic                            i_arst,
+    input  logic                            arst,
     input  logic                            i_done_axi,   // NEEDS TO BE CONNECTED TO AXI 
     input  logic [ BLOCK_DATA_WIDTH - 1:0 ] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
     input  logic [ REG_DATA_WIDTH   - 1:0 ] i_data_non_cacheable,
@@ -38,9 +38,6 @@ module ysyx_201979054_datapath
     //------------------------
     // INTERNAL NETS.
     //------------------------
-
-    // Reset signal.
-    logic arst;
 
     // Instruction cache signals.
     logic s_instr_cache_we;
@@ -195,15 +192,6 @@ module ysyx_201979054_datapath
     //-----------------------------------
     // LOWER LEVEL MODULE INSTANTIATIONS.
     //-----------------------------------
-
-    //------------------------------
-    // Reset Synchronizer Instance.
-    //------------------------------
-    ysyx_201979054_reset_sync RST_SYNC (
-        .clk       ( clk    ),
-        .arst      ( i_arst ),
-        .arst_sync ( arst   )
-    );
 
 
     //---------------------------
