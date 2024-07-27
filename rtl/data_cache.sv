@@ -6,36 +6,37 @@
 
 module ysyx_201979054_data_cache 
 #(
-    parameter SET_COUNT   = 2,
-              WORD_SIZE   = 32,
-              BLOCK_WIDTH = 512,
-              N           = 2,
-              ADDR_WIDTH  = 64,
-              REG_WIDTH   = 64
+    parameter SET_COUNT      = 2,
+              WORD_SIZE      = 32,
+              BLOCK_WIDTH    = 512,
+              N              = 2,
+              ADDR_WIDTH     = 64,
+              OUT_ADDR_WIDTH = 32,
+              REG_WIDTH      = 64
 ) 
 (
     // Control signals.
-    input  logic                       clk,
-    input  logic                       arst,
-    input  logic                       write_en,
-    input  logic                       valid_update,
-    input  logic                       lru_update,
-    input  logic                       block_write_en,
+    input  logic                          clk,
+    input  logic                          arst,
+    input  logic                          write_en,
+    input  logic                          valid_update,
+    input  logic                          lru_update,
+    input  logic                          block_write_en,
     
     // Input Interface.
-    input  logic [ ADDR_WIDTH  - 1:0 ] i_data_addr,
-    input  logic [ REG_WIDTH   - 1:0 ] i_data,
-    input  logic [ BLOCK_WIDTH - 1:0 ] i_data_block,
-    input  logic [               1:0 ] i_store_type,
-    input  logic                       i_addr_control,
+    input  logic [ ADDR_WIDTH     - 1:0 ] i_data_addr,
+    input  logic [ REG_WIDTH      - 1:0 ] i_data,
+    input  logic [ BLOCK_WIDTH    - 1:0 ] i_data_block,
+    input  logic [                  1:0 ] i_store_type,
+    input  logic                          i_addr_control,
 
     // Output Interface.
-    output logic [ REG_WIDTH   - 1:0 ] o_data,
-    output logic [ BLOCK_WIDTH - 1:0 ] o_data_block,
-    output logic                       o_hit,
-    output logic                       o_dirty,
-    output logic [ ADDR_WIDTH  - 1:0 ] o_addr_axi,
-    output logic                       o_store_addr_ma
+    output logic [ REG_WIDTH      - 1:0 ] o_data,
+    output logic [ BLOCK_WIDTH    - 1:0 ] o_data_block,
+    output logic                          o_hit,
+    output logic                          o_dirty,
+    output logic [ OUT_ADDR_WIDTH - 1:0 ] o_addr_axi,
+    output logic                          o_store_addr_ma
 
 );  
     //-------------------------
@@ -69,8 +70,8 @@ module ysyx_201979054_data_cache
     logic [           N - 1:0 ] s_lru_found;
     logic [           N - 1:0 ] s_hit;
 
-    logic [ ADDR_WIDTH - 1:0 ] s_addr_wb;
-    logic [ ADDR_WIDTH - 1:0 ] s_addr;
+    logic [ OUT_ADDR_WIDTH - 1:0 ] s_addr_wb;
+    logic [ OUT_ADDR_WIDTH - 1:0 ] s_addr;
 
     // Store misalignment signals.
     logic s_store_addr_ma_sh;
@@ -428,8 +429,8 @@ module ysyx_201979054_data_cache
     //Read dirty bit.
     assign o_dirty      = dirty_mem[ s_lru ][ s_index ];
     assign o_data_block = data_mem[ s_index ][ s_lru ];
-    assign s_addr_wb    = { tag_mem[ s_index ][ s_lru ], s_index, 6'b0 };
-    assign s_addr       = { i_data_addr[ADDR_WIDTH - 1:INDEX_LSB ], 6'b0 };
+    assign s_addr_wb    = { tag_mem[ s_index ][ s_lru ][ OUT_ADDR_WIDTH - 8:0 ], s_index, 6'b0 };
+    assign s_addr       = { i_data_addr[ OUT_ADDR_WIDTH - 1:INDEX_LSB ], 6'b0 };
     assign o_addr_axi   = i_addr_control ? s_addr : s_addr_wb;
 
     
