@@ -218,9 +218,8 @@ module ysyx_201979054_main_fsm
             EXECUTER: NS = ALUWB;
 
             ALUWB: begin
-                // if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) NS = CALL_0;
-                // else                       NS = FETCH;    
-                NS = FETCH;             
+                if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) NS = CALL_0;
+                else                       NS = FETCH;    
             end
 
             EXECUTEI: NS = ALUWB;
@@ -395,7 +394,6 @@ module ysyx_201979054_main_fsm
                     o_csr_we_2         = 1'b1; 
                     o_start_d_cache    = 1'b0;
                     o_start_read_nc    = 1'b0;
-                    // $display("time =%0t", $time); // FOR SIMULATION ONLY.
                 end 
 
                 if ( i_stall_data ) o_mem_reg_we = 1'b0;
@@ -460,14 +458,14 @@ module ysyx_201979054_main_fsm
                 o_result_src   = 3'b000;
                 o_reg_write_en = 1'b1;
                 
-                // if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) begin
-                //     o_mcause           = 4'd2; // Illegal instruction.
-                //     o_csr_write_addr_1 = 3'b100;  // mcause.
-                //     o_csr_we_1         = 1'b1; 
-                //     o_csr_write_addr_2 = 3'b101;  // mepc.
-                //     o_result_src       = 3'b110; // s_old_pc.  
-                //     o_csr_we_2         = 1'b1; 
-                // end
+                if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) begin
+                    o_mcause           = 4'd2; // Illegal instruction.
+                    o_csr_write_addr_1 = 3'b100;  // mcause.
+                    o_csr_we_1         = 1'b1; 
+                    o_csr_write_addr_2 = 3'b101;  // mepc.
+                    o_result_src       = 3'b110; // s_old_pc.  
+                    o_csr_we_2         = 1'b1; 
+                end
             end
 
             EXECUTEI: begin
