@@ -207,7 +207,6 @@ module  ysyx_201979054_control_unit
         .i_alu_op        ( s_alu_op            ),
         .i_func_3        ( i_func_3            ),
         .i_func_7_5      ( i_func_7[5]         ),
-        .i_func_7_0      ( i_func_7[0]         ),
         .i_op_5          ( i_op[5]             ),
         .o_alu_control   ( o_alu_control       ),
         .o_illegal_instr ( s_illegal_instr_alu )
