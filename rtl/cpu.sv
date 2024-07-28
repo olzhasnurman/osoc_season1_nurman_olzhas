@@ -205,9 +205,9 @@ module ysyx_201979054 (
     // Reset Synchronizer Instance.
     //------------------------------
     ysyx_201979054_reset_sync RST_SYNC (
-        .clk       ( clk    ),
-        .arst      ( reset  ),
-        .arst_sync ( arst   )
+        .clk       ( clock ),
+        .arst      ( reset ),
+        .arst_sync ( arst  )
     );
 
 
@@ -217,7 +217,7 @@ module ysyx_201979054 (
     //-----------------------------
     ysyx_201979054_datapath TOP0 (
         .clk                  ( clock                     ),
-        .i_arst               ( arst                      ),
+        .arst                 ( arst                      ),
         .i_done_axi           ( s_done                    ),
         .i_data_read_axi      ( s_data_block_read_top     ),
         .i_data_non_cacheable ( s_data_non_cacheable_r    ),

@@ -414,7 +414,7 @@ module ysyx_201979054_axi4_master
             o_awaddr  <= '0;
 
             o_wvalid  <= 1'b0;
-            o_wstrb   <= i_axi_strb;
+            o_wstrb   <= '0;
 
             o_bready  <= 1'b0;
 
@@ -486,7 +486,7 @@ module ysyx_201979054_axi4_master
                     o_awaddr  <= '0;
     
                     o_wvalid  <= 1'b0;
-                    o_wstrb   <= i_axi_strb;
+                    o_wstrb   <= '0;
     
                     o_bready  <= 1'b0;
     
@@ -911,12 +911,14 @@ module ysyx_201979054_counter
 
     logic [ $clog2( SIZE ) - 1:0 ] s_count;
 
-    always_ff @( posedge clk, posedge arst ) begin
+    always_ff @( posedge clk, posedge arst, negedge restartn ) begin
         if      ( arst | ~restartn ) s_count <= '0;
-        else if ( run              ) s_count <= s_count + 1; 
+        else if ( run              ) s_count <= s_count + 4'b1; 
+    end
 
+    always_ff @( posedge clk ) begin
         if ( (s_count == LIMIT ) & run ) o_done <= 1'b1;
-        else                            o_done <= 1'b0;
+        else                             o_done <= 1'b0;
     end
     
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
@@ -1126,9 +1128,9 @@ module ysyx_201979054 (
     // Reset Synchronizer Instance.
     //------------------------------
     ysyx_201979054_reset_sync RST_SYNC (
-        .clk       ( clk    ),
-        .arst      ( reset  ),
-        .arst_sync ( arst   )
+        .clk       ( clock ),
+        .arst      ( reset ),
+        .arst_sync ( arst  )
     );
 
 
@@ -1138,7 +1140,7 @@ module ysyx_201979054 (
     //-----------------------------
     ysyx_201979054_datapath TOP0 (
         .clk                  ( clock                     ),
-        .i_arst               ( arst                      ),
+        .arst                 ( arst                      ),
         .i_done_axi           ( s_done                    ),
         .i_data_read_axi      ( s_data_block_read_top     ),
         .i_data_non_cacheable ( s_data_non_cacheable_r    ),
@@ -2160,7 +2162,7 @@ module ysyx_201979054_instr_cache
     logic [ BLOCK_WIDTH - 1:0 ] mem [ BLOCK_COUNT - 1:0 ];
 
     // Valid write logic.
-    always_ff @( posedge clk, posedge arst ) begin
+    always_ff @( posedge clk, posedge arst, posedge i_invalidate_instr ) begin
         if ( arst | i_invalidate_instr ) begin
             valid_mem <= '0;
         end

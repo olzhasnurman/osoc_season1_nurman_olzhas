@@ -122,7 +122,7 @@ module ysyx_201979054_axi4_master
             o_awaddr  <= '0;
 
             o_wvalid  <= 1'b0;
-            o_wstrb   <= i_axi_strb;
+            o_wstrb   <= '0;
 
             o_bready  <= 1'b0;
 
@@ -194,7 +194,7 @@ module ysyx_201979054_axi4_master
                     o_awaddr  <= '0;
     
                     o_wvalid  <= 1'b0;
-                    o_wstrb   <= i_axi_strb;
+                    o_wstrb   <= '0;
     
                     o_bready  <= 1'b0;
     

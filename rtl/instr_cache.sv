@@ -72,7 +72,7 @@ module ysyx_201979054_instr_cache
     logic [ BLOCK_WIDTH - 1:0 ] mem [ BLOCK_COUNT - 1:0 ];
 
     // Valid write logic.
-    always_ff @( posedge clk, posedge arst ) begin
+    always_ff @( posedge clk, posedge arst, posedge i_invalidate_instr ) begin
         if ( arst | i_invalidate_instr ) begin
             valid_mem <= '0;
         end
