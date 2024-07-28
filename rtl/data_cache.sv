@@ -1,7 +1,7 @@
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -------------------------------------------------------------------
-// This is a data cache implemneted using 4-way set associative cache.
+// This is a data cache implemented using 2-way set associative cache.
 // -------------------------------------------------------------------
 
 module ysyx_201979054_data_cache 
@@ -29,6 +29,8 @@ module ysyx_201979054_data_cache
     input  logic [ BLOCK_WIDTH    - 1:0 ] i_data_block,
     input  logic [                  1:0 ] i_store_type,
     input  logic                          i_addr_control,
+    input  logic                          i_start_wb,
+    input  logic                          i_done_wb,
 
     // Output Interface.
     output logic [ REG_WIDTH      - 1:0 ] o_data,
@@ -36,6 +38,7 @@ module ysyx_201979054_data_cache
     output logic                          o_hit,
     output logic                          o_dirty,
     output logic [ OUT_ADDR_WIDTH - 1:0 ] o_addr_axi,
+    output logic                          o_done_fence,
     output logic                          o_store_addr_ma
 
 );  
@@ -72,6 +75,7 @@ module ysyx_201979054_data_cache
 
     logic [ OUT_ADDR_WIDTH - 1:0 ] s_addr_wb;
     logic [ OUT_ADDR_WIDTH - 1:0 ] s_addr;
+    logic [ OUT_ADDR_WIDTH - 1:0 ] s_addr_axi;
 
     // Store misalignment signals.
     logic s_store_addr_ma_sh;
@@ -427,11 +431,20 @@ module ysyx_201979054_data_cache
     end
 
     //Read dirty bit.
-    assign o_dirty      = dirty_mem[ s_lru ][ s_index ];
-    assign o_data_block = data_mem[ s_index ][ s_lru ];
+    assign o_dirty      = i_start_wb ? dirty_mem[ s_count[1] ][ s_count[0] ] : dirty_mem[ s_lru ][ s_index ];
+    assign o_data_block = i_start_wb ? data_mem[ s_count[0] ][ s_count[1] ]  : data_mem[ s_index ][ s_lru ];
     assign s_addr_wb    = { tag_mem[ s_index ][ s_lru ][ OUT_ADDR_WIDTH - 8:0 ], s_index, 6'b0 };
     assign s_addr       = { i_data_addr[ OUT_ADDR_WIDTH - 1:INDEX_LSB ], 6'b0 };
-    assign o_addr_axi   = i_addr_control ? s_addr : s_addr_wb;
+    assign s_addr_axi   = i_addr_control ? s_addr : s_addr_wb;
+    assign o_addr_axi   = i_start_wb ? { tag_mem[ s_count[0] ][ s_count[1] ][ OUT_ADDR_WIDTH - 8:0 ], s_count[0] , 6'b0 } : s_addr_axi;
 
+    logic [ 1:0 ] s_count;
+
+    always_ff @( posedge clk, posedge arst ) begin
+        if      ( arst      ) s_count <= '0;
+        else if ( i_done_wb ) s_count <= s_count + 2'b1;
+    end
+
+    assign o_done_fence = i_done_wb & ( s_count == 2'b11 );
     
 endmodule

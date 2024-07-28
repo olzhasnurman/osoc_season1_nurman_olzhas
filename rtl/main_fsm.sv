@@ -34,6 +34,7 @@ module ysyx_201979054_main_fsm
     input  logic        i_done_axi,
     input  logic        i_clint_mmio_flag,
     input  logic        i_icache_idle,
+    input  logic        i_done_fence,
 
     // Output interface.
     output logic [ 2:0] o_alu_op,
@@ -56,6 +57,7 @@ module ysyx_201979054_main_fsm
     output logic        o_write_en_clint,
     output logic        o_mret_instr,
     output logic        o_interrupt,
+    output logic        o_start_wb,
     output logic [ 3:0] o_mcause,
     output logic        o_csr_we_1,
     output logic        o_csr_we_2,
@@ -243,7 +245,8 @@ module ysyx_201979054_main_fsm
 
             CSR_WB: NS = FETCH;
 
-            FENCE_I: NS = FETCH;
+            FENCE_I: if      ( i_func_3[0]  ) NS = FETCH;
+                     else if ( i_done_fence ) NS = FETCH;
 
             default: NS = PS;
         endcase
@@ -274,6 +277,7 @@ module ysyx_201979054_main_fsm
         o_write_en_clint   = 1'b0;
         o_mret_instr       = 1'b0;
         o_interrupt        = 1'b0;
+        o_start_wb         = 1'b0;
         o_mcause           = 4'b0000;
         o_csr_we_1         = 1'b0;
         o_csr_we_2         = 1'b0;
@@ -533,7 +537,14 @@ module ysyx_201979054_main_fsm
                 else              o_csr_read_addr = s_csr_addr;
             end
 
-            FENCE_I: o_invalidate_instr = 1'b1;
+            FENCE_I: begin
+                o_invalidate_instr = 1'b0;
+                o_start_wb         = 1'b1;
+                if ( i_func_3[0] ) begin
+                    o_invalidate_instr = 1'b1;
+                    o_start_wb         = 1'b0;
+                end
+            end
 
 
             default: begin
@@ -557,6 +568,7 @@ module ysyx_201979054_main_fsm
                 o_write_en_clint   = 1'b0;
                 o_mret_instr       = 1'b0;
                 o_interrupt        = 1'b0;
+                o_start_wb         = 1'b0;
                 o_mcause           = 4'b0000;
                 o_csr_we_1         = 1'b0;
                 o_csr_we_2         = 1'b0;

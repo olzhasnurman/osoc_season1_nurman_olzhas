@@ -36,6 +36,7 @@ module  ysyx_201979054_control_unit
     input logic         i_software_int,
     input  logic        i_cacheable_flag,
     input  logic        i_clint_mmio_flag,
+    input  logic        i_done_fence,
 
     // Output interface.
     output logic [ 4:0] o_alu_control,
@@ -63,6 +64,8 @@ module  ysyx_201979054_control_unit
     output logic        o_write_en_clint,
     output logic        o_mret_instr,
     output logic        o_interrupt,
+    output logic        o_done_wb,
+    output logic        o_start_wb,
     output logic [ 3:0] o_mcause,
     output logic        o_csr_we_1,
     output logic        o_csr_we_2,
@@ -94,6 +97,10 @@ module  ysyx_201979054_control_unit
     logic s_illegal_instr_alu_ff;
 
     logic s_icache_in_idle;
+
+    logic s_start_wb;
+
+    assign o_start_wb = s_start_wb;
 
     assign o_pc_write       = s_pc_update | ( s_branch );
 
@@ -142,6 +149,7 @@ module  ysyx_201979054_control_unit
         .i_done_axi           ( i_read_last_axi        ),
         .i_clint_mmio_flag    ( i_clint_mmio_flag      ),
         .i_icache_idle        ( s_icache_in_idle       ),
+        .i_done_fence         ( i_done_fence           ),
         .o_alu_op             ( s_alu_op               ),
         .o_result_src         ( o_result_src           ),
         .o_alu_src_1          ( o_alu_src_1            ),
@@ -162,6 +170,7 @@ module  ysyx_201979054_control_unit
         .o_write_en_clint     ( o_write_en_clint       ),
         .o_mret_instr         ( o_mret_instr           ),
         .o_interrupt          ( o_interrupt            ),
+        .o_start_wb           ( s_start_wb             ),
         .o_mcause             ( o_mcause               ),
         .o_csr_we_1           ( o_csr_we_1             ),
         .o_csr_we_2           ( o_csr_we_2             ),
@@ -193,13 +202,15 @@ module  ysyx_201979054_control_unit
         .i_dirty               ( i_data_dirty        ),
         .i_r_last              ( i_read_last_axi     ),
         .i_b_resp              ( i_b_resp_axi        ),
+        .i_start_wb            ( s_start_wb          ),
         .o_stall               ( s_stall_data        ),
         .o_data_block_write_en ( o_block_write_en    ),
         .o_valid_update        ( o_data_valid_update ),
         .o_lru_update          ( o_data_lru_update   ),
         .o_start_write         ( o_start_write_axi   ),
         .o_start_read          ( s_start_read_data   ),
-        .o_addr_control        ( o_addr_control      )
+        .o_addr_control        ( o_addr_control      ),
+        .o_done_wb             ( o_done_wb           )
     );
 
 

@@ -154,6 +154,11 @@ module ysyx_201979054_datapath
     logic s_load_addr_ma;
     logic s_illegal_instr_load;
 
+    // Fence WB signals.
+    logic s_start_wb;
+    logic s_done_wb;
+    logic s_done_fence;
+
 
 
 
@@ -222,6 +227,7 @@ module ysyx_201979054_datapath
         .i_software_int         ( s_software_int        ),
         .i_cacheable_flag       ( s_cacheable_flag      ),
         .i_clint_mmio_flag      ( s_clint_mmio_flag     ),
+        .i_done_fence           ( s_done_fence          ),
         .o_alu_control          ( s_alu_control         ),
         .o_result_src           ( s_result_src          ),
         .o_alu_src_1            ( s_alu_src_control_1   ),
@@ -247,6 +253,8 @@ module ysyx_201979054_datapath
         .o_write_en_clint       ( s_clint_write_en      ),
         .o_mret_instr           ( s_mret_instr          ),
         .o_interrupt            ( s_interrupt           ),
+        .o_done_wb              ( s_done_wb             ),
+        .o_start_wb             ( s_start_wb            ),
         .o_mcause               ( s_mcause              ),
         .o_csr_we_1             ( s_csr_we_1            ),
         .o_csr_we_2             ( s_csr_we_2            ),
@@ -288,11 +296,14 @@ module ysyx_201979054_datapath
         .i_data_block    ( i_data_read_axi       ),
         .i_store_type    ( s_func_3[1:0]         ),
         .i_addr_control  ( s_addr_control        ),
+        .i_start_wb      ( s_start_wb            ),
+        .i_done_wb       ( s_done_wb             ),
         .o_data          ( s_mem_read_data       ),
         .o_data_block    ( o_data_write_axi      ),
         .o_hit           ( s_data_hit            ),
         .o_dirty         ( s_data_dirty          ),
         .o_addr_axi      ( s_addr_axi            ),
+        .o_done_fence    ( s_done_fence          ),
         .o_store_addr_ma ( s_store_addr_ma       )
     );
 

@@ -695,6 +695,7 @@ module  ysyx_201979054_control_unit
     input logic         i_software_int,
     input  logic        i_cacheable_flag,
     input  logic        i_clint_mmio_flag,
+    input  logic        i_done_fence,
 
     // Output interface.
     output logic [ 4:0] o_alu_control,
@@ -722,6 +723,8 @@ module  ysyx_201979054_control_unit
     output logic        o_write_en_clint,
     output logic        o_mret_instr,
     output logic        o_interrupt,
+    output logic        o_done_wb,
+    output logic        o_start_wb,
     output logic [ 3:0] o_mcause,
     output logic        o_csr_we_1,
     output logic        o_csr_we_2,
@@ -753,6 +756,10 @@ module  ysyx_201979054_control_unit
     logic s_illegal_instr_alu_ff;
 
     logic s_icache_in_idle;
+
+    logic s_start_wb;
+
+    assign o_start_wb = s_start_wb;
 
     assign o_pc_write       = s_pc_update | ( s_branch );
 
@@ -801,6 +808,7 @@ module  ysyx_201979054_control_unit
         .i_done_axi           ( i_read_last_axi        ),
         .i_clint_mmio_flag    ( i_clint_mmio_flag      ),
         .i_icache_idle        ( s_icache_in_idle       ),
+        .i_done_fence         ( i_done_fence           ),
         .o_alu_op             ( s_alu_op               ),
         .o_result_src         ( o_result_src           ),
         .o_alu_src_1          ( o_alu_src_1            ),
@@ -821,6 +829,7 @@ module  ysyx_201979054_control_unit
         .o_write_en_clint     ( o_write_en_clint       ),
         .o_mret_instr         ( o_mret_instr           ),
         .o_interrupt          ( o_interrupt            ),
+        .o_start_wb           ( s_start_wb             ),
         .o_mcause             ( o_mcause               ),
         .o_csr_we_1           ( o_csr_we_1             ),
         .o_csr_we_2           ( o_csr_we_2             ),
@@ -852,13 +861,15 @@ module  ysyx_201979054_control_unit
         .i_dirty               ( i_data_dirty        ),
         .i_r_last              ( i_read_last_axi     ),
         .i_b_resp              ( i_b_resp_axi        ),
+        .i_start_wb            ( s_start_wb          ),
         .o_stall               ( s_stall_data        ),
         .o_data_block_write_en ( o_block_write_en    ),
         .o_valid_update        ( o_data_valid_update ),
         .o_lru_update          ( o_data_lru_update   ),
         .o_start_write         ( o_start_write_axi   ),
         .o_start_read          ( s_start_read_data   ),
-        .o_addr_control        ( o_addr_control      )
+        .o_addr_control        ( o_addr_control      ),
+        .o_done_wb             ( o_done_wb           )
     );
 
 
@@ -1419,7 +1430,7 @@ module ysyx_201979054_csr_file
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -------------------------------------------------------------------
-// This is a data cache implemneted using 4-way set associative cache.
+// This is a data cache implemented using 2-way set associative cache.
 // -------------------------------------------------------------------
 
 module ysyx_201979054_data_cache 
@@ -1447,6 +1458,8 @@ module ysyx_201979054_data_cache
     input  logic [ BLOCK_WIDTH    - 1:0 ] i_data_block,
     input  logic [                  1:0 ] i_store_type,
     input  logic                          i_addr_control,
+    input  logic                          i_start_wb,
+    input  logic                          i_done_wb,
 
     // Output Interface.
     output logic [ REG_WIDTH      - 1:0 ] o_data,
@@ -1454,6 +1467,7 @@ module ysyx_201979054_data_cache
     output logic                          o_hit,
     output logic                          o_dirty,
     output logic [ OUT_ADDR_WIDTH - 1:0 ] o_addr_axi,
+    output logic                          o_done_fence,
     output logic                          o_store_addr_ma
 
 );  
@@ -1490,6 +1504,7 @@ module ysyx_201979054_data_cache
 
     logic [ OUT_ADDR_WIDTH - 1:0 ] s_addr_wb;
     logic [ OUT_ADDR_WIDTH - 1:0 ] s_addr;
+    logic [ OUT_ADDR_WIDTH - 1:0 ] s_addr_axi;
 
     // Store misalignment signals.
     logic s_store_addr_ma_sh;
@@ -1845,12 +1860,21 @@ module ysyx_201979054_data_cache
     end
 
     //Read dirty bit.
-    assign o_dirty      = dirty_mem[ s_lru ][ s_index ];
-    assign o_data_block = data_mem[ s_index ][ s_lru ];
+    assign o_dirty      = i_start_wb ? dirty_mem[ s_count[1] ][ s_count[0] ] : dirty_mem[ s_lru ][ s_index ];
+    assign o_data_block = i_start_wb ? data_mem[ s_count[0] ][ s_count[1] ]  : data_mem[ s_index ][ s_lru ];
     assign s_addr_wb    = { tag_mem[ s_index ][ s_lru ][ OUT_ADDR_WIDTH - 8:0 ], s_index, 6'b0 };
     assign s_addr       = { i_data_addr[ OUT_ADDR_WIDTH - 1:INDEX_LSB ], 6'b0 };
-    assign o_addr_axi   = i_addr_control ? s_addr : s_addr_wb;
+    assign s_addr_axi   = i_addr_control ? s_addr : s_addr_wb;
+    assign o_addr_axi   = i_start_wb ? { tag_mem[ s_count[0] ][ s_count[1] ][ OUT_ADDR_WIDTH - 8:0 ], s_count[0] , 6'b0 } : s_addr_axi;
 
+    logic [ 1:0 ] s_count;
+
+    always_ff @( posedge clk, posedge arst ) begin
+        if      ( arst      ) s_count <= '0;
+        else if ( i_done_wb ) s_count <= s_count + 2'b1;
+    end
+
+    assign o_done_fence = i_done_wb & ( s_count == 2'b11 );
     
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
@@ -1869,6 +1893,7 @@ module ysyx_201979054_data_cache_fsm
 
     // Input Interface.
     input  logic i_start_check,
+    input  logic i_start_wb,
     input  logic i_hit,
     input  logic i_dirty,
     input  logic i_r_last,
@@ -1881,7 +1906,8 @@ module ysyx_201979054_data_cache_fsm
     output logic o_lru_update,
     output logic o_start_write,
     output logic o_start_read,
-    output logic o_addr_control
+    output logic o_addr_control,
+    output logic o_done_wb
 );
 
     //------------------------------
@@ -1889,11 +1915,12 @@ module ysyx_201979054_data_cache_fsm
     //------------------------------
 
     // FSM: States.
-    typedef enum logic [1:0 ] {
-        IDLE        = 2'b00,
-        COMPARE_TAG = 2'b01,
-        ALLOCATE    = 2'b10,
-        WRITE_BACK  = 2'b11
+    typedef enum logic [2:0 ] {
+        IDLE        = 3'b000,
+        COMPARE_TAG = 3'b001,
+        ALLOCATE    = 3'b010,
+        WRITE_BACK  = 3'b011,
+        CHECK_DIRTY = 3'b100
     } t_state;
 
     t_state PS;
@@ -1912,9 +1939,8 @@ module ysyx_201979054_data_cache_fsm
         NS = PS;
 
         case ( PS )
-            IDLE: if ( i_start_check ) begin
-                NS = COMPARE_TAG;
-            end
+            IDLE: if ( i_start_check ) NS = COMPARE_TAG;
+             else if ( i_start_wb    ) NS = CHECK_DIRTY;
 
             COMPARE_TAG: begin
                 if ( i_hit ) begin
@@ -1934,8 +1960,14 @@ module ysyx_201979054_data_cache_fsm
 
             WRITE_BACK: begin
                 if ( i_b_resp ) begin
-                    NS = ALLOCATE;
+                    if ( i_start_wb ) NS = IDLE;
+                    else              NS = ALLOCATE;
                 end
+            end
+
+            CHECK_DIRTY: begin
+                if ( i_dirty ) NS = WRITE_BACK;
+                else           NS = IDLE;
             end
 
             default: NS = PS;
@@ -1951,6 +1983,7 @@ module ysyx_201979054_data_cache_fsm
         o_start_write         = 1'b0;
         o_start_read          = 1'b0;
         o_addr_control        = 1'b1;
+        o_done_wb             = 1'b0;
 
         case ( PS )
             IDLE: begin
@@ -1974,9 +2007,15 @@ module ysyx_201979054_data_cache_fsm
 
             WRITE_BACK: begin
                 o_start_write  = 1'b1;
+                o_done_wb      = i_b_resp & i_start_wb;
                 if ( i_b_resp ) o_addr_control = 1'b1;
                 else            o_addr_control = 1'b0;
             end
+
+            CHECK_DIRTY: begin
+                o_done_wb = ~i_dirty;
+            end
+
             default: begin
                 o_stall               = 1'b1;
                 o_data_block_write_en = 1'b0;
@@ -2509,6 +2548,7 @@ module ysyx_201979054_main_fsm
     input  logic        i_done_axi,
     input  logic        i_clint_mmio_flag,
     input  logic        i_icache_idle,
+    input  logic        i_done_fence,
 
     // Output interface.
     output logic [ 2:0] o_alu_op,
@@ -2531,6 +2571,7 @@ module ysyx_201979054_main_fsm
     output logic        o_write_en_clint,
     output logic        o_mret_instr,
     output logic        o_interrupt,
+    output logic        o_start_wb,
     output logic [ 3:0] o_mcause,
     output logic        o_csr_we_1,
     output logic        o_csr_we_2,
@@ -2718,7 +2759,8 @@ module ysyx_201979054_main_fsm
 
             CSR_WB: NS = FETCH;
 
-            FENCE_I: NS = FETCH;
+            FENCE_I: if      ( i_func_3[0]  ) NS = FETCH;
+                     else if ( i_done_fence ) NS = FETCH;
 
             default: NS = PS;
         endcase
@@ -2749,6 +2791,7 @@ module ysyx_201979054_main_fsm
         o_write_en_clint   = 1'b0;
         o_mret_instr       = 1'b0;
         o_interrupt        = 1'b0;
+        o_start_wb         = 1'b0;
         o_mcause           = 4'b0000;
         o_csr_we_1         = 1'b0;
         o_csr_we_2         = 1'b0;
@@ -3008,7 +3051,14 @@ module ysyx_201979054_main_fsm
                 else              o_csr_read_addr = s_csr_addr;
             end
 
-            FENCE_I: o_invalidate_instr = 1'b1;
+            FENCE_I: begin
+                o_invalidate_instr = 1'b0;
+                o_start_wb         = 1'b1;
+                if ( i_func_3[0] ) begin
+                    o_invalidate_instr = 1'b1;
+                    o_start_wb         = 1'b0;
+                end
+            end
 
 
             default: begin
@@ -3032,6 +3082,7 @@ module ysyx_201979054_main_fsm
                 o_write_en_clint   = 1'b0;
                 o_mret_instr       = 1'b0;
                 o_interrupt        = 1'b0;
+                o_start_wb         = 1'b0;
                 o_mcause           = 4'b0000;
                 o_csr_we_1         = 1'b0;
                 o_csr_we_2         = 1'b0;
@@ -3512,6 +3563,11 @@ module ysyx_201979054_datapath
     logic s_load_addr_ma;
     logic s_illegal_instr_load;
 
+    // Fence WB signals.
+    logic s_start_wb;
+    logic s_done_wb;
+    logic s_done_fence;
+
 
 
 
@@ -3580,6 +3636,7 @@ module ysyx_201979054_datapath
         .i_software_int         ( s_software_int        ),
         .i_cacheable_flag       ( s_cacheable_flag      ),
         .i_clint_mmio_flag      ( s_clint_mmio_flag     ),
+        .i_done_fence           ( s_done_fence          ),
         .o_alu_control          ( s_alu_control         ),
         .o_result_src           ( s_result_src          ),
         .o_alu_src_1            ( s_alu_src_control_1   ),
@@ -3605,6 +3662,8 @@ module ysyx_201979054_datapath
         .o_write_en_clint       ( s_clint_write_en      ),
         .o_mret_instr           ( s_mret_instr          ),
         .o_interrupt            ( s_interrupt           ),
+        .o_done_wb              ( s_done_wb             ),
+        .o_start_wb             ( s_start_wb            ),
         .o_mcause               ( s_mcause              ),
         .o_csr_we_1             ( s_csr_we_1            ),
         .o_csr_we_2             ( s_csr_we_2            ),
@@ -3646,11 +3705,14 @@ module ysyx_201979054_datapath
         .i_data_block    ( i_data_read_axi       ),
         .i_store_type    ( s_func_3[1:0]         ),
         .i_addr_control  ( s_addr_control        ),
+        .i_start_wb      ( s_start_wb            ),
+        .i_done_wb       ( s_done_wb             ),
         .o_data          ( s_mem_read_data       ),
         .o_data_block    ( o_data_write_axi      ),
         .o_hit           ( s_data_hit            ),
         .o_dirty         ( s_data_dirty          ),
         .o_addr_axi      ( s_addr_axi            ),
+        .o_done_fence    ( s_done_fence          ),
         .o_store_addr_ma ( s_store_addr_ma       )
     );
 
