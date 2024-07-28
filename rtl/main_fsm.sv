@@ -21,6 +21,7 @@ module ysyx_201979054_main_fsm
     input  logic        i_func_7_0, 
     input  logic        i_func_7_1,
     input  logic        i_func_7_6,
+    input  logic        i_pred_0,
     input  logic        i_stall_instr,
     input  logic        i_stall_data,
     input  logic        i_instr_addr_ma,
@@ -245,8 +246,8 @@ module ysyx_201979054_main_fsm
 
             CSR_WB: NS = FETCH;
 
-            FENCE_I: if      ( i_func_3[0]  ) NS = FETCH;
-                     else if ( i_done_fence ) NS = FETCH;
+            FENCE_I: if      ( i_func_3[0]              ) NS = FETCH;
+                     else if ( i_done_fence | !i_pred_0 ) NS = FETCH;
 
             default: NS = PS;
         endcase
@@ -538,10 +539,16 @@ module ysyx_201979054_main_fsm
             end
 
             FENCE_I: begin
-                o_invalidate_instr = 1'b0;
-                o_start_wb         = 1'b1;
                 if ( i_func_3[0] ) begin
                     o_invalidate_instr = 1'b1;
+                    o_start_wb         = 1'b0;
+                end
+                else if ( i_pred_0 ) begin
+                    o_invalidate_instr = 1'b0;
+                    o_start_wb         = 1'b1;
+                end
+                else begin
+                    o_invalidate_instr = 1'b0;
                     o_start_wb         = 1'b0;
                 end
             end
