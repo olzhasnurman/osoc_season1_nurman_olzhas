@@ -582,6 +582,7 @@ module ysyx_201979054_main_fsm
                 o_mret_instr       = 1'b0;
                 o_interrupt        = 1'b0;
                 o_start_wb         = 1'b0;
+                o_csr_writable     = 1'b1;
                 o_mcause           = 4'b0000;
                 o_csr_we_1         = 1'b0;
                 o_csr_we_2         = 1'b0;
