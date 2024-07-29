@@ -29,6 +29,7 @@ module ysyx_201979054_csr_file
     input  logic                      i_software_int_call,
     input  logic                      i_interrupt_jump,
     input  logic                      i_mret_instr,
+    input  logic                      i_writable,
     
     // Output interface.
     output logic [ DATA_WIDTH - 1:0 ] o_read_data,
@@ -40,13 +41,14 @@ module ysyx_201979054_csr_file
 );
 
     // Register block.
-    logic [ DATA_WIDTH - 1:0 ] mem [ REG_DEPTH - 1:0 ];
+    logic [ DATA_WIDTH - 1:0 ] mem           [ REG_DEPTH - 1:0 ];
+    logic [ DATA_WIDTH - 1:0 ] csr_read_only [             3:0 ];
 
     // Write logic.
     always_ff @( posedge clk, posedge arst ) begin 
         if ( arst ) begin
-            mem[ 0 ] <= '0; // Mstatus
-            mem[ 1 ] <= '0; // Mhartid.
+            mem[ 0 ] <= '0; // Mstatus.
+            mem[ 1 ] <= '0; // Reserved.
             mem[ 2 ] <= '0; // Mie.
             mem[ 3 ] <= '0; // Mtvec.
             mem[ 4 ] <= '0; // Mcause.
@@ -88,8 +90,17 @@ module ysyx_201979054_csr_file
         end
     end
 
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
+            csr_read_only [ 0 ] <= '0; // Mhartid.
+            csr_read_only [ 1 ] <= '0; // Mvendorid.
+            csr_read_only [ 2 ] <= '0; // Marchid.
+            csr_read_only [ 3 ] <= '0; // Mimpid.
+        end
+    end
+
     // Read logic.
-    assign o_read_data   = mem [ i_read_addr ];
+    assign o_read_data   = i_writable ? mem [ i_read_addr ] : csr_read_only [ i_read_addr[1:0] ];
     assign o_mie_mstatus = mem [ 0 ][ 3 ];
     assign o_mtip_mip    = mem [ 6 ][ 7 ];
     assign o_msip_mip    = mem [ 6 ][ 3 ];

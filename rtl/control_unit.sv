@@ -14,8 +14,7 @@ module  ysyx_201979054_control_unit
     input  logic       arst,
 
     // Input interface. 
-    input  logic        i_instr_22,
-    input  logic        i_instr_20,
+    input  logic [ 2:0] i_instr_22_20,
     input  logic [ 6:0] i_op,
     input  logic [ 2:0] i_func_3,
     input  logic [ 2:0] i_func7_6_4,
@@ -67,6 +66,7 @@ module  ysyx_201979054_control_unit
     output logic        o_interrupt,
     output logic        o_done_wb,
     output logic        o_start_wb,
+    output logic        o_csr_writable,
     output logic [ 3:0] o_mcause,
     output logic        o_csr_we_1,
     output logic        o_csr_we_2,
@@ -129,8 +129,7 @@ module  ysyx_201979054_control_unit
     ysyx_201979054_main_fsm M_FSM (
         .clk                  ( clk                    ),
         .arst                 ( arst                   ),
-        .i_instr_22           ( i_instr_22             ),
-        .i_instr_20           ( i_instr_20             ),
+        .i_instr_22_20        ( i_instr_22_20          ),
         .i_op                 ( i_op                   ),
         .i_func_3             ( i_func_3               ),
         .i_func_7_4           ( i_func7_6_4[0]         ),
@@ -173,6 +172,7 @@ module  ysyx_201979054_control_unit
         .o_mret_instr         ( o_mret_instr           ),
         .o_interrupt          ( o_interrupt            ),
         .o_start_wb           ( s_start_wb             ),
+        .o_csr_writable       ( o_csr_writable         ),
         .o_mcause             ( o_mcause               ),
         .o_csr_we_1           ( o_csr_we_1             ),
         .o_csr_we_2           ( o_csr_we_2             ),

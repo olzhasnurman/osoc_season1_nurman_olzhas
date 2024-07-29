@@ -13,8 +13,7 @@ module ysyx_201979054_main_fsm
     input  logic       arst,
 
     // Input interface. 
-    input  logic        i_instr_22,
-    input  logic        i_instr_20,
+    input  logic [ 2:0] i_instr_22_20,
     input  logic [ 6:0] i_op,
     input  logic [ 2:0] i_func_3,
     input  logic        i_func_7_4,
@@ -59,6 +58,7 @@ module ysyx_201979054_main_fsm
     output logic        o_mret_instr,
     output logic        o_interrupt,
     output logic        o_start_wb,
+    output logic        o_csr_writable,
     output logic [ 3:0] o_mcause,
     output logic        o_csr_we_1,
     output logic        o_csr_we_2,
@@ -70,8 +70,10 @@ module ysyx_201979054_main_fsm
 
     logic s_func_3_reduction;
     logic [2:0] s_csr_addr;
+    logic [2:0] s_csr_addr_read_only;
 
-    assign s_csr_addr = { i_func_7_1, i_instr_22, i_instr_20 };
+    assign s_csr_addr = { i_func_7_1, i_instr_22_20[2], i_instr_22_20[0] };
+    assign s_csr_addr_read_only = { 1'b0, i_instr_22_20 [ 1:0 ] };
     assign s_func_3_reduction = | i_func_3;
 
     // State type.
@@ -279,6 +281,7 @@ module ysyx_201979054_main_fsm
         o_mret_instr       = 1'b0;
         o_interrupt        = 1'b0;
         o_start_wb         = 1'b0;
+        o_csr_writable     = 1'b1;
         o_mcause           = 4'b0000;
         o_csr_we_1         = 1'b0;
         o_csr_we_2         = 1'b0;
@@ -340,8 +343,8 @@ module ysyx_201979054_main_fsm
                         o_mret_instr = 1'b1;
                     end
                     else begin
-                        if ( ~i_instr_20 ) o_mcause = 4'd11; // Env call from M-mode.
-                        else               o_mcause = 4'd3; // Env breakpoint.
+                        if ( ~i_instr_22_20[0] ) o_mcause = 4'd11; // Env call from M-mode.
+                        else                     o_mcause = 4'd3; // Env breakpoint.
                         o_csr_write_addr_1 = 3'b100;  // mcause.
                         o_csr_we_1         = 1'b1; 
                         o_csr_write_addr_2 = 3'b101;  // mepc.
@@ -516,14 +519,16 @@ module ysyx_201979054_main_fsm
             CSR_EXECUTE: begin
                 if ( i_func_3[2] ) o_alu_src_1  = 2'b11;
                 else               o_alu_src_1  = 2'b10;
-                o_alu_src_2  = 2'b11;
-                o_alu_op     = 3'b100;
-                o_csr_we_2   = 1'b1;
-                o_result_src = 3'b010;
-                o_csr_reg_we = 1'b1;
-                if ( i_func_7_6 ) begin 
-                    o_csr_write_addr_2 = 3'b001; // Mhartid.
-                    o_csr_read_addr    = 3'b001; // Mhartid.
+                o_alu_src_2    = 2'b11;
+                o_alu_op       = 3'b100;
+                o_csr_we_2     = 1'b1;
+                o_result_src   = 3'b010;
+                o_csr_reg_we   = 1'b1;
+                o_csr_writable = 1'b1;
+                if ( i_func_7_6 ) begin
+                    o_csr_writable     = 1'b0;
+                    o_csr_we_2         = 1'b0;  
+                    o_csr_read_addr    = s_csr_addr_read_only; // Mvendorid, Marchid, Mimpid, Mhartid.
                 end
                 else begin 
                     o_csr_write_addr_2 = s_csr_addr;
@@ -534,7 +539,8 @@ module ysyx_201979054_main_fsm
             CSR_WB: begin
                 o_reg_write_en    = 1'b1;
                 o_result_src      = 3'b101; // s_csr_read_data_reg
-                if ( i_func_7_6 ) o_csr_read_addr = 3'b001; // Mhartid.
+                o_csr_writable    = ~i_func_7_6;
+                if ( i_func_7_6 ) o_csr_read_addr = s_csr_addr_read_only;
                 else              o_csr_read_addr = s_csr_addr;
             end
 

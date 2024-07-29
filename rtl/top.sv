@@ -126,6 +126,7 @@ module ysyx_201979054_datapath
     logic [ REG_DATA_WIDTH - 1:0 ] s_csr_mcause;
     logic [                  3:0 ] s_mcause;
     logic                          s_mret_instr;
+    logic                          s_csr_writable;
 
     // Cacheable mark.
     logic s_cacheable_flag;
@@ -205,8 +206,7 @@ module ysyx_201979054_datapath
     ysyx_201979054_control_unit CU (
         .clk                    ( clk                   ), 
         .arst                   ( arst                  ),
-        .i_instr_22             ( s_reg_instr[22]       ),
-        .i_instr_20             ( s_reg_instr[20]       ),
+        .i_instr_22_20          ( s_reg_instr[22:20]    ),
         .i_op                   ( s_op                  ),
         .i_func_3               ( s_func_3              ),
         .i_func7_6_4            ( s_reg_instr[31:29]    ),
@@ -256,6 +256,7 @@ module ysyx_201979054_datapath
         .o_interrupt            ( s_interrupt           ),
         .o_done_wb              ( s_done_wb             ),
         .o_start_wb             ( s_start_wb            ),
+        .o_csr_writable         ( s_csr_writable        ),
         .o_mcause               ( s_mcause              ),
         .o_csr_we_1             ( s_csr_we_1            ),
         .o_csr_we_2             ( s_csr_we_2            ),
@@ -337,6 +338,7 @@ module ysyx_201979054_datapath
         .i_software_int_call ( s_software_int_call ),
         .i_interrupt_jump    ( s_interrupt         ),
         .i_mret_instr        ( s_mret_instr        ),
+        .i_writable          ( s_csr_writable      ),
         .o_read_data         ( s_csr_read_data     ),
         .o_mie_mstatus       ( s_mie_mstatus       ),
         .o_mtip_mip          ( s_mtip_mip          ),
