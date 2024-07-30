@@ -126,7 +126,7 @@ module ysyx_201979054_data_cache
     logic [ $clog2( N ) - 1:0 ] lru_mem   [ N - 1:0 ][ SET_COUNT - 1:0 ];
     logic [ SET_COUNT   - 1:0 ] lru_set;
 
-    // Instruction memory.
+    // Data memory.
     logic [ BLOCK_WIDTH - 1:0 ] data_mem [ SET_COUNT - 1:0 ][ N - 1:0 ];
 
 
@@ -172,8 +172,18 @@ module ysyx_201979054_data_cache
     //-------------------------
 
     // Write data logic.
-    always_ff @( posedge clk ) begin
-        if ( write_en ) begin
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
+            data_mem [ 0 ][ 0 ] <= '0;
+            data_mem [ 0 ][ 1 ] <= '0;
+            data_mem [ 1 ][ 0 ] <= '0;
+            data_mem [ 1 ][ 1 ] <= '0;
+            tag_mem  [ 0 ][ 0 ] <= '0; 
+            tag_mem  [ 0 ][ 1 ] <= '0; 
+            tag_mem  [ 1 ][ 0 ] <= '0; 
+            tag_mem  [ 1 ][ 1 ] <= '0; 
+        end
+        else if ( write_en ) begin
             case ( i_store_type )
                 // SD Instruction.
                 2'b11: begin
@@ -383,7 +393,13 @@ module ysyx_201979054_data_cache
     // Write LRU.
     integer j;
     always_ff @( posedge clk ) begin
-        if ( lru_update ) begin
+        if ( arst ) begin
+            lru_mem [ 0 ][ 0 ] <= 1'b0;
+            lru_mem [ 1 ][ 0 ] <= 1'b1;
+            lru_mem [ 0 ][ 1 ] <= 1'b0;
+            lru_mem [ 1 ][ 1 ] <= 1'b1;
+        end
+        else if ( lru_update ) begin
                 lru_mem[ s_match ][ s_index ] <= 1'b1;
                 for ( j = 0; j < N; j++ ) begin
                     if ( lru_mem[ j ][ s_index ] > lru_mem[ s_match ][ s_index ] ) begin

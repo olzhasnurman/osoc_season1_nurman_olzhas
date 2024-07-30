@@ -62,6 +62,7 @@ module ysyx_201979054_cache_data_transfer
         .INCR_VAL       ( ADDR_INCR_VAL  )
     ) ADD_INC0 (
         .clk    ( clk          ),
+        .arst   ( arst         ),
         .run    ( s_start      ),
         .enable ( i_axi_done   ),
         .i_addr ( i_addr_cache ),

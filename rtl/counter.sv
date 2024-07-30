@@ -27,9 +27,10 @@ module ysyx_201979054_counter
         else if ( run              ) s_count <= s_count + 4'b1; 
     end
 
-    always_ff @( posedge clk ) begin
-        if ( (s_count == LIMIT ) & run ) o_done <= 1'b1;
-        else                             o_done <= 1'b0;
+    always_ff @( posedge clk, posedge arst ) begin
+        if      ( arst                      ) o_done <= 1'b0;
+        else if ( (s_count == LIMIT ) & run ) o_done <= 1'b1;
+        else                                  o_done <= 1'b0;
     end
     
 endmodule

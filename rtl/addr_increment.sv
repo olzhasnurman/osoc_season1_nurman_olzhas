@@ -14,6 +14,7 @@ module ysyx_201979054_addr_increment
     // Control Signal.
     input  logic clk,
     input  logic run,
+    input  logic arst,
     input  logic enable,
 
     // Input interface.
@@ -25,8 +26,9 @@ module ysyx_201979054_addr_increment
 
     logic [ AXI_ADDR_WIDTH - 1:0 ] s_count;
 
-    always_ff @( posedge clk ) begin
-        if      ( ~run   ) s_count <= '0;
+    always_ff @( posedge clk, posedge arst ) begin
+        if      ( arst   ) s_count <= '0;
+        else if ( ~run   ) s_count <= '0;
         else if ( enable ) s_count <= s_count + INCR_VAL;
     end
 

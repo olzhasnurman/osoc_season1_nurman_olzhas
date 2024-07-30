@@ -69,7 +69,7 @@ module ysyx_201979054_instr_cache
     logic [ BLOCK_COUNT - 1:0 ] valid_mem;
 
     // Instruction memory.
-    logic [ BLOCK_WIDTH - 1:0 ] mem [ BLOCK_COUNT - 1:0 ];
+    logic [ BLOCK_WIDTH - 1:0 ] instr_mem [ BLOCK_COUNT - 1:0 ];
 
     // Valid write logic.
     always_ff @( posedge clk, posedge arst, posedge i_invalidate_instr ) begin
@@ -82,10 +82,20 @@ module ysyx_201979054_instr_cache
     end
 
     // Write logic.
-    always_ff @( posedge clk ) begin
-        if ( write_en ) begin
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) begin
+            tag_mem [ 0 ] <= '0;
+            tag_mem [ 1 ] <= '0;
+            tag_mem [ 2 ] <= '0;
+            tag_mem [ 3 ] <= '0;
+            instr_mem     [ 0 ] <= '0;
+            instr_mem     [ 1 ] <= '0;
+            instr_mem     [ 2 ] <= '0;
+            instr_mem     [ 3 ] <= '0;
+        end
+        else if ( write_en ) begin
             tag_mem  [ s_index ] <= s_tag_in;
-            mem      [ s_index ] <= i_inst;
+            instr_mem      [ s_index ] <= i_inst;
         end
     end
 
@@ -94,22 +104,22 @@ module ysyx_201979054_instr_cache
 
     always_comb begin
         case ( s_word_offset )
-            4'b0000: o_instr = mem[ s_index ][ 31 :0   ]; 
-            4'b0001: o_instr = mem[ s_index ][ 63 :32  ]; 
-            4'b0010: o_instr = mem[ s_index ][ 95 :64  ]; 
-            4'b0011: o_instr = mem[ s_index ][ 127:96  ]; 
-            4'b0100: o_instr = mem[ s_index ][ 159:128 ]; 
-            4'b0101: o_instr = mem[ s_index ][ 191:160 ]; 
-            4'b0110: o_instr = mem[ s_index ][ 223:192 ]; 
-            4'b0111: o_instr = mem[ s_index ][ 255:224 ]; 
-            4'b1000: o_instr = mem[ s_index ][ 287:256 ]; 
-            4'b1001: o_instr = mem[ s_index ][ 319:288 ]; 
-            4'b1010: o_instr = mem[ s_index ][ 351:320 ]; 
-            4'b1011: o_instr = mem[ s_index ][ 383:352 ]; 
-            4'b1100: o_instr = mem[ s_index ][ 415:384 ]; 
-            4'b1101: o_instr = mem[ s_index ][ 447:416 ];
-            4'b1110: o_instr = mem[ s_index ][ 479:448 ];
-            4'b1111: o_instr = mem[ s_index ][ 511:480 ];
+            4'b0000: o_instr = instr_mem[ s_index ][ 31 :0   ]; 
+            4'b0001: o_instr = instr_mem[ s_index ][ 63 :32  ]; 
+            4'b0010: o_instr = instr_mem[ s_index ][ 95 :64  ]; 
+            4'b0011: o_instr = instr_mem[ s_index ][ 127:96  ]; 
+            4'b0100: o_instr = instr_mem[ s_index ][ 159:128 ]; 
+            4'b0101: o_instr = instr_mem[ s_index ][ 191:160 ]; 
+            4'b0110: o_instr = instr_mem[ s_index ][ 223:192 ]; 
+            4'b0111: o_instr = instr_mem[ s_index ][ 255:224 ]; 
+            4'b1000: o_instr = instr_mem[ s_index ][ 287:256 ]; 
+            4'b1001: o_instr = instr_mem[ s_index ][ 319:288 ]; 
+            4'b1010: o_instr = instr_mem[ s_index ][ 351:320 ]; 
+            4'b1011: o_instr = instr_mem[ s_index ][ 383:352 ]; 
+            4'b1100: o_instr = instr_mem[ s_index ][ 415:384 ]; 
+            4'b1101: o_instr = instr_mem[ s_index ][ 447:416 ];
+            4'b1110: o_instr = instr_mem[ s_index ][ 479:448 ];
+            4'b1111: o_instr = instr_mem[ s_index ][ 511:480 ];
             default: o_instr = '0;
         endcase
     end
