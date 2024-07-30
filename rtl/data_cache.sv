@@ -392,7 +392,7 @@ module ysyx_201979054_data_cache
 
     // Write LRU.
     integer j;
-    always_ff @( posedge clk ) begin
+    always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) begin
             lru_mem [ 0 ][ 0 ] <= 1'b0;
             lru_mem [ 1 ][ 0 ] <= 1'b1;

@@ -22,9 +22,10 @@ module ysyx_201979054_counter
 
     logic [ $clog2( SIZE ) - 1:0 ] s_count;
 
-    always_ff @( posedge clk, posedge arst, negedge restartn ) begin
-        if      ( arst | ~restartn ) s_count <= '0;
-        else if ( run              ) s_count <= s_count + 4'b1; 
+    always_ff @( posedge clk, posedge arst ) begin
+        if      ( arst      ) s_count <= '0;
+        else if ( ~restartn ) s_count <= '0;
+        else if ( run       ) s_count <= s_count + 4'b1; 
     end
 
     always_ff @( posedge clk, posedge arst ) begin
