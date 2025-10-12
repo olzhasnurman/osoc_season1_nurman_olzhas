@@ -76,24 +76,40 @@ module test_env
     //---------------------------
     // AXI module Instance.
     //---------------------------
-    axi4_lite_top AXI4_LITE_T (
-        .clk                 ( clk                 ),
-        .arst                ( arst                ),
-        .i_data_mem          ( s_mem_data_out      ),
-        .i_successful_access ( s_successful_access ),
-        .i_successful_read   ( s_successful_read   ),
-        .i_successful_write  ( s_successful_write  ),
-        .o_data_mem          ( s_mem_data_in       ),
-        .o_addr_mem          ( s_mem_addr          ),
-        .o_we_mem            ( s_mem_we            ),
-        .i_addr_cache        ( s_axi_addr          ),
-        .i_data_cache        ( s_axi_data_in       ),
-        .i_start_write       ( s_start_write_axi   ),
-        .i_start_read        ( s_start_read_axi    ),
-        .o_data_cache        ( s_axi_data_out      ),
-        .o_done              ( s_axi_done          ),
-        .o_read_fault        ( s_read_fault        ),
-        .o_write_fault       ( s_write_fault       )
+    wb_top WB_TOP0 (
+        // .clk                 ( clk                 ),
+        // .arst                ( arst                ),
+        // .i_data_mem          ( s_mem_data_out      ),
+        // .i_successful_access ( s_successful_access ),
+        // .i_successful_read   ( s_successful_read   ),
+        // .i_successful_write  ( s_successful_write  ),
+        // .o_data_mem          ( s_mem_data_in       ),
+        // .o_addr_mem          ( s_mem_addr          ),
+        // .o_we_mem            ( s_mem_we            ),
+        // .i_addr_cache        ( s_axi_addr          ),
+        // .i_data_cache        ( s_axi_data_in       ),
+        // .i_start_write       ( s_start_write_axi   ),
+        // .i_start_read        ( s_start_read_axi    ),
+        // .o_data_cache        ( s_axi_data_out      ),
+        // .o_done              ( s_axi_done          ),
+        // .o_read_fault        ( s_read_fault        ),
+        // .o_write_fault       ( s_write_fault       )
+        .clk_i                   (clk                ),
+        .rst_i                   (arst               ),
+        .cpu_start_rd_i          (s_start_read_axi   ),
+        .cpu_start_wr_i          (s_start_write_axi  ),
+        .cpu_data_i              (s_axi_data_in      ),
+        .cpu_addr_i              (s_axi_addr         ),
+        .mem_successful_access_i (s_successful_access),
+        .mem_successful_rd_i     (s_successful_read  ),
+        .mem_successful_wr_i     (s_successful_write ),
+        .mem_data_i              (s_mem_data_out     ),
+        .cpu_data_o              (s_axi_data_out     ),
+        .cpu_done_o              (s_axi_done         ),
+        .mem_rd_req_o            (),
+        .mem_wr_en_o             (s_mem_we           ),
+        .mem_addr_o              (s_mem_addr         ),
+        .mem_data_o              (s_mem_data_in      )
     );
 
     //---------------------------
