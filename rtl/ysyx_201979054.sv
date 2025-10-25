@@ -298,7 +298,10 @@ endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 // This is a AXI4 Master module implementation for communication with outside memory.
 // -------------------------------------------------------------------------------------------------------------
 
-module ysyx_201979054_axi4_master
+module ysyx_201979054_axi4_master 
+#(
+    DATA_WIDTH = 64
+)
 (
     // Control signals.
     input  logic clk,
@@ -309,12 +312,12 @@ module ysyx_201979054_axi4_master
     input  logic          i_write_req,
     input  logic          i_read_req,
     input  logic [ 31:0 ] i_addr,
-    input  logic [ 63:0 ] i_write_data,
+    input  logic [ DATA_WIDTH - 1:0 ] i_write_data,
     input  logic [  7:0 ] i_axi_len,
     input  logic [  2:0 ] i_axi_size,
     input  logic [  1:0 ] i_axi_burst,
     input  logic [  7:0 ] i_axi_strb,
-    output logic [ 63:0 ] o_read_data,
+    output logic [ DATA_WIDTH - 1:0 ] o_read_data,
     output logic          o_axi_done,
     output logic          o_axi_handshake,
 
@@ -328,7 +331,7 @@ module ysyx_201979054_axi4_master
     output logic [  1:0 ] o_awburst,   // +
     input  logic 	      i_wready,    // +
     output logic 	      o_wvalid,    // +
-    output logic [ 63:0 ] o_wdata,     // +
+    output logic [ DATA_WIDTH - 1:0 ] o_wdata,     // +
     output logic [  7:0 ] o_wstrb,     // + 
     output logic 	      o_wlast,     // +
     output logic 	      o_bready,    // +
@@ -348,7 +351,7 @@ module ysyx_201979054_axi4_master
     input  logic 	      i_rvalid,  // +
     input  logic [  3:0 ] i_rid,     // 
     input  logic [  1:0 ] i_rresp,   // 
-    input  logic [ 63:0 ] i_rdata,   // +
+    input  logic [ DATA_WIDTH - 1:0 ] i_rdata,   // +
     input  logic 	      i_rlast    // +
 
 );
@@ -947,120 +950,22 @@ endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 module ysyx_201979054 (
     input clock,
-    input reset,
-    input io_interrupt,
-    input io_master_awready,
-    output io_master_awvalid,
-    output [3:0] io_master_awid,
-    output [31:0] io_master_awaddr,
-    output [7:0] io_master_awlen,
-    output [2:0] io_master_awsize,
-    output [1:0] io_master_awburst,
-    input io_master_wready,
-    output io_master_wvalid,
-    output [63:0] io_master_wdata,
-    output [7:0] io_master_wstrb,
-    output io_master_wlast,
-    output io_master_bready,
-    input io_master_bvalid,
-    input [3:0] io_master_bid,
-    input [1:0] io_master_bresp,
-    input io_master_arready,
-    output io_master_arvalid,
-    output [3:0] io_master_arid,
-    output [31:0] io_master_araddr,
-    output [7:0] io_master_arlen,
-    output [2:0] io_master_arsize,
-    output [1:0] io_master_arburst,
-    output io_master_rready,
-    input io_master_rvalid,
-    input [3:0] io_master_rid,
-    input [1:0] io_master_rresp,
-    input [63:0] io_master_rdata,
-    input io_master_rlast,
-    output io_slave_awready,
-    input io_slave_awvalid,
-    input [3:0] io_slave_awid,
-    input [31:0] io_slave_awaddr,
-    input [7:0] io_slave_awlen,
-    input [2:0] io_slave_awsize,
-    input [1:0] io_slave_awburst,
-    output io_slave_wready,
-    input io_slave_wvalid,
-    input [63:0] io_slave_wdata,
-    input [7:0] io_slave_wstrb,
-    input io_slave_wlast,
-    input io_slave_bready,
-    output io_slave_bvalid,
-    output [3:0] io_slave_bid,
-    output [1:0] io_slave_bresp,
-    output io_slave_arready,
-    input io_slave_arvalid,
-    input [3:0] io_slave_arid,
-    input [31:0] io_slave_araddr,
-    input [7:0] io_slave_arlen,
-    input [2:0] io_slave_arsize,
-    input [1:0] io_slave_arburst,
-    input io_slave_rready,
-    output io_slave_rvalid,
-    output [3:0] io_slave_rid,
-    output [1:0] io_slave_rresp,
-    output [63:0] io_slave_rdata,
-    output io_slave_rlast,
-    output [5:0] io_sram0_addr,
-    output io_sram0_cen,
-    output io_sram0_wen,
-    output [127:0] io_sram0_wmask,
-    output [127:0] io_sram0_wdata,
-    input [127:0] io_sram0_rdata,
-    output [5:0] io_sram1_addr,
-    output io_sram1_cen,
-    output io_sram1_wen,
-    output [127:0] io_sram1_wmask,
-    output [127:0] io_sram1_wdata,
-    input [127:0] io_sram1_rdata,
-    output [5:0] io_sram2_addr,
-    output io_sram2_cen,
-    output io_sram2_wen,
-    output [127:0] io_sram2_wmask,
-    output [127:0] io_sram2_wdata,
-    input [127:0] io_sram2_rdata,
-    output [5:0] io_sram3_addr,
-    output io_sram3_cen,
-    output io_sram3_wen,
-    output [127:0] io_sram3_wmask,
-    output [127:0] io_sram3_wdata,
-    input [127:0] io_sram3_rdata,
-    output [5:0] io_sram4_addr,
-    output io_sram4_cen,
-    output io_sram4_wen,
-    output [127:0] io_sram4_wmask,
-    output [127:0] io_sram4_wdata,
-    input [127:0] io_sram4_rdata,
-    output [5:0] io_sram5_addr,
-    output io_sram5_cen,
-    output io_sram5_wen,
-    output [127:0] io_sram5_wmask,
-    output [127:0] io_sram5_wdata,
-    input [127:0] io_sram5_rdata,
-    output [5:0] io_sram6_addr,
-    output io_sram6_cen,
-    output io_sram6_wen,
-    output [127:0] io_sram6_wmask,
-    output [127:0] io_sram6_wdata,
-    input [127:0] io_sram6_rdata,
-    output [5:0] io_sram7_addr,
-    output io_sram7_cen,
-    output io_sram7_wen,
-    output [127:0] io_sram7_wmask,
-    output [127:0] io_sram7_wdata,
-    input [127:0] io_sram7_rdata
+    input [0:0] reset
 );
 
     //--------------------------------
     // Internal nets.
     //--------------------------------
     logic arst;
+
+    // Memory module signals.
+    logic [ 31:0 ] s_mem_addr;
+    logic [ 31:0 ] s_mem_data_in;
+    logic [ 31:0 ] s_mem_data_out;
+    logic          s_mem_we;
+    logic          s_successful_access;
+    logic          s_successful_read;
+    logic          s_successful_write;
 
     logic s_write_req;
     logic s_read_req;
@@ -1069,7 +974,6 @@ module ysyx_201979054 (
 
     logic [ 511:0 ] s_data_block_write_top;
     logic [ 511:0 ] s_data_block_read_top;
-    logic [ 511:0 ] s_data_block_read_top_axi4;
     logic [ 511:0 ] s_data_block_read_top_apb;
     logic [  63:0 ] s_data_non_cacheable_r;
     logic [  31:0 ] s_data_non_cacheable_w;
@@ -1079,13 +983,12 @@ module ysyx_201979054 (
     logic [  31:0 ] s_addr_calc_apb;
 
     logic [ 31:0 ] s_read_axi_fifo;
-    logic [ 63:0 ] s_write_axi_fifo;
-    logic [ 63:0 ] s_write_axi_fifo_axi4;
+    logic [ 31:0 ] s_write_axi_fifo;
     logic [ 31:0 ] s_write_axi_fifo_apb;
 
     logic [ 31:0 ] s_addr_axi;
-    logic [ 63:0 ] s_write_axi;
-    logic [ 63:0 ] s_read_axi;
+    logic [ 31:0 ] s_write_axi;
+    logic [ 31:0 ] s_read_axi;
     logic [ 31:0 ] s_reg_read_axi;
 
     logic s_axi_done;
@@ -1106,17 +1009,13 @@ module ysyx_201979054 (
     logic [ 2:0 ] s_axi_size_non_cache;
     logic [ 7:0 ] s_axi_strb;
     logic [ 7:0 ] s_axi_strb_cache;
-    logic [ 7:0 ] s_axi_len;
 
-    logic s_axi4_access;
 
-    assign s_axi4_access = ( s_addr >= 32'h4000_0000 );
-
-    assign s_axi_strb_cache      = s_axi4_access ? 8'hFF : 8'h0F;
-    assign s_axi_size_cache      = s_axi4_access ? 3'b11 : 3'b10;
-    assign s_write_axi_fifo      = s_axi4_access ? s_write_axi_fifo_axi4 : { s_write_axi_fifo_apb, s_write_axi_fifo_apb };
-    assign s_addr_calc           = s_axi4_access ? s_addr : s_addr_calc_apb;
-    assign s_data_block_read_top = s_axi4_access ? s_data_block_read_top_axi4 : s_data_block_read_top_apb;
+    assign s_axi_strb_cache      = 8'h0F;
+    assign s_axi_size_cache      = 3'b10;
+    assign s_write_axi_fifo      = s_write_axi_fifo_apb;
+    assign s_addr_calc           = s_addr_calc_apb;
+    assign s_data_block_read_top = s_data_block_read_top_apb;
 
 
     assign s_count_done = s_count_done_apb;
@@ -1129,13 +1028,11 @@ module ysyx_201979054 (
     assign s_addr_axi      = ( s_read_req_non_cacheable | s_write_req_non_cacheable ) ? s_addr_non_cacheable : s_addr_calc;
     assign s_axi_size      = ( s_read_req_non_cacheable | s_write_req_non_cacheable ) ? s_axi_size_non_cache : s_axi_size_cache;
     assign s_axi_strb      = s_write_req_non_cacheable  ? ( 8'h01 << s_addr_non_cacheable [ 2 : 0 ] ) : s_axi_strb_cache;
-    assign s_axi_len       = s_axi4_access ? 8'b111 : 8'b000;
 
-    assign s_read_axi_fifo        = s_read_axi [ 31:0 ];
     assign s_data_non_cacheable_r = { 32'b0 , s_reg_read_axi };
-    assign s_write_axi            = s_write_req_non_cacheable ? ( { 32'b0 , s_data_non_cacheable_w} << 8*s_addr_non_cacheable [ 2 : 0 ] ) : s_write_axi_fifo;
+    assign s_write_axi            = s_write_req_non_cacheable ? (s_data_non_cacheable_w << 8*s_addr_non_cacheable [ 2 : 0 ] ) : s_write_axi_fifo;
 
-    assign s_done = ( s_count_done ) | ( s_axi_done & ( s_read_req_non_cacheable | s_write_req_non_cacheable ) ) | ( s_axi4_access & s_axi_done ); 
+    assign s_done = ( s_count_done ) | ( s_axi_done & ( s_read_req_non_cacheable | s_write_req_non_cacheable ) ); 
 
 
 
@@ -1176,53 +1073,38 @@ module ysyx_201979054 (
 
 
 
-    //-----------------------
-    // AXI4 Master Instance.
-    //-----------------------
-    ysyx_201979054_axi4_master AXI4_M0 (
-        .clk          ( clock             ),
-        .arst         ( arst              ),
-        .io_interrupt ( io_interrupt      ),
-        .i_write_req  ( s_start_write_axi ),
-        .i_read_req   ( s_start_read_axi  ),
-        .i_addr       ( s_addr_axi        ),
-        .i_write_data ( s_write_axi       ),
-        .i_axi_len    ( s_axi_len         ),
-        .i_axi_size   ( s_axi_size        ), 
-        .i_axi_burst  ( 2'b01             ), 
-        .i_axi_strb   ( s_axi_strb        ), 
-        .o_read_data  ( s_read_axi        ),
-        .o_axi_done   ( s_axi_done        ),
-        .o_axi_handshake ( s_axi_handshake ),
-        .i_awready    ( io_master_awready ),
-        .o_awvalid    ( io_master_awvalid ),
-        .o_awid       ( io_master_awid    ),
-        .o_awaddr     ( io_master_awaddr  ),
-        .o_awlen      ( io_master_awlen   ),
-        .o_awsize     ( io_master_awsize  ),
-        .o_awburst    ( io_master_awburst ),
-        .i_wready     ( io_master_wready  ),
-        .o_wvalid     ( io_master_wvalid  ),
-        .o_wdata      ( io_master_wdata   ),
-        .o_wstrb      ( io_master_wstrb   ), 
-        .o_wlast      ( io_master_wlast   ),
-        .o_bready     ( io_master_bready  ),
-        .i_bvalid     ( io_master_bvalid  ),
-        .i_bid        ( io_master_bid     ),
-        .i_bresp      ( io_master_bresp   ),
-        .i_arready    ( io_master_arready ),
-        .o_arvalid    ( io_master_arvalid ),
-        .o_arid       ( io_master_arid    ),
-        .o_araddr     ( io_master_araddr  ),
-        .o_arlen      ( io_master_arlen   ),
-        .o_arsize     ( io_master_arsize  ),
-        .o_arburst    ( io_master_arburst ),
-        .o_rready     ( io_master_rready  ),
-        .i_rvalid     ( io_master_rvalid  ),
-        .i_rid        ( io_master_rid     ),
-        .i_rresp      ( io_master_rresp   ),
-        .i_rdata      ( io_master_rdata   ),
-        .i_rlast      ( io_master_rlast   )
+    wb_top WB_TOP0 (
+        .clk_i                   (clock              ),
+        .rst_i                   (arst               ),
+        .cpu_start_rd_i          (s_start_read_axi   ),
+        .cpu_start_wr_i          (s_start_write_axi  ),
+        .cpu_data_i              (s_write_axi        ),
+        .cpu_addr_i              (s_addr_axi         ),
+        .mem_successful_access_i (s_successful_access),
+        .mem_successful_rd_i     (s_successful_read  ),
+        .mem_successful_wr_i     (s_successful_write ),
+        .mem_data_i              (s_mem_data_out     ),
+        .cpu_data_o              (s_read_axi         ),
+        .cpu_done_o              (s_axi_done         ),
+        .mem_rd_req_o            (),
+        .mem_wr_en_o             (s_mem_we           ),
+        .mem_addr_o              (s_mem_addr         ),
+        .mem_data_o              (s_mem_data_in      )
+    );
+
+    //---------------------------
+    // Memory Unit Instance.
+    //---------------------------
+    mem_sim MEM_M (
+        .clk                 ( clock               ),
+        .arst                ( arst                ),
+        .write_en            ( s_mem_we            ),
+        .i_data              ( s_mem_data_in       ),
+        .i_addr              ( s_mem_addr          ),
+        .o_data              ( s_mem_data_out      ),
+        .o_successful_access ( s_successful_access ),
+        .o_successful_read   ( s_successful_read   ),
+        .o_successful_write  ( s_successful_write  )
     );
 
 
@@ -1239,35 +1121,16 @@ module ysyx_201979054 (
     ) DATA_T_APB (
         .clk                ( clock                     ),
         .arst               ( arst                      ),
-        .i_start_read       ( s_start_read_axi_cache & ( ~s_axi4_access )    ),
-        .i_start_write      ( s_start_write_axi_cache & ( ~s_axi4_access )   ),
-        .i_axi_done         ( s_axi_handshake                ),
+        .i_start_read       ( s_start_read_axi_cache    ),
+        .i_start_write      ( s_start_write_axi_cache   ),
+        .i_axi_done         ( s_axi_done                ),
         .i_data_block_cache ( s_data_block_write_top    ),
-        .i_data_axi         ( s_read_axi_fifo           ),
-        .i_addr_cache       ( s_addr [ 31:0 ]           ),
+        .i_data_axi         ( s_read_axi                ),
+        .i_addr_cache       ( s_addr                    ),
         .o_count_done       ( s_count_done_apb          ),
         .o_data_block_cache ( s_data_block_read_top_apb ),
         .o_data_axi         ( s_write_axi_fifo_apb      ),
         .o_addr_axi         ( s_addr_calc_apb           )
-    );
-
-
-    //--------------------------------------------------------
-    // FIFO for accumilating the data coming from AXI4 burst.
-    //--------------------------------------------------------
-    ysyx_201979054_fifo # (
-        .AXI_DATA_WIDTH ( 64  ),
-        .FIFO_WIDTH     ( 512 )
-    ) FIFO_0 (
-        .clk          ( clock                                       ),
-        .arst         ( arst                                        ),
-        .write_en     ( s_axi_handshake                             ),
-        .start_read   ( s_start_read_axi_cache  & ( s_axi4_access ) ),
-        .start_write  ( s_start_write_axi_cache & ( s_axi4_access ) ),
-        .i_data       ( s_read_axi                                  ),
-        .i_data_block ( s_data_block_write_top                      ),
-        .o_data       ( s_write_axi_fifo_axi4                       ),
-        .o_data_block ( s_data_block_read_top_axi4                  )
     );
 
 
@@ -1277,68 +1140,13 @@ module ysyx_201979054 (
     ysyx_201979054_register_en #( .DATA_WIDTH(32) ) REG_AXI_DATA (
         .clk          ( clock           ),
         .arst         ( arst            ),
-        .write_en     ( s_axi_handshake ),
-        .i_write_data ( s_read_axi[31:0] ),
+        .write_en     ( s_axi_done      ),
+        .i_write_data ( s_read_axi      ),
         .o_read_data  ( s_reg_read_axi  )
     );
-
-
-    //---------------------------------------------
-    // Redundant outputs.
-    //---------------------------------------------
-    assign io_slave_awready = '0;
-    assign io_slave_wready = '0;
-    assign io_slave_bvalid = '0;
-    assign io_slave_bid = '0;
-    assign io_slave_bresp = '0;
-    assign io_slave_arready = '0;
-    assign io_slave_rvalid = '0;
-    assign io_slave_rid = '0;
-    assign io_slave_rresp = '0;
-    assign io_slave_rdata = '0;
-    assign io_slave_rlast = '0;
-    assign io_sram0_addr = '0;
-    assign io_sram0_cen = '0;
-    assign io_sram0_wen = '0;
-    assign io_sram0_wmask = '0;
-    assign io_sram0_wdata = '0;
-    assign io_sram1_addr = '0;
-    assign io_sram1_cen = '0;
-    assign io_sram1_wen = '0;
-    assign io_sram1_wmask = '0;
-    assign io_sram1_wdata = '0;
-    assign io_sram2_addr = '0;
-    assign io_sram2_cen = '0;
-    assign io_sram2_wen = '0;
-    assign io_sram2_wmask = '0;
-    assign io_sram2_wdata = '0;
-    assign io_sram3_addr = '0;
-    assign io_sram3_cen = '0;
-    assign io_sram3_wen = '0;
-    assign io_sram3_wmask = '0;
-    assign io_sram3_wdata = '0;
-    assign io_sram4_addr = '0;
-    assign io_sram4_cen = '0;
-    assign io_sram4_wen = '0;
-    assign io_sram4_wmask = '0;
-    assign io_sram4_wdata = '0;
-    assign io_sram5_addr = '0;
-    assign io_sram5_cen = '0;
-    assign io_sram5_wen = '0;
-    assign io_sram5_wmask = '0;
-    assign io_sram5_wdata = '0;
-    assign io_sram6_addr = '0;
-    assign io_sram6_cen = '0;
-    assign io_sram6_wen = '0;
-    assign io_sram6_wmask = '0;
-    assign io_sram6_wdata = '0;
-    assign io_sram7_addr = '0;
-    assign io_sram7_cen = '0;
-    assign io_sram7_wen = '0;
-    assign io_sram7_wmask = '0;
-    assign io_sram7_wdata = '0;
     
-endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
+endmodule
+/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ----------------------------------------------------------------------------
 // This is a csr file component of processor based on RISC-V architecture.
@@ -3104,7 +2912,7 @@ module ysyx_201979054_main_fsm
             FENCE_I: begin
                 if ( i_func_3[0] ) begin
                     o_invalidate_instr = 1'b1;
-                    o_start_wb         = 1'b0;
+                    o_start_wb         = 1'b1;
                 end
                 else if ( i_pred_0 ) begin
                     o_invalidate_instr = 1'b0;
@@ -3150,6 +2958,63 @@ module ysyx_201979054_main_fsm
             end
         endcase
     end
+    
+endmodule
+/* Copyright (c) 2025 Maveric NU. All rights reserved. */
+
+// ---------------------------------------------------------------
+// This is a memory module for simulation of outside memory unit. 
+// ---------------------------------------------------------------
+
+// `define PATH_TO_MEM "./test/tests/instr/riscv-tests/rv64ui-p-xori.txt"
+
+module mem_sim 
+#(
+    parameter DATA_WIDTH = 32,
+              ADDR_WIDTH = 32,
+              ADDR_W = 7
+)
+(
+    // Control signals.
+    input  logic clk,
+    input  logic arst,
+    input  logic write_en,
+
+    // Input signals.
+    input  logic [ DATA_WIDTH - 1:0 ] i_data,
+    input  logic [ ADDR_WIDTH - 1:0 ] i_addr,
+
+    // Output signals.
+    output logic [ DATA_WIDTH - 1:0 ] o_data,
+    output logic                      o_successful_access,
+    output logic                      o_successful_read,
+    output logic                      o_successful_write
+);
+    logic [ADDR_W - 1:0] s_addr;
+
+    assign s_addr = i_addr[ADDR_W + 1:2];
+
+    assign o_successful_read   = 1'b1;
+    assign o_successful_write  = 1'b1;
+
+    // Simulating multiple clock cycle memory access.
+    logic [ 6:0 ] s_count;
+    always_ff @( posedge clk, posedge arst ) begin
+        if ( arst ) s_count <= '0;
+        else        s_count <= s_count + 7'b1;
+    end
+
+    assign o_successful_access = (s_count == 7'b1111111);
+
+
+    // mem_blk0 K_MEM_BLK0 (
+    //     .clka  (clk        ),
+    //     .addra (s_addr     ),
+    //     .wea   (write_en   ),
+    //     .dina  (i_data     ),
+    //     .douta (o_data     )
+    // );
+
     
 endmodule
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
@@ -4006,4 +3871,444 @@ module ysyx_201979054_datapath
     
     assign o_size_non_cacheable = { 1'b0, s_func_3 [ 1:0 ] };
     
+endmodule/* Copyright (c) 2025 Maveric NU. All rights reserved. */
+
+
+// ---------------------------------------------------------------------------------------
+// This is a WB Master module for establishing connection between CPU and WB Slave.
+// ---------------------------------------------------------------------------------------
+
+module wb_master
+// Parameters.
+#(
+    parameter ADDR_WIDTH = 64,
+    parameter DATA_WIDTH = 32
+)
+// Port declerations.
+(
+    // Common clock & reset.
+    input  logic                      clk_i,
+    input  logic                      rst_i,
+
+    // Input interface.
+    input  logic                      start_rd_i,
+    input  logic                      start_wr_i,
+    input  logic [DATA_WIDTH   - 1:0] data_i,
+    input  logic [ADDR_WIDTH   - 1:0] addr_i,
+
+    // Output interface.
+    output logic                      done_o,
+    output logic [DATA_WIDTH   - 1:0] data_o,
+
+    //-------------------------------
+    // WB Interface Signals.
+    //-------------------------------
+    input  logic [DATA_WIDTH   - 1:0] DAT_I,
+    output logic [ADDR_WIDTH   - 1:0] ADR_O,
+    output logic [DATA_WIDTH   - 1:0] DAT_O,
+    output logic                      WE_O,
+    output logic [DATA_WIDTH/8 - 1:0] SEL_O,
+    output logic                      STB_O,
+    input  logic                      ACK_I,
+    output logic                      CYC_O
+);
+
+
+    //-------------------------------------
+    // FSM.
+    //-------------------------------------
+    // FSM: States.
+    typedef enum logic [1:0] {
+        IDLE    = 2'd0,
+        RD_DONE = 2'd1,
+        WR_DONE = 2'd2
+    } state_t;
+
+    state_t PS;
+    state_t NS;
+
+
+    // FSM: Next state logic.
+    always_ff @(posedge clk_i, posedge rst_i) begin
+        if (rst_i) PS <= IDLE;
+        else       PS <= NS;
+    end
+
+
+    // FSM: Next state logic.
+    always_comb begin
+        // Default values.
+        NS = PS;
+
+        case (PS)
+            IDLE: begin
+                if (~ ACK_I) begin
+                    if (start_rd_i)
+                        NS = RD_DONE;
+                    else if (start_wr_i)
+                        NS = WR_DONE; 
+                end
+            end
+            RD_DONE,
+            WR_DONE: begin
+                if (ACK_I)
+                    NS = IDLE;
+            end
+            default: NS = PS;
+        endcase
+    end
+
+    // FSM: Output logic.
+    always_ff @(posedge clk_i, posedge rst_i) begin
+        if (rst_i) begin
+            ADR_O  <= '0;
+            DAT_O  <= '0;
+            WE_O   <= '0;
+            SEL_O  <= '0;
+            STB_O  <= '0;
+            CYC_O  <= '0;
+            data_o <= '0;
+            done_o <= '0;
+        end
+        else begin
+            case (PS)
+                IDLE: begin
+                    STB_O  <= 1'b0;
+                    CYC_O  <= 1'b0;
+                    done_o <= 1'b0;
+                    if (~ ACK_I) begin
+                        if (start_rd_i) begin
+                            ADR_O <= addr_i;
+                            WE_O  <= 1'b0; // read.
+                            STB_O <= 1'b1;
+                            CYC_O <= 1'b1;
+                        end
+                        else if (start_wr_i) begin
+                            ADR_O <= addr_i;
+                            DAT_O <= data_i;
+                            WE_O  <= 1'b1; // write.
+                            STB_O <= 1'b1;
+                            CYC_O <= 1'b1;
+                        end 
+                    end
+                end
+                RD_DONE: begin
+                    if (ACK_I) begin
+                        data_o <= DAT_I;
+                        done_o <= 1'b1;
+                        STB_O  <= 1'b0;
+                        CYC_O  <= 1'b0;
+                    end
+                end
+                WR_DONE: begin
+                    if (ACK_I) begin
+                        done_o <= 1'b1;
+                        STB_O  <= 1'b0;
+                        CYC_O  <= 1'b0;
+                    end
+                end
+                default: begin
+                    ADR_O  <= ADR_O;
+                    DAT_O  <= DAT_O;
+                    WE_O   <= WE_O;
+                    SEL_O  <= SEL_O;
+                    STB_O  <= STB_O;
+                    CYC_O  <= CYC_O;
+                    data_o <= data_o;
+                    done_o <= done_o;
+                end
+            endcase
+        end
+    end
+
+
+endmodule/* Copyright (c) 2025 Maveric NU. All rights reserved. */
+
+
+// ----------------------------------------------------------------------------------------
+// This is a WB Slave module for establishing connection between WB Master and Peripheral.
+// ----------------------------------------------------------------------------------------
+
+module wb_slave
+// Parameters.
+#(
+    parameter ADDR_WIDTH = 64,
+    parameter DATA_WIDTH = 32
+)
+// Port declerations.
+(
+    // Common clock & reset.
+    input  logic                      clk_i,
+    input  logic                      rst_i,
+
+    // Input interface.
+    input  logic                      successful_access_i,
+    input  logic                      successful_rd_i,
+    input  logic                      successful_wr_i,
+    input  logic [DATA_WIDTH   - 1:0] data_i,
+
+    // Output interface.
+    output logic                      rd_req_o,
+    output logic                      wr_en_o,
+    output logic [ADDR_WIDTH   - 1:0] addr_o,
+    output logic [DATA_WIDTH   - 1:0] data_o,
+
+    //-------------------------------
+    // WB Interface Signals.
+    //-------------------------------
+    input  logic [DATA_WIDTH   - 1:0] DAT_I,
+    input  logic [ADDR_WIDTH   - 1:0] ADR_I,
+    output logic [DATA_WIDTH   - 1:0] DAT_O,
+    input  logic                      WE_I,
+    input  logic [DATA_WIDTH/8 - 1:0] SEL_I,
+    input  logic                      STB_I,
+    output logic                      ACK_O,
+    input  logic                      CYC_I
+);
+
+
+    //-------------------------------------
+    // FSM.
+    //-------------------------------------
+    // FSM: States.
+    typedef enum logic [2:0] {
+        IDLE     = 3'd0,
+        RD_START = 3'd1,
+        RD_DONE  = 3'd2,
+        WR_START = 3'd3,
+        WR_DONE  = 3'd4
+    } state_t;
+
+    state_t PS;
+    state_t NS;
+
+
+    // FSM: Next state logic.
+    always_ff @(posedge clk_i, posedge rst_i) begin
+        if (rst_i) PS <= IDLE;
+        else       PS <= NS;
+    end
+
+
+    // FSM: Next state logic.
+    always_comb begin
+        // Default values.
+        NS = PS;
+
+        case (PS)
+            IDLE: begin
+                if (STB_I & CYC_I) begin
+                    if (WE_I)
+                        NS = WR_START;
+                    else
+                        NS = RD_START;
+                end
+            end
+            RD_START: begin
+                if (successful_access_i & successful_rd_i)
+                    NS = RD_DONE;
+            end
+            RD_DONE: begin
+                if (~ (STB_I & CYC_I))
+                    NS = IDLE;
+            end
+            WR_START: begin
+                if (successful_access_i & successful_wr_i)
+                    NS = WR_DONE;
+            end
+            WR_DONE: begin
+                if (~ STB_I)
+                    NS = IDLE;
+            end
+            default: NS = PS;
+        endcase
+    end
+
+    // FSM: Output logic.
+    always_ff @(posedge clk_i, posedge rst_i) begin
+        if (rst_i) begin
+            DAT_O    <= '0;
+            ACK_O    <= '0;
+            rd_req_o <= '0;
+            wr_en_o  <= '0;
+            addr_o   <= '0;
+            data_o   <= '0;
+        end
+        else begin
+            case (PS)
+                IDLE: begin
+                    if (STB_I & CYC_I) begin
+                        if (WE_I) begin
+                            wr_en_o <= 1'b1;
+                            addr_o  <= ADR_I;
+                            data_o  <= DAT_I;
+                        end
+                        else begin
+                            rd_req_o <= 1'b1;
+                            addr_o   <= ADR_I;
+                        end
+                    end
+                end
+                RD_START: begin
+                    if (successful_access_i & successful_rd_i) begin
+                        DAT_O    <= data_i;
+                        ACK_O    <= 1'b1;
+                        rd_req_o <= 1'b0;
+                    end
+                end
+                RD_DONE: begin
+                    if (~ (STB_I & CYC_I)) begin
+                        ACK_O <= 1'b0;
+                    end
+                end
+                WR_START: begin
+                    if (successful_access_i & successful_wr_i) begin
+                        ACK_O   <= 1'b1;
+                        wr_en_o <= 1'b0;
+                    end
+                end
+                WR_DONE: begin
+                    if (~ STB_I) begin
+                        ACK_O <= 1'b0;
+                    end
+                end
+                default: begin
+                    DAT_O    <= DAT_O;
+                    ACK_O    <= ACK_O;
+                    rd_req_o <= rd_req_o;
+                    wr_en_o  <= wr_en_o;
+                    addr_o   <= addr_o;
+                    data_o   <= data_o;
+                end
+            endcase
+        end
+    end
+
+endmodule/* Copyright (c) 2025 Maveric NU. All rights reserved. */
+
+
+// ---------------------------------------------------------------------------------------
+// This is a top WB module for establishing connection between CPU and its peripherals.
+// ---------------------------------------------------------------------------------------
+
+module wb_top
+// Parameters.
+#(
+    parameter ADDR_WIDTH = 32,
+    parameter DATA_WIDTH = 32
+)
+// Port declerations.
+(
+    // Common clock & reset.
+    input  logic                    clk_i,
+    input  logic                    rst_i,
+
+    // Input interface.
+    input  logic                    cpu_start_rd_i,
+    input  logic                    cpu_start_wr_i,
+    input  logic [DATA_WIDTH - 1:0] cpu_data_i,
+    input  logic [ADDR_WIDTH - 1:0] cpu_addr_i,
+    input  logic                    mem_successful_access_i,
+    input  logic                    mem_successful_rd_i,
+    input  logic                    mem_successful_wr_i,
+    input  logic [DATA_WIDTH - 1:0] mem_data_i,
+
+
+    // Output interface.
+    output logic [DATA_WIDTH - 1:0] cpu_data_o,
+    output logic                    cpu_done_o,
+    output logic                    mem_rd_req_o,
+    output logic                    mem_wr_en_o,
+    output logic [ADDR_WIDTH - 1:0] mem_addr_o,
+    output logic [DATA_WIDTH - 1:0] mem_data_o
+);
+
+    //------------------------
+    // Internal nets.
+    //------------------------
+
+    // Master interface.
+    logic [DATA_WIDTH   - 1:0] M_DAT_I;
+    logic [ADDR_WIDTH   - 1:0] M_ADR_O;
+    logic [DATA_WIDTH   - 1:0] M_DAT_O;
+    logic                      M_WE_O;
+    logic [DATA_WIDTH/8 - 1:0] M_SEL_O;
+    logic                      M_STB_O;
+    logic                      M_ACK_I;
+    logic                      M_CYC_O;
+
+    // Slave interface.
+    logic [DATA_WIDTH   - 1:0] S_DAT_I;
+    logic [ADDR_WIDTH   - 1:0] S_ADR_I;
+    logic [DATA_WIDTH   - 1:0] S_DAT_O;
+    logic                      S_WE_I;
+    logic [DATA_WIDTH/8 - 1:0] S_SEL_I;
+    logic                      S_STB_I;
+    logic                      S_ACK_O;
+    logic                      S_CYC_I;
+
+
+    //-----------------------------------
+    // Lower-level module instantiations.
+    //-----------------------------------
+
+    // WB Master.
+    wb_master #(
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH)
+    ) WB_MASTER0 (
+        .clk_i      (clk_i         ),
+        .rst_i      (rst_i         ),
+        .start_rd_i (cpu_start_rd_i),
+        .start_wr_i (cpu_start_wr_i),
+        .data_i     (cpu_data_i    ),
+        .addr_i     (cpu_addr_i    ),
+        .done_o     (cpu_done_o    ),
+        .data_o     (cpu_data_o    ),
+        .DAT_I      (M_DAT_I       ),
+        .ADR_O      (M_ADR_O       ),
+        .DAT_O      (M_DAT_O       ),
+        .WE_O       (M_WE_O        ),
+        .SEL_O      (M_SEL_O       ),
+        .STB_O      (M_STB_O       ),
+        .ACK_I      (M_ACK_I       ),
+        .CYC_O      (M_CYC_O       )
+    );
+
+    // WB Slave.
+    wb_slave #(
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH)
+    ) WB_SLAVE0 (
+        .clk_i               (clk_i                  ),
+        .rst_i               (rst_i                  ),
+        .successful_access_i (mem_successful_access_i),
+        .successful_rd_i     (mem_successful_rd_i    ),
+        .successful_wr_i     (mem_successful_wr_i    ),
+        .data_i              (mem_data_i             ),
+        .rd_req_o            (mem_rd_req_o           ),
+        .wr_en_o             (mem_wr_en_o            ),
+        .addr_o              (mem_addr_o             ),
+        .data_o              (mem_data_o             ),
+        .DAT_I               (S_DAT_I                ),
+        .ADR_I               (S_ADR_I                ),
+        .DAT_O               (S_DAT_O                ),
+        .WE_I                (S_WE_I                 ),
+        .SEL_I               (S_SEL_I                ),
+        .STB_I               (S_STB_I                ),
+        .ACK_O               (S_ACK_O                ),
+        .CYC_I               (S_CYC_I                )
+    );
+
+    assign M_DAT_I = S_DAT_O;
+    assign M_ACK_I = S_ACK_O;
+
+    assign S_DAT_I = M_DAT_O;
+    assign S_ADR_I = M_ADR_O;
+    assign S_WE_I  = M_WE_O;
+    assign S_SEL_I = M_SEL_O;
+    assign S_STB_I = M_STB_O;
+    assign S_CYC_I = M_CYC_O;
+
+
 endmodule
