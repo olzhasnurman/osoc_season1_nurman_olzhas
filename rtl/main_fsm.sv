@@ -547,7 +547,7 @@ module ysyx_201979054_main_fsm
             FENCE_I: begin
                 if ( i_func_3[0] ) begin
                     o_invalidate_instr = 1'b1;
-                    o_start_wb         = 1'b0;
+                    o_start_wb         = 1'b1;
                 end
                 else if ( i_pred_0 ) begin
                     o_invalidate_instr = 1'b0;
