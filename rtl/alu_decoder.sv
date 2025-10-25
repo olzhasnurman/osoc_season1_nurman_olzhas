@@ -5,7 +5,7 @@
 // op[5], alu_op, func_3, func_7[5] signals. 
 // -----------------------------------------------------------------------
 
-module ysyx_201979054_alu_decoder 
+module alu_decoder 
 // Port delerations. 
 (
     // Input interface.

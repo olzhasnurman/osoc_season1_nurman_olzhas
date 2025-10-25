@@ -4,7 +4,7 @@
 // This is a register file component of processor based on RISC-V architecture.
 // ----------------------------------------------------------------------------
 
-module ysyx_201979054_register_file
+module register_file
 // Parameters.
 #(
     parameter DATA_WIDTH = 64,

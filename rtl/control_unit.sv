@@ -6,7 +6,7 @@
 //  controls all the control signals based on instruction input. 
 // -------------------------------------------------------------------------------------
 
-module  ysyx_201979054_control_unit   
+module control_unit   
 // Port decleration. 
 (
     // Common clock & reset.
@@ -126,7 +126,7 @@ module  ysyx_201979054_control_unit
     //-------------------------------------
 
     // Main FSM module instance. 
-    ysyx_201979054_main_fsm M_FSM (
+    main_fsm M_FSM (
         .clk                  ( clk                    ),
         .arst                 ( arst                   ),
         .i_instr_22_20        ( i_instr_22_20          ),
@@ -183,7 +183,7 @@ module  ysyx_201979054_control_unit
     );
 
     // Instruction cache FSM.
-    ysyx_201979054_instr_cache_fsm I_C_FSM (
+    instr_cache_fsm I_C_FSM (
         .clk              ( clk                    ),
         .arst             ( arst                   ),
         .i_start_check    ( s_start_instr_cache    ),
@@ -196,7 +196,7 @@ module  ysyx_201979054_control_unit
     );
 
     // Data cache FSM.
-    ysyx_201979054_data_cache_fsm D_C_FSM (
+    data_cache_fsm D_C_FSM (
         .clk                   ( clk                 ),
         .arst                  ( arst                ),
         .i_start_check         ( s_start_data_cache  ),
@@ -217,7 +217,7 @@ module  ysyx_201979054_control_unit
 
 
     // ALU decoder module.
-    ysyx_201979054_alu_decoder ALU_DECODER (
+    alu_decoder ALU_DECODER (
         .i_alu_op        ( s_alu_op            ),
         .i_func_3        ( i_func_3            ),
         .i_func_7_5      ( i_func7_6_4[1]      ),
@@ -227,13 +227,13 @@ module  ysyx_201979054_control_unit
     );
 
     // Instruction decoder. 
-    ysyx_201979054_instr_decoder INSTR_DECODER (
+    instr_decoder INSTR_DECODER (
         .i_op      ( i_op      ),
         .o_imm_src ( o_imm_src )
     );
 
     // Illegal instruction flag flip-flop.
-    ysyx_201979054_register # (.DATA_WIDTH (1) ) II_ALU_FF (
+    register # (.DATA_WIDTH (1) ) II_ALU_FF (
         .clk          ( clk                    ),
         .arst         ( arst                   ),
         .i_write_data ( s_illegal_instr_alu    ),

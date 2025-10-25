@@ -5,7 +5,7 @@
 // based on different LOAD instruction requirements. 
 // -----------------------------------------------------------------------
 
-module ysyx_201979054_load_mux 
+module load_mux 
 #(
     parameter DATA_WIDTH = 64
 ) 

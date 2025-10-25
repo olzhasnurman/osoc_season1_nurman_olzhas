@@ -5,7 +5,7 @@
 // This is a main fsm unit that controls all the control signals based on instruction input. 
 // -----------------------------------------------------------------------------------------
 
-module ysyx_201979054_main_fsm   
+module main_fsm   
 // Port decleration. 
 (
     // Common clock & reset.

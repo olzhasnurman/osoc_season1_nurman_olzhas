@@ -4,9 +4,10 @@
 // This is a top CPU module.
 // ---------------------------------------------------------------------------------------
 
-module ysyx_201979054 (
-    input clock,
-    input [0:0] reset
+module cpu (
+    input        clock,
+    input        reset,
+    output [3:0] led
 );
 
     //--------------------------------
@@ -99,7 +100,7 @@ module ysyx_201979054 (
     //------------------------------
     // Reset Synchronizer Instance.
     //------------------------------
-    ysyx_201979054_reset_sync RST_SYNC (
+    reset_sync RST_SYNC (
         .clk       ( clock ),
         .arst      ( reset ),
         .arst_sync ( arst  )
@@ -110,7 +111,7 @@ module ysyx_201979054 (
     //-----------------------------
     // Top datapath unit instance.
     //-----------------------------
-    ysyx_201979054_datapath TOP0 (
+    datapath TOP0 (
         .clk                  ( clock                     ),
         .arst                 ( arst                      ),
         .i_done_axi           ( s_done                    ),
@@ -167,7 +168,7 @@ module ysyx_201979054 (
     //-------------------------------------------
     // Cache data transfer unit instance for APB.
     //-------------------------------------------
-    ysyx_201979054_cache_data_transfer # (
+    cache_data_transfer # (
         .AXI_DATA_WIDTH ( 32      ),
         .AXI_ADDR_WIDTH ( 32      ),
         .BLOCK_WIDTH    ( 512     ),
@@ -193,7 +194,7 @@ module ysyx_201979054 (
     //-------------------------
     // Memory Data Register. 
     //-------------------------
-    ysyx_201979054_register_en #( .DATA_WIDTH(32) ) REG_AXI_DATA (
+    register_en #( .DATA_WIDTH(32) ) REG_AXI_DATA (
         .clk          ( clock           ),
         .arst         ( arst            ),
         .write_en     ( s_axi_done      ),

@@ -4,7 +4,7 @@
 // This is a Arithmetic Logic Unit (ALU).
 // --------------------------------------
 
-module ysyx_201979054_alu 
+module alu 
 // Parameters.
 #(
     parameter DATA_WIDTH    = 64,

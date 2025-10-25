@@ -4,7 +4,7 @@
 // This is a instruction cache FSM for direct mapped cache.
 // -----------------------------------------------------------------------
 
-module ysyx_201979054_instr_cache_fsm 
+module instr_cache_fsm 
 (
     // Clock & Reset.
     input  logic clk,

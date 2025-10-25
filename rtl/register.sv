@@ -4,7 +4,7 @@
 // This is a nonarchitectural register without write enable signal.
 // ----------------------------------------------------------------
 
-module ysyx_201979054_register
+module register
 // Parameters.
 #(
     parameter DATA_WIDTH = 64

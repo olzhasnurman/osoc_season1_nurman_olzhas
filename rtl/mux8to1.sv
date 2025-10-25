@@ -4,7 +4,7 @@
 // This is a 8-to-1 mux module to choose Result Src.
 // ---------------------------------------------------
 
-module ysyx_201979054_mux8to1
+module mux8to1
 // Parameters. 
 #(
     parameter DATA_WIDTH = 64

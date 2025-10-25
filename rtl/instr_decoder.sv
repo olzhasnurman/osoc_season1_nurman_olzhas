@@ -5,7 +5,7 @@
 // ImmSrc is a signal designed to control immediate extension logic.
 // -----------------------------------------------------------------------
 
-module ysyx_201979054_instr_decoder 
+module instr_decoder 
 // Parameters.
 #(
     parameter OP_WIDTH  = 7,

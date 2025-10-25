@@ -4,7 +4,7 @@
 // This is a top module in RISC-V architecture. It connects datapath units & control unit.
 // ---------------------------------------------------------------------------------------
 
-module ysyx_201979054_datapath
+module datapath
 // Parameters. 
 #(
     parameter REG_DATA_WIDTH   = 64,
@@ -206,7 +206,7 @@ module ysyx_201979054_datapath
     //---------------------------
     // Control Unit Instance.
     //---------------------------
-    ysyx_201979054_control_unit CU (
+    control_unit CU (
         .clk                    ( clk                   ), 
         .arst                   ( arst                  ),
         .i_instr_22_20          ( s_reg_instr[22:20]    ),
@@ -276,7 +276,7 @@ module ysyx_201979054_datapath
     //--------------------------------
 
     // Register File Instance.
-    ysyx_201979054_register_file REG_FILE (
+    register_file REG_FILE (
         .clk            ( clk               ),
         .write_en_3     ( s_reg_write_en    ),
         .arst           ( arst              ),
@@ -289,7 +289,7 @@ module ysyx_201979054_datapath
     );
 
     // Data Cache.
-    ysyx_201979054_data_cache D_CACHE (
+    data_cache D_CACHE (
         .clk             ( clk                   ),
         .arst            ( arst                  ),
         .write_en        ( s_mem_write_en        ),
@@ -313,7 +313,7 @@ module ysyx_201979054_datapath
     );
 
     // Instruction Cache.
-    ysyx_201979054_instr_cache I_CACHE (
+    instr_cache I_CACHE (
         .clk                ( clk                ),
         .write_en           ( s_instr_cache_we   ),
         .arst               ( arst               ),
@@ -327,7 +327,7 @@ module ysyx_201979054_datapath
 
 
     // Control & Status Registers.
-    ysyx_201979054_csr_file CSR0 (
+    csr_file CSR0 (
         .clk                 ( clk                 ),
         .write_en_1          ( s_csr_we_1          ),
         .write_en_2          ( s_csr_we_2          ),
@@ -352,7 +352,7 @@ module ysyx_201979054_datapath
 
 
     // CLINT MMIO.
-    ysyx_201979054_clint_mmio CLINT0 (
+    clint_mmio CLINT0 (
         .clk                 ( clk                     ),
         .arst                ( arst                    ),
         .write_en            ( s_clint_write_en        ),
@@ -368,7 +368,7 @@ module ysyx_201979054_datapath
     //------------------------------
     // ALU Instance. 
     //------------------------------
-    ysyx_201979054_alu ALU (   
+    alu ALU (   
         .alu_control     ( s_alu_control    ),
         .i_src_1         ( s_alu_src_data_1 ),
         .i_src_2         ( s_alu_src_data_2 ),
@@ -385,7 +385,7 @@ module ysyx_201979054_datapath
     //-----------------------------------------
 
     // Instruction Register Instance. 
-    ysyx_201979054_register_en # (.DATA_WIDTH (MEM_INSTR_WIDTH)) INSTR_REG (
+    register_en # (.DATA_WIDTH (MEM_INSTR_WIDTH)) INSTR_REG (
         .clk          ( clk              ),
         .write_en     ( s_instr_write_en ),
         .arst         ( arst             ),
@@ -394,7 +394,7 @@ module ysyx_201979054_datapath
     );
 
     // PC Register Instance.
-    ysyx_201979054_register_pc # (.DATA_WIDTH (MEM_ADDR_WIDTH)) PC_REG (
+    register_pc # (.DATA_WIDTH (MEM_ADDR_WIDTH)) PC_REG (
         .clk          ( clk           ),
         .write_en     ( s_pc_write_en ),
         .arst         ( arst          ),
@@ -403,7 +403,7 @@ module ysyx_201979054_datapath
     ); 
 
     // Old PC Register Instance.
-    ysyx_201979054_register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) OLD_PC_REG (
+    register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) OLD_PC_REG (
         .clk          ( clk              ),
         .write_en     ( s_instr_write_en ),
         .arst         ( arst             ),
@@ -412,7 +412,7 @@ module ysyx_201979054_datapath
     );
 
     // MEM ADDR Register Instance.
-    ysyx_201979054_register_en MEM_ADDR_REG (
+    register_en MEM_ADDR_REG (
         .clk          ( clk               ),
         .write_en     ( s_reg_mem_addr_we ),
         .arst         ( arst              ),
@@ -421,7 +421,7 @@ module ysyx_201979054_datapath
     ); 
 
     // CSR Register Instance.
-    ysyx_201979054_register_en # (.DATA_WIDTH (REG_DATA_WIDTH)) CSR_REG (
+    register_en # (.DATA_WIDTH (REG_DATA_WIDTH)) CSR_REG (
         .clk          ( clk                 ),
         .write_en     ( s_csr_reg_we        ),
         .arst         ( arst                ),
@@ -430,7 +430,7 @@ module ysyx_201979054_datapath
     );  
 
     // Output addr Register Instance.
-    ysyx_201979054_register #(.DATA_WIDTH (OUT_ADDR_WIDTH)) OUTADDR_REG (
+    register #(.DATA_WIDTH (OUT_ADDR_WIDTH)) OUTADDR_REG (
         .clk          ( clk        ),
         .arst         ( arst       ),
         .i_write_data ( s_out_addr ),
@@ -438,7 +438,7 @@ module ysyx_201979054_datapath
     ); 
 
     // R1 Register Instance.
-    ysyx_201979054_register R1 (
+    register R1 (
         .clk          ( clk               ),
         .arst         ( arst              ),
         .i_write_data ( s_reg_read_data_1 ),
@@ -446,7 +446,7 @@ module ysyx_201979054_datapath
     );
 
     // R2 Register Instance.
-    ysyx_201979054_register R2 (
+    register R2 (
         .clk          ( clk               ),
         .arst         ( arst              ),
         .i_write_data ( s_reg_read_data_2 ),
@@ -454,7 +454,7 @@ module ysyx_201979054_datapath
     );
 
     // ALU Result Register Instance.
-    ysyx_201979054_register REG_ALU_RESULT (
+    register REG_ALU_RESULT (
         .clk          ( clk              ),
         .arst         ( arst             ),
         .i_write_data ( s_alu_result     ),
@@ -462,7 +462,7 @@ module ysyx_201979054_datapath
     );
 
     // Memory Data Register. 
-    ysyx_201979054_register_en REG_MEM_DATA (
+    register_en REG_MEM_DATA (
         .clk          ( clk                ),
         .arst         ( arst               ),
         .write_en     ( s_reg_mem_we       ),
@@ -477,7 +477,7 @@ module ysyx_201979054_datapath
     //----------------------
 
     // 4-to-1 ALU Source 1 MUX Instance.
-    ysyx_201979054_mux4to1 ALU_MUX_1 (
+    mux4to1 ALU_MUX_1 (
         .control_signal ( s_alu_src_control_1 ),
         .i_mux_0        ( s_reg_pc            ),
         .i_mux_1        ( s_reg_old_pc        ),
@@ -487,7 +487,7 @@ module ysyx_201979054_datapath
     );
 
     // 4-to-1 ALU Source 2 MUX Instance.
-    ysyx_201979054_mux4to1 ALU_MUX_2 (
+    mux4to1 ALU_MUX_2 (
         .control_signal ( s_alu_src_control_2 ),
         .i_mux_0        ( s_reg_data_2        ),
         .i_mux_1        ( s_imm_ext           ),
@@ -497,7 +497,7 @@ module ysyx_201979054_datapath
     );
 
     // 8-to-1 Result Source MUX Instance.
-    ysyx_201979054_mux8to1 RESULT_MUX (
+    mux8to1 RESULT_MUX (
         .control_signal ( s_result_src        ),
         .i_mux_0        ( s_reg_alu_result    ),
         .i_mux_1        ( s_mem_data          ), 
@@ -516,7 +516,7 @@ module ysyx_201979054_datapath
     //---------------------------------------
     // Immiediate Extension Module Instance.
     //---------------------------------------
-    ysyx_201979054_extend_imm I_EXT (
+    extend_imm I_EXT (
         .control_signal ( s_imm_src ),
         .i_imm          ( s_imm     ),
         .o_imm_ext      ( s_imm_ext )
@@ -525,7 +525,7 @@ module ysyx_201979054_datapath
     //------------------------------
     // LOAD Instruction mux. 
     //------------------------------
-    ysyx_201979054_load_mux LOAD_MUX (
+    load_mux LOAD_MUX (
         .i_func_3        ( s_func_3             ),
         .i_data          ( s_load_data          ),
         .i_addr_offset   ( s_addr_offset        ),
