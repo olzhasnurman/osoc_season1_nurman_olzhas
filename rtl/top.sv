@@ -154,8 +154,8 @@ module top
     assign s_reg_addr_3  = s_reg_instr[11:7 ];
 
     assign s_addr_offset = s_reg_mem_addr[2:0];
-    
-    assign s_csr_jamp_addr  = s_csr_read_data >> 2;
+
+    assign s_csr_jamp_addr  = ( s_csr_read_data >> 2 ) << 2;
     assign s_csr_mcause     = { s_interrupt, 59'b0, s_mcause };
     assign s_timer_int      = s_mie_mstatus & s_mtip_mip & s_mtie_mie;
 
