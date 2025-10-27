@@ -25,6 +25,7 @@ module register_file
     input  logic [ DATA_WIDTH - 1:0 ] i_write_data_3,
     
     // Output interface.
+    output [3:0] led,
     output logic [ DATA_WIDTH - 1:0 ] o_read_data_1,
     output logic [ DATA_WIDTH - 1:0 ] o_read_data_2
 );
@@ -77,6 +78,7 @@ module register_file
     // Read logic.
     assign o_read_data_1 = mem[i_addr_1];
     assign o_read_data_2 = mem[i_addr_2];
+    assign led = mem[10][22:19];
 
     
 endmodule

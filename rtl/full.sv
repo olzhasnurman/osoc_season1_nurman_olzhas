@@ -731,6 +731,7 @@ module cpu (
     logic [ 31:0 ] s_mem_data_in;
     logic [ 31:0 ] s_mem_data_out;
     logic          s_mem_we;
+    logic          s_mem_read_request;
     logic          s_successful_access;
     logic          s_successful_read;
     logic          s_successful_write;
@@ -834,6 +835,7 @@ module cpu (
         .o_start_write_axi_nc ( s_write_req_non_cacheable ),
         .o_start_write_axi    ( s_write_req               ),
         .o_addr               ( s_addr                    ),
+        .led (led),
         .o_addr_non_cacheable ( s_addr_non_cacheable      ),
         .o_size_non_cacheable ( s_axi_size_non_cache      ),
         .o_data_write_axi     ( s_data_block_write_top    )
@@ -854,7 +856,7 @@ module cpu (
         .mem_data_i              (s_mem_data_out     ),
         .cpu_data_o              (s_read_axi         ),
         .cpu_done_o              (s_axi_done         ),
-        .mem_rd_req_o            (),
+        .mem_rd_req_o            (s_mem_read_request ),
         .mem_wr_en_o             (s_mem_we           ),
         .mem_addr_o              (s_mem_addr         ),
         .mem_data_o              (s_mem_data_in      )
@@ -867,6 +869,7 @@ module cpu (
         .clk                 ( clock               ),
         .arst                ( arst                ),
         .write_en            ( s_mem_we            ),
+        .i_read_request      ( s_mem_read_request  ),
         .i_data              ( s_mem_data_in       ),
         .i_addr              ( s_mem_addr          ),
         .o_data              ( s_mem_data_out      ),
@@ -1670,6 +1673,7 @@ module datapath
     output logic                            o_start_read_axi_nc,
     output logic                            o_start_write_axi_nc,
     output logic [ OUT_ADDR_WIDTH   - 1:0 ] o_addr, // JUST FOR SIMULATION
+    output logic [3:0] led,
     output logic [ OUT_ADDR_WIDTH   - 1:0 ] o_addr_non_cacheable,
     output logic [                    2:0 ] o_size_non_cacheable,
     output logic [ BLOCK_DATA_WIDTH - 1:0 ] o_data_write_axi   // NEEDS TO BE CONNECTED TO AXI
@@ -1822,8 +1826,8 @@ module datapath
     assign s_software_int   = s_mie_mstatus & s_msip_mip & s_msie_mie;
 
 
-    assign s_cacheable_flag  = ( s_reg_mem_addr >= 64'h3000_0000 );
-    assign s_clint_mmio_flag = ( s_reg_mem_addr >= 64'h0200_0000 ) & ( s_reg_mem_addr <= 64'h0200_ffff );
+    assign s_cacheable_flag  = 1'b1; // ( s_reg_mem_addr >= 64'h3000_0000 );
+    assign s_clint_mmio_flag = 1'b0; // ( s_reg_mem_addr >= 64'h0200_0000 ) & ( s_reg_mem_addr <= 64'h0200_ffff );
 
     assign o_addr_non_cacheable = s_reg_mem_addr [ OUT_ADDR_WIDTH - 1:0 ];
     assign o_data_non_cacheable = s_reg_data_2 [ 31:0 ];
@@ -1923,6 +1927,7 @@ module datapath
         .i_addr_2       ( s_reg_addr_2      ),
         .i_addr_3       ( s_reg_addr_3      ),
         .i_write_data_3 ( s_result          ),
+        .led (led),
         .o_read_data_1  ( s_reg_read_data_1 ),
         .o_read_data_2  ( s_reg_read_data_2 )
     );
@@ -3282,13 +3287,14 @@ module mem_sim
 #(
     parameter DATA_WIDTH = 32,
               ADDR_WIDTH = 32,
-              ADDR_W = 7
+              ADDR_W = 14
 )
 (
     // Control signals.
     input  logic clk,
     input  logic arst,
     input  logic write_en,
+    input  logic i_read_request,
 
     // Input signals.
     input  logic [ DATA_WIDTH - 1:0 ] i_data,
@@ -3304,17 +3310,44 @@ module mem_sim
 
     assign s_addr = i_addr[ADDR_W + 1:2];
 
+    logic access_s;
+    logic access_request_s;
+
+    assign access_request_s = i_read_request | write_en;
+
     assign o_successful_read   = 1'b1;
     assign o_successful_write  = 1'b1;
 
-    // Simulating multiple clock cycle memory access.
-    logic [ 6:0 ] s_count;
-    always_ff @( posedge clk, posedge arst ) begin
-        if ( arst ) s_count <= '0;
-        else        s_count <= s_count + 7'b1;
+
+    // Simulating random multiple clock cycle memory access.
+    logic [7:0] count_s;
+
+    always_ff @(posedge clk, posedge arst) begin
+        if (arst  )
+            count_s <= '0;
+        else if (access_s)
+            count_s <= '0;
+        else if (access_request_s)
+            count_s <= count_s + 8'b1;
     end
 
-    assign o_successful_access = (s_count == 7'b1111111);
+    assign access_s            = (count_s == lfsr_s);
+    assign o_successful_access = access_s;
+
+
+    //---------------------------------------------
+    // LFSR for generating pseudo-random sequence.
+    //---------------------------------------------
+    logic [7:0] lfsr_s;
+    logic         lfsr_msb_s;
+
+    assign lfsr_msb_s = lfsr_s [7] ^ lfsr_s [5] ^ lfsr_s [4] ^ lfsr_s [3];
+
+    // Primitive Polynomial: x^8+x^6+x^5+x^4+1
+    always_ff @(posedge clk, posedge arst) begin
+        if      (arst    ) lfsr_s <= 8'b00010101; // Initial value.
+        else if (access_s) lfsr_s <= {lfsr_msb_s, lfsr_s [7:1]};
+    end
 
 
     // mem_blk0 K_MEM_BLK0 (
@@ -3499,6 +3532,7 @@ module register_file
     input  logic [ DATA_WIDTH - 1:0 ] i_write_data_3,
     
     // Output interface.
+    output [3:0] led,
     output logic [ DATA_WIDTH - 1:0 ] o_read_data_1,
     output logic [ DATA_WIDTH - 1:0 ] o_read_data_2
 );
@@ -3551,6 +3585,7 @@ module register_file
     // Read logic.
     assign o_read_data_1 = mem[i_addr_1];
     assign o_read_data_2 = mem[i_addr_2];
+    assign led = mem[10][22:19];
 
     
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
@@ -3580,13 +3615,14 @@ module register_pc
 
     // Write logic.
     always_ff @( posedge clk, posedge arst ) begin 
-        if ( arst ) o_read_data <= 64'h3000_0000;
+        if ( arst ) o_read_data <= 64'h0000_0000;
         else if ( write_en ) begin
             o_read_data <= i_write_data;
         end
     end
     
-endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
+endmodule
+/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ----------------------------------------------------------------------------------------------
 // This is a reset syncronizer module.

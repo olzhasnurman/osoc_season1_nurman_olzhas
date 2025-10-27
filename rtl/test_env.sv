@@ -4,7 +4,7 @@
 // This is a top CPU module.
 // ---------------------------------------------------------------------------------------
 
-module cpu (
+module test_env (
     input        clock,
     input        reset,
     output [3:0] led

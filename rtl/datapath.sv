@@ -31,6 +31,7 @@ module datapath
     output logic                            o_start_read_axi_nc,
     output logic                            o_start_write_axi_nc,
     output logic [ OUT_ADDR_WIDTH   - 1:0 ] o_addr, // JUST FOR SIMULATION
+    output logic [3:0] led,
     output logic [ OUT_ADDR_WIDTH   - 1:0 ] o_addr_non_cacheable,
     output logic [                    2:0 ] o_size_non_cacheable,
     output logic [ BLOCK_DATA_WIDTH - 1:0 ] o_data_write_axi   // NEEDS TO BE CONNECTED TO AXI
@@ -183,8 +184,8 @@ module datapath
     assign s_software_int   = s_mie_mstatus & s_msip_mip & s_msie_mie;
 
 
-    assign s_cacheable_flag  = ( s_reg_mem_addr >= 64'h3000_0000 );
-    assign s_clint_mmio_flag = ( s_reg_mem_addr >= 64'h0200_0000 ) & ( s_reg_mem_addr <= 64'h0200_ffff );
+    assign s_cacheable_flag  = 1'b1; // ( s_reg_mem_addr >= 64'h3000_0000 );
+    assign s_clint_mmio_flag = 1'b0; // ( s_reg_mem_addr >= 64'h0200_0000 ) & ( s_reg_mem_addr <= 64'h0200_ffff );
 
     assign o_addr_non_cacheable = s_reg_mem_addr [ OUT_ADDR_WIDTH - 1:0 ];
     assign o_data_non_cacheable = s_reg_data_2 [ 31:0 ];
@@ -284,6 +285,7 @@ module datapath
         .i_addr_2       ( s_reg_addr_2      ),
         .i_addr_3       ( s_reg_addr_3      ),
         .i_write_data_3 ( s_result          ),
+        .led (led),
         .o_read_data_1  ( s_reg_read_data_1 ),
         .o_read_data_2  ( s_reg_read_data_2 )
     );
