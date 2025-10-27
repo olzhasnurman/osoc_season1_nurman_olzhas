@@ -54,7 +54,7 @@ def process_file(input_path, output_path):
                     number_of_lines += 1
 
                 number_of_lines += 4
-                number_of_lines *= 16
+                number_of_lines *= 4
 
                 #print(input_path + f": {number_of_lines} lines.")
                 with open (exception_handler_path, 'r') as exception_h:
