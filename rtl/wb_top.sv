@@ -18,14 +18,15 @@ module wb_top
     input  logic                    rst_i,
 
     // Input interface.
-    input  logic                    cpu_start_rd_i,
-    input  logic                    cpu_start_wr_i,
-    input  logic [DATA_WIDTH - 1:0] cpu_data_i,
-    input  logic [ADDR_WIDTH - 1:0] cpu_addr_i,
-    input  logic                    mem_successful_access_i,
-    input  logic                    mem_successful_rd_i,
-    input  logic                    mem_successful_wr_i,
-    input  logic [DATA_WIDTH - 1:0] mem_data_i,
+    input  logic                      cpu_start_rd_i,
+    input  logic                      cpu_start_wr_i,
+    input  logic [DATA_WIDTH/8 - 1:0] cpu_write_sel_i,
+    input  logic [DATA_WIDTH   - 1:0] cpu_data_i,
+    input  logic [ADDR_WIDTH   - 1:0] cpu_addr_i,
+    input  logic                      mem_successful_access_i,
+    input  logic                      mem_successful_rd_i,
+    input  logic                      mem_successful_wr_i,
+    input  logic [DATA_WIDTH   - 1:0] mem_data_i,
 
 
     // Output interface.
@@ -75,6 +76,7 @@ module wb_top
         .rst_i      (rst_i         ),
         .start_rd_i (cpu_start_rd_i),
         .start_wr_i (cpu_start_wr_i),
+        .sel_i      (cpu_write_sel_i),
         .data_i     (cpu_data_i    ),
         .addr_i     (cpu_addr_i    ),
         .done_o     (cpu_done_o    ),

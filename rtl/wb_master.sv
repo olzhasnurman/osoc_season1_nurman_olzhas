@@ -8,7 +8,7 @@
 module wb_master
 // Parameters.
 #(
-    parameter ADDR_WIDTH = 64,
+    parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32
 )
 // Port declerations.
@@ -20,6 +20,7 @@ module wb_master
     // Input interface.
     input  logic                      start_rd_i,
     input  logic                      start_wr_i,
+    input  logic [DATA_WIDTH/8 - 1:0] sel_i,
     input  logic [DATA_WIDTH   - 1:0] data_i,
     input  logic [ADDR_WIDTH   - 1:0] addr_i,
 
@@ -114,6 +115,7 @@ module wb_master
                             ADR_O <= addr_i;
                             DAT_O <= data_i;
                             WE_O  <= 1'b1; // write.
+                            SEL_O <= sel_i;
                             STB_O <= 1'b1;
                             CYC_O <= 1'b1;
                         end 

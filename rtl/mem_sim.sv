@@ -73,7 +73,7 @@ module mem_sim
     end
 
 
-    // mem_blk0 K_MEM_BLK0 (
+    // blk_mem_gen_0 K_MEM_BLK0 (
     //     .clka  (clk        ),
     //     .addra (s_addr     ),
     //     .wea   (write_en   ),

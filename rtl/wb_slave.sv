@@ -8,7 +8,7 @@
 module wb_slave
 // Parameters.
 #(
-    parameter ADDR_WIDTH = 64,
+    parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32
 )
 // Port declerations.
