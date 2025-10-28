@@ -37,7 +37,7 @@ module uart_top
     //---------------------------
     // Internal nets.
     //---------------------------
-    
+
     // Unused.
     logic rtsn;
     logic ctsn = 1'b0;
@@ -112,7 +112,7 @@ module uart_top
         .wb_re_i      (re_o                                   ),
         .modem_inputs ({~ctsn, dsr_pad_i, ri_pad_i, dcd_pad_i}),
         .stx_pad_o    (uart_tx                                ),
-        .srx_pad_i    (uart_rx                                ),				  
+        .srx_pad_i    (uart_rx                                ),
         .rts_pad_o    (rts_internal                           ),
         .dtr_pad_o    (dtr_pad_o                              ),
         .int_o        (interrupt                              )

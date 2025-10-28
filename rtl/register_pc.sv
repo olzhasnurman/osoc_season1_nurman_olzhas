@@ -9,26 +9,26 @@ module register_pc
 #(
     parameter DATA_WIDTH = 64
 )
-// Port decleration. 
-(   
+// Port decleration.
+(
     // Common clock & enable signal.
     input  logic                      clk,
     input  logic                      write_en,
     input  logic                      arst,
 
-    //Input interface. 
+    //Input interface.
     input  logic [ DATA_WIDTH - 1:0 ] i_write_data,
-    
+
     // Output interface.
     output logic [ DATA_WIDTH - 1:0 ] o_read_data
 );
 
     // Write logic.
-    always_ff @( posedge clk, posedge arst ) begin 
+    always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) o_read_data <= 64'h3000_0000;
         else if ( write_en ) begin
             o_read_data <= i_write_data;
         end
     end
-    
+
 endmodule

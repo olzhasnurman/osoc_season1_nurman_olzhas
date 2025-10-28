@@ -1,15 +1,15 @@
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ---------------------------------------------------------------
-// This is a address increment module that increments the address 
+// This is a address increment module that increments the address
 // by 4 when seding data in burst using AXI4-Lite protocol.
 // ---------------------------------------------------------------
 
-module addr_increment 
+module addr_increment
 #(
     parameter AXI_ADDR_WIDTH = 64,
               INCR_VAL       = 64'd4
-) 
+)
 (
     // Control Signal.
     input  logic clk,
@@ -20,7 +20,7 @@ module addr_increment
     // Input interface.
     input  logic [ AXI_ADDR_WIDTH - 1:0 ] i_addr,
 
-    // Output interface. 
+    // Output interface.
     output logic [ AXI_ADDR_WIDTH - 1:0 ] o_addr
 );
 
@@ -33,20 +33,20 @@ module addr_increment
     end
 
     assign o_addr = i_addr + s_count;
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // --------------------------------------
 // This is a Arithmetic Logic Unit (ALU).
 // --------------------------------------
 
-module alu 
+module alu
 // Parameters.
 #(
     parameter DATA_WIDTH    = 64,
               WORD_WIDTH    = 32,
-              CONTROL_WIDTH = 5   
-) 
+              CONTROL_WIDTH = 5
+)
 // Port decleration.
 (
     // ALU control signal.
@@ -83,7 +83,7 @@ module alu
     localparam SRLW  = 5'b01101;
     localparam SRAW  = 5'b01110;
     localparam ADDIW = 5'b01111;
-    
+
     localparam CSRRW = 5'b10000;
     localparam CSRRS = 5'b10001;
     localparam CSRRC = 5'b10010;
@@ -94,7 +94,7 @@ module alu
     //-------------------------
     // Internal nets.
     //-------------------------
-    
+
     // ALU regular & immediate operation outputs.
     logic [ DATA_WIDTH - 1:0 ] s_add_out;
     logic [ DATA_WIDTH - 1:0 ] s_sub_out;
@@ -115,7 +115,7 @@ module alu
     logic [ WORD_WIDTH - 1:0 ] s_srlw_out;
     logic [ WORD_WIDTH - 1:0 ] s_sraw_out;
 
-    // Flag signals. 
+    // Flag signals.
     // logic s_carry_flag_add;
     // logic s_carry_flag_sub;
     // logic s_overflow;
@@ -125,8 +125,8 @@ module alu
     //---------------------------------
     // Arithmetic & Logic Operations.
     //---------------------------------
-    
-    // ALU regular & immediate operations. 
+
+    // ALU regular & immediate operations.
     assign s_add_out = i_src_1 + i_src_2;
     assign s_sub_out = $unsigned($signed(i_src_1) - $signed(i_src_2));
     assign s_and_out = i_src_1 & i_src_2;
@@ -141,17 +141,17 @@ module alu
 
     // ALU word operations.
     assign s_addw_out = i_src_1[31:0] + i_src_2[31:0];
-    assign s_subw_out = $unsigned($signed(i_src_1[31:0]) -  $signed(i_src_2[31:0])); 
+    assign s_subw_out = $unsigned($signed(i_src_1[31:0]) -  $signed(i_src_2[31:0]));
     assign s_sllw_out = i_src_1[31:0] << i_src_2[4:0];
     assign s_srlw_out = i_src_1[31:0] >> i_src_2[4:0];
     assign s_sraw_out = $unsigned($signed(i_src_1[31:0]) >>> i_src_2[4:0]);
 
 
-    // Flags. 
+    // Flags.
     assign o_zero_flag = !(|o_alu_result);
     assign o_slt_flag  = less_than;
     assign o_sltu_flag = less_than_u;
-    // assign s_overflow      = (o_alu_result[DATA_WIDTH - 1] ^ i_src_1[DATA_WIDTH - 1]) & 
+    // assign s_overflow      = (o_alu_result[DATA_WIDTH - 1] ^ i_src_1[DATA_WIDTH - 1]) &
     //                          (i_src_2[DATA_WIDTH - 1] ~^ i_src_1[DATA_WIDTH - 1] ~^ alu_control[0]);
 
 
@@ -188,19 +188,19 @@ module alu
 
             default: begin
                 o_alu_result    = 'b0;
-            end 
+            end
         endcase
 
-    end   
+    end
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -----------------------------------------------------------------------
 // ALU decoder is a module designed to output alu control signal based on
-// op[5], alu_op, func_3, func_7[5] signals. 
+// op[5], alu_op, func_3, func_7[5] signals.
 // -----------------------------------------------------------------------
 
-module alu_decoder 
-// Port delerations. 
+module alu_decoder
+// Port delerations.
 (
     // Input interface.
     input  logic [2:0] i_alu_op,
@@ -208,7 +208,7 @@ module alu_decoder
     input  logic       i_func_7_5,
     input  logic       i_op_5,
 
-    // Output interface. 
+    // Output interface.
     output logic [4:0] o_alu_control,
     output logic       o_illegal_instr
 );
@@ -218,7 +218,7 @@ module alu_decoder
     assign s_op_func_7 = { i_op_5, i_func_7_5 };
 
     // ALU decoder logic.
-    always_comb begin 
+    always_comb begin
         o_illegal_instr = 1'b0;
 
         case ( i_alu_op )
@@ -226,37 +226,37 @@ module alu_decoder
             3'b001: o_alu_control = 5'b00001; // SUB  for B type instructions: beq, bne.
 
             // I & R Type.
-            3'b010: 
+            3'b010:
                 case (i_func_3)
                     3'b000: if ( s_op_func_7 == 2'b11 ) o_alu_control = 5'b00001; // sub instruciton.
                             else                        o_alu_control = 5'b00000; // add & addi instruciton.
 
                     3'b001: o_alu_control = 5'b00101; // sll & slli instructions.
 
-                    3'b010: o_alu_control = 5'b00110; // slt instruction. 
+                    3'b010: o_alu_control = 5'b00110; // slt instruction.
 
                     3'b011: o_alu_control = 5'b00111; // sltu instruction.
 
                     3'b100: o_alu_control = 5'b00100; // xor instruction.
 
-                    3'b101: 
+                    3'b101:
                         case ( i_func_7_5 )
                             1'b0:   o_alu_control = 5'b01000; // srl & srli instructions.
-                            1'b1:   o_alu_control = 5'b01001; // sra & srai instructions. 
-                            default: o_alu_control = '0; 
+                            1'b1:   o_alu_control = 5'b01001; // sra & srai instructions.
+                            default: o_alu_control = '0;
                         endcase
 
                     3'b110: o_alu_control = 5'b00011; // or instruction.
 
                     3'b111: o_alu_control = 5'b00010; // and instruction.
 
-                    default: o_alu_control = 5'b00000; // add instrucito for default. 
+                    default: o_alu_control = 5'b00000; // add instrucito for default.
                 endcase
 
             // I & R Type W.
-            3'b011: 
+            3'b011:
                 case ( i_func_3 )
-                    3'b000: 
+                    3'b000:
                         case ( s_op_func_7 )
                             2'b11:   o_alu_control = 5'b01011; // SUBW.
                             2'b10:   o_alu_control = 5'b01010; // ADDW.
@@ -264,25 +264,25 @@ module alu_decoder
                         endcase
                     3'b001: o_alu_control = 5'b01100; // SLLIW or SLLW
                     3'b101: if ( i_func_7_5 ) o_alu_control = 5'b01110; // SRAIW or SRAW.
-                            else              o_alu_control = 5'b01101; // SRLIW or SRLW. 
+                            else              o_alu_control = 5'b01101; // SRLIW or SRLW.
                     default: begin
                         o_alu_control   = 5'b00000;
-                        o_illegal_instr = 1'b1;                        
+                        o_illegal_instr = 1'b1;
                     end
-                endcase 
+                endcase
 
             // CSR.
-            3'b100: 
-                case ( i_func_3[1:0] ) 
+            3'b100:
+                case ( i_func_3[1:0] )
                     2'b01: o_alu_control = 5'b10000;
                     2'b10: o_alu_control = 5'b10001;
                     2'b11: o_alu_control = 5'b10010;
                     default: begin
                         o_alu_control   = '0;
-                        o_illegal_instr = 1'b1; 
+                        o_illegal_instr = 1'b1;
                     end
                 endcase
-            
+
             default: begin
                 o_alu_control   = '0;
                 o_illegal_instr = 1'b1;
@@ -291,14 +291,14 @@ module alu_decoder
         endcase
     end
 
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ----------------------------------------------------------------------------
 // This module facilitates the data transfer between cache and AXI interfaces.
 // -----------------------------------------------------------------------------
 
-module cache_data_transfer 
+module cache_data_transfer
 #(
     parameter AXI_DATA_WIDTH = 32,
               AXI_ADDR_WIDTH = 64,
@@ -306,7 +306,7 @@ module cache_data_transfer
               COUNT_LIMIT    = 4'b1111,
               COUNT_TO       = 16,
               ADDR_INCR_VAL  = 64'd4
-) 
+)
 (
     // Control signals.
     input  logic                          clk,
@@ -340,8 +340,8 @@ module cache_data_transfer
 
     // Counter module instance.
     counter # (
-        .LIMIT ( COUNT_LIMIT ), 
-        .SIZE  ( COUNT_TO    )  
+        .LIMIT ( COUNT_LIMIT ),
+        .SIZE  ( COUNT_TO    )
     ) COUNT0 (
         .clk      ( clk          ),
         .arst     ( arst         ),
@@ -378,17 +378,17 @@ module cache_data_transfer
         .o_data       ( o_data_axi         ),
         .o_data_block ( o_data_block_cache )
     );
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -------------------------------------------------------------
 // This is a nonarchitectural register with write enable signal.
 // -------------------------------------------------------------
 
-module clint_mmio 
+module clint_mmio
 #(
     parameter REG_WIDTH = 64
-) 
+)
 (
     input  logic                     clk,
     input  logic                     arst,
@@ -416,12 +416,12 @@ module clint_mmio
         end
         else begin
             mem [ 1 ] <= mem [ 1 ] + 64'b1;
-            
+
             if ( write_en ) mem [ i_addr ] <= i_data;
         end
     end
 
-    assign msip     = mem [ 0 ]; 
+    assign msip     = mem [ 0 ];
     assign mtime    = mem [ 1 ];
     assign mtimecmp = mem [ 2 ];
 
@@ -429,28 +429,28 @@ module clint_mmio
     assign o_software_int_call  = ( msip != '0 );
 
     assign o_data = mem [ i_addr ];
-    
+
 endmodule
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -------------------------------------------------------------------------------------
-// This is a main control unit that instantiates control fsm, alu and instr decoders to 
-//  controls all the control signals based on instruction input. 
+// This is a main control unit that instantiates control fsm, alu and instr decoders to
+//  controls all the control signals based on instruction input.
 // -------------------------------------------------------------------------------------
 
-module control_unit   
-// Port decleration. 
+module control_unit
+// Port decleration.
 (
     // Common clock & reset.
     input  logic       clk,
     input  logic       arst,
 
-    // Input interface. 
+    // Input interface.
     input  logic [ 2:0] i_instr_22_20,
     input  logic [ 6:0] i_op,
     input  logic [ 2:0] i_func_3,
     input  logic [ 2:0] i_func7_6_4,
-    input  logic [ 1:0] i_func7_1_0, 
+    input  logic [ 1:0] i_func7_1_0,
     input  logic        i_pred_0,
     input  logic        i_zero_flag,
     input  logic        i_slt_flag,
@@ -507,14 +507,14 @@ module control_unit
     output logic [ 2:0] o_csr_write_addr_2,
     output logic [ 2:0] o_csr_read_addr
 
-); 
+);
 
     // Main FSM.
     logic       s_instr_branch;
     logic       s_branch;
     logic       s_pc_update;
     logic [2:0] s_alu_op;
-    
+
     // Instruction cache.
     logic s_stall_instr;
     logic s_start_instr_cache;
@@ -539,7 +539,7 @@ module control_unit
 
     assign o_start_read_axi = s_start_read_data | s_start_read_instr;
 
-    // Branch type decoder. 
+    // Branch type decoder.
     always_comb begin : BRANCH_TYPE
         case ( i_func_3 )
             3'b000: s_branch = s_instr_branch & i_zero_flag;        // BEQ instruction.
@@ -557,7 +557,7 @@ module control_unit
     // Modulle Instantiations.
     //-------------------------------------
 
-    // Main FSM module instance. 
+    // Main FSM module instance.
     main_fsm M_FSM (
         .clk                  ( clk                    ),
         .arst                 ( arst                   ),
@@ -565,7 +565,7 @@ module control_unit
         .i_op                 ( i_op                   ),
         .i_func_3             ( i_func_3               ),
         .i_func_7_4           ( i_func7_6_4[0]         ),
-        .i_func_7_0           ( i_func7_1_0[0]         ), 
+        .i_func_7_0           ( i_func7_1_0[0]         ),
         .i_func_7_1           ( i_func7_1_0[1]         ),
         .i_func_7_6           ( i_func7_6_4[2]         ),
         .i_pred_0             ( i_pred_0               ),
@@ -658,7 +658,7 @@ module control_unit
         .o_illegal_instr ( s_illegal_instr_alu )
     );
 
-    // Instruction decoder. 
+    // Instruction decoder.
     instr_decoder INSTR_DECODER (
         .i_op      ( i_op      ),
         .o_imm_src ( o_imm_src )
@@ -679,12 +679,12 @@ endmodule
 // This is a counter module that counts the number of transferred data bursts through AXI4-Lite interface.
 // --------------------------------------------------------------------------------------------------------
 
-module counter 
+module counter
 #(
     parameter LIMIT          = 4'b1111,
-              SIZE           = 16 
-) 
-(   
+              SIZE           = 16
+)
+(
     // Countrol logic
     input  logic clk,
     input  logic arst,
@@ -700,7 +700,7 @@ module counter
     always_ff @( posedge clk, posedge arst ) begin
         if      ( arst      ) s_count <= '0;
         else if ( ~restartn ) s_count <= '0;
-        else if ( run       ) s_count <= s_count + 4'b1; 
+        else if ( run       ) s_count <= s_count + 4'b1;
     end
 
     always_ff @( posedge clk, posedge arst ) begin
@@ -708,7 +708,7 @@ module counter
         else if ( (s_count == LIMIT ) & run ) o_done <= 1'b1;
         else                                  o_done <= 1'b0;
     end
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ---------------------------------------------------------------------------------------
@@ -781,7 +781,7 @@ module cpu
     assign o_start_read_wb        = (s_read_req_non_cacheable & (~ i_wb_done)) | s_start_read_wb_cache;
     assign s_start_write_wb_cache = s_write_req & ( ~ s_count_done_apb );
     assign o_start_write_wb       = (s_write_req_non_cacheable & (~ i_wb_done)) | s_start_write_wb_cache;
-    
+
     assign o_addr_wb      = ( s_read_req_non_cacheable | s_write_req_non_cacheable ) ? s_addr_non_cacheable : s_addr_calc_apb;
     assign s_wb_sel       = s_write_req_non_cacheable  ? (4'h1 << s_addr_non_cacheable[2:0]) : s_wb_sel_cache;
     assign o_write_sel_wb = s_wb_sel;
@@ -850,7 +850,7 @@ module cpu
 
 
     //-------------------------
-    // Memory Data Register. 
+    // Memory Data Register.
     //-------------------------
     register_en #(
         .DATA_WIDTH(DATA_WIDTH)
@@ -861,7 +861,7 @@ module cpu
         .i_write_data (i_read_data_wb),
         .o_read_data  (s_reg_read_wb )
     );
-    
+
 endmodule
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
@@ -876,15 +876,15 @@ module csr_file
               ADDR_WIDTH = 3,
               REG_DEPTH  = 8
 )
-// Port decleration. 
-(   
+// Port decleration.
+(
     // Common clock & enable signal.
     input  logic                      clk,
     input  logic                      write_en_1,
     input  logic                      write_en_2,
     input  logic                      arst,
 
-    //Input interface. 
+    //Input interface.
     input  logic [ ADDR_WIDTH - 1:0 ] i_read_addr,
     input  logic [ ADDR_WIDTH - 1:0 ] i_write_addr_1,
     input  logic [ ADDR_WIDTH - 1:0 ] i_write_addr_2,
@@ -895,7 +895,7 @@ module csr_file
     input  logic                      i_interrupt_jump,
     input  logic                      i_mret_instr,
     input  logic                      i_writable,
-    
+
     // Output interface.
     output logic [ DATA_WIDTH - 1:0 ] o_read_data,
     output logic                      o_mie_mstatus,
@@ -910,7 +910,7 @@ module csr_file
     logic [ DATA_WIDTH - 1:0 ] csr_read_only [             3:0 ];
 
     // Write logic.
-    always_ff @( posedge clk, posedge arst ) begin 
+    always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) begin
             mem[ 0 ] <= '0; // Mstatus.
             mem[ 1 ] <= '0; // Reserved.
@@ -928,7 +928,7 @@ module csr_file
             if ( i_software_int_call ) mem [ 6 ][ 3 ] <= 1'b1; // mip MSIP bit set.
             else                       mem [ 6 ][ 3 ] <= 1'b0; // mip MSIP bit clear.
 
-            if ( i_interrupt_jump ) begin 
+            if ( i_interrupt_jump ) begin
                 mem[ 0 ][ 3 ] <= 1'b0; // mstatus MIE bit clear.
                 mem[ 0 ][ 7 ] <= mem[ 0 ][ 3 ]; // mstatus MPIE = MIE when jump to interrupt handler is taken.
             end
@@ -943,7 +943,7 @@ module csr_file
                     default: mem[ i_write_addr_1 ] <= i_write_data_1;
                 endcase
             end
-    
+
             if ( write_en_2 ) begin
                 case ( i_write_addr_2 )
                     6: mem [ 6 ] <= { i_write_data_2[ DATA_WIDTH - 1:8 ], i_timer_int_call, i_write_data_2[ 6:4 ], i_software_int_call, i_write_data_2[ 2:0 ] };
@@ -969,16 +969,16 @@ module csr_file
     assign o_mie_mstatus = mem [ 0 ][ 3 ];
     assign o_mtip_mip    = mem [ 6 ][ 7 ];
     assign o_msip_mip    = mem [ 6 ][ 3 ];
-    assign o_mtie_mie    = mem [ 2 ][ 7 ];  
-    assign o_msie_mie    = mem [ 2 ][ 3 ];  
-    
+    assign o_mtie_mie    = mem [ 2 ][ 7 ];
+    assign o_msie_mie    = mem [ 2 ][ 3 ];
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -------------------------------------------------------------------
 // This is a data cache implemented using 2-way set associative cache.
 // -------------------------------------------------------------------
 
-module data_cache 
+module data_cache
 #(
     parameter SET_COUNT      = 2,
               WORD_SIZE      = 32,
@@ -987,7 +987,7 @@ module data_cache
               ADDR_WIDTH     = 64,
               OUT_ADDR_WIDTH = 32,
               REG_WIDTH      = 64
-) 
+)
 (
     // Control signals.
     input  logic                          clk,
@@ -996,7 +996,7 @@ module data_cache
     input  logic                          valid_update,
     input  logic                          lru_update,
     input  logic                          block_write_en,
-    
+
     // Input Interface.
     input  logic [ ADDR_WIDTH     - 1:0 ] i_data_addr,
     input  logic [ REG_WIDTH      - 1:0 ] i_data,
@@ -1015,7 +1015,7 @@ module data_cache
     output logic                          o_done_fence,
     output logic                          o_store_addr_ma
 
-);  
+);
     //-------------------------
     // Local Parameters.
     //-------------------------
@@ -1062,7 +1062,7 @@ module data_cache
     // Continious assignments.
     //-------------------------
     assign s_tag_in      = i_data_addr[ TAG_MSB        :TAG_LSB         ];
-    assign s_index       = i_data_addr[ INDEX_MSB      :INDEX_LSB       ]; 
+    assign s_index       = i_data_addr[ INDEX_MSB      :INDEX_LSB       ];
     assign s_word_offset = i_data_addr[ WORD_OFFSET_MSB:WORD_OFFSET_LSB ];
     assign s_byte_offset = i_data_addr[               1:0               ];
 
@@ -1106,7 +1106,7 @@ module data_cache
 
 
     //------------------------------
-    // Check 
+    // Check
     //------------------------------
 
     // Check for hit.
@@ -1122,8 +1122,8 @@ module data_cache
                 2'bz1: s_match = 1'b0;
                 2'b10: s_match = 1'b1;
                 default: s_match = 1'b0;
-            endcase  
-            
+            endcase
+
         end
         else s_match = s_lru;
     end
@@ -1137,7 +1137,7 @@ module data_cache
             2'bz1: s_lru = 1'b0;
             2'b10: s_lru = 1'b1;
             default: s_lru = 1'b0;
-        endcase  
+        endcase
     end
 
 
@@ -1152,80 +1152,80 @@ module data_cache
             data_mem [ 0 ][ 1 ] <= '0;
             data_mem [ 1 ][ 0 ] <= '0;
             data_mem [ 1 ][ 1 ] <= '0;
-            tag_mem  [ 0 ][ 0 ] <= '0; 
-            tag_mem  [ 0 ][ 1 ] <= '0; 
-            tag_mem  [ 1 ][ 0 ] <= '0; 
-            tag_mem  [ 1 ][ 1 ] <= '0; 
+            tag_mem  [ 0 ][ 0 ] <= '0;
+            tag_mem  [ 0 ][ 1 ] <= '0;
+            tag_mem  [ 1 ][ 0 ] <= '0;
+            tag_mem  [ 1 ][ 1 ] <= '0;
         end
         else if ( write_en ) begin
             case ( i_store_type )
                 // SD Instruction.
                 2'b11: begin
                     case ( s_word_offset[3:1] )
-                        3'b000:  data_mem[ s_index ][ s_match ][ 63 :0   ] <= i_data; 
-                        3'b001:  data_mem[ s_index ][ s_match ][ 127:64  ] <= i_data; 
-                        3'b010:  data_mem[ s_index ][ s_match ][ 191:128 ] <= i_data; 
-                        3'b011:  data_mem[ s_index ][ s_match ][ 255:192 ] <= i_data; 
-                        3'b100:  data_mem[ s_index ][ s_match ][ 319:256 ] <= i_data; 
-                        3'b101:  data_mem[ s_index ][ s_match ][ 383:320 ] <= i_data; 
-                        3'b110:  data_mem[ s_index ][ s_match ][ 447:384 ] <= i_data; 
+                        3'b000:  data_mem[ s_index ][ s_match ][ 63 :0   ] <= i_data;
+                        3'b001:  data_mem[ s_index ][ s_match ][ 127:64  ] <= i_data;
+                        3'b010:  data_mem[ s_index ][ s_match ][ 191:128 ] <= i_data;
+                        3'b011:  data_mem[ s_index ][ s_match ][ 255:192 ] <= i_data;
+                        3'b100:  data_mem[ s_index ][ s_match ][ 319:256 ] <= i_data;
+                        3'b101:  data_mem[ s_index ][ s_match ][ 383:320 ] <= i_data;
+                        3'b110:  data_mem[ s_index ][ s_match ][ 447:384 ] <= i_data;
                         3'b111:  data_mem[ s_index ][ s_match ][ 511:448 ] <= i_data;
                         default: data_mem[ s_index ][ s_match ][ 63:0    ] <= '0;
-                    endcase                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                    endcase
                 end
 
                 // SW Instruction.
                 2'b10: begin
                     case ( s_word_offset )
-                        4'b0000: data_mem[ s_index ][ s_match ][ 31 :0   ] <= i_data[ 31:0 ]; 
-                        4'b0001: data_mem[ s_index ][ s_match ][ 63 :32  ] <= i_data[ 31:0 ]; 
-                        4'b0010: data_mem[ s_index ][ s_match ][ 95 :64  ] <= i_data[ 31:0 ]; 
-                        4'b0011: data_mem[ s_index ][ s_match ][ 127:96  ] <= i_data[ 31:0 ]; 
-                        4'b0100: data_mem[ s_index ][ s_match ][ 159:128 ] <= i_data[ 31:0 ]; 
-                        4'b0101: data_mem[ s_index ][ s_match ][ 191:160 ] <= i_data[ 31:0 ]; 
-                        4'b0110: data_mem[ s_index ][ s_match ][ 223:192 ] <= i_data[ 31:0 ]; 
-                        4'b0111: data_mem[ s_index ][ s_match ][ 255:224 ] <= i_data[ 31:0 ]; 
-                        4'b1000: data_mem[ s_index ][ s_match ][ 287:256 ] <= i_data[ 31:0 ]; 
-                        4'b1001: data_mem[ s_index ][ s_match ][ 319:288 ] <= i_data[ 31:0 ]; 
-                        4'b1010: data_mem[ s_index ][ s_match ][ 351:320 ] <= i_data[ 31:0 ]; 
-                        4'b1011: data_mem[ s_index ][ s_match ][ 383:352 ] <= i_data[ 31:0 ]; 
-                        4'b1100: data_mem[ s_index ][ s_match ][ 415:384 ] <= i_data[ 31:0 ]; 
+                        4'b0000: data_mem[ s_index ][ s_match ][ 31 :0   ] <= i_data[ 31:0 ];
+                        4'b0001: data_mem[ s_index ][ s_match ][ 63 :32  ] <= i_data[ 31:0 ];
+                        4'b0010: data_mem[ s_index ][ s_match ][ 95 :64  ] <= i_data[ 31:0 ];
+                        4'b0011: data_mem[ s_index ][ s_match ][ 127:96  ] <= i_data[ 31:0 ];
+                        4'b0100: data_mem[ s_index ][ s_match ][ 159:128 ] <= i_data[ 31:0 ];
+                        4'b0101: data_mem[ s_index ][ s_match ][ 191:160 ] <= i_data[ 31:0 ];
+                        4'b0110: data_mem[ s_index ][ s_match ][ 223:192 ] <= i_data[ 31:0 ];
+                        4'b0111: data_mem[ s_index ][ s_match ][ 255:224 ] <= i_data[ 31:0 ];
+                        4'b1000: data_mem[ s_index ][ s_match ][ 287:256 ] <= i_data[ 31:0 ];
+                        4'b1001: data_mem[ s_index ][ s_match ][ 319:288 ] <= i_data[ 31:0 ];
+                        4'b1010: data_mem[ s_index ][ s_match ][ 351:320 ] <= i_data[ 31:0 ];
+                        4'b1011: data_mem[ s_index ][ s_match ][ 383:352 ] <= i_data[ 31:0 ];
+                        4'b1100: data_mem[ s_index ][ s_match ][ 415:384 ] <= i_data[ 31:0 ];
                         4'b1101: data_mem[ s_index ][ s_match ][ 447:416 ] <= i_data[ 31:0 ];
                         4'b1110: data_mem[ s_index ][ s_match ][ 479:448 ] <= i_data[ 31:0 ];
                         4'b1111: data_mem[ s_index ][ s_match ][ 511:480 ] <= i_data[ 31:0 ];
                         default: data_mem[ s_index ][ s_match ][ 31:0    ] <= '0;
-                    endcase    
-                end 
+                    endcase
+                end
 
                 // SH Instruction.
                 2'b01: begin
                     case ( {s_word_offset, s_byte_offset[1]} )
-                        5'b00000: data_mem[ s_index ][ s_match ][ 15 :0   ] <= i_data[ 15:0 ]; 
-                        5'b00001: data_mem[ s_index ][ s_match ][ 31 :16  ] <= i_data[ 15:0 ]; 
-                        5'b00010: data_mem[ s_index ][ s_match ][ 47 :32  ] <= i_data[ 15:0 ]; 
-                        5'b00011: data_mem[ s_index ][ s_match ][ 63 :48  ] <= i_data[ 15:0 ]; 
-                        5'b00100: data_mem[ s_index ][ s_match ][ 79 :64  ] <= i_data[ 15:0 ]; 
-                        5'b00101: data_mem[ s_index ][ s_match ][ 95 :80  ] <= i_data[ 15:0 ]; 
-                        5'b00110: data_mem[ s_index ][ s_match ][ 111:96  ] <= i_data[ 15:0 ]; 
-                        5'b00111: data_mem[ s_index ][ s_match ][ 127:112 ] <= i_data[ 15:0 ]; 
-                        5'b01000: data_mem[ s_index ][ s_match ][ 143:128 ] <= i_data[ 15:0 ]; 
-                        5'b01001: data_mem[ s_index ][ s_match ][ 159:144 ] <= i_data[ 15:0 ]; 
-                        5'b01010: data_mem[ s_index ][ s_match ][ 175:160 ] <= i_data[ 15:0 ]; 
-                        5'b01011: data_mem[ s_index ][ s_match ][ 191:176 ] <= i_data[ 15:0 ]; 
-                        5'b01100: data_mem[ s_index ][ s_match ][ 207:192 ] <= i_data[ 15:0 ]; 
-                        5'b01101: data_mem[ s_index ][ s_match ][ 223:208 ] <= i_data[ 15:0 ]; 
+                        5'b00000: data_mem[ s_index ][ s_match ][ 15 :0   ] <= i_data[ 15:0 ];
+                        5'b00001: data_mem[ s_index ][ s_match ][ 31 :16  ] <= i_data[ 15:0 ];
+                        5'b00010: data_mem[ s_index ][ s_match ][ 47 :32  ] <= i_data[ 15:0 ];
+                        5'b00011: data_mem[ s_index ][ s_match ][ 63 :48  ] <= i_data[ 15:0 ];
+                        5'b00100: data_mem[ s_index ][ s_match ][ 79 :64  ] <= i_data[ 15:0 ];
+                        5'b00101: data_mem[ s_index ][ s_match ][ 95 :80  ] <= i_data[ 15:0 ];
+                        5'b00110: data_mem[ s_index ][ s_match ][ 111:96  ] <= i_data[ 15:0 ];
+                        5'b00111: data_mem[ s_index ][ s_match ][ 127:112 ] <= i_data[ 15:0 ];
+                        5'b01000: data_mem[ s_index ][ s_match ][ 143:128 ] <= i_data[ 15:0 ];
+                        5'b01001: data_mem[ s_index ][ s_match ][ 159:144 ] <= i_data[ 15:0 ];
+                        5'b01010: data_mem[ s_index ][ s_match ][ 175:160 ] <= i_data[ 15:0 ];
+                        5'b01011: data_mem[ s_index ][ s_match ][ 191:176 ] <= i_data[ 15:0 ];
+                        5'b01100: data_mem[ s_index ][ s_match ][ 207:192 ] <= i_data[ 15:0 ];
+                        5'b01101: data_mem[ s_index ][ s_match ][ 223:208 ] <= i_data[ 15:0 ];
                         5'b01110: data_mem[ s_index ][ s_match ][ 239:224 ] <= i_data[ 15:0 ];
-                        5'b01111: data_mem[ s_index ][ s_match ][ 255:240 ] <= i_data[ 15:0 ]; 
-                        5'b10000: data_mem[ s_index ][ s_match ][ 271:256 ] <= i_data[ 15:0 ]; 
-                        5'b10001: data_mem[ s_index ][ s_match ][ 287:272 ] <= i_data[ 15:0 ]; 
-                        5'b10010: data_mem[ s_index ][ s_match ][ 303:288 ] <= i_data[ 15:0 ]; 
-                        5'b10011: data_mem[ s_index ][ s_match ][ 319:304 ] <= i_data[ 15:0 ]; 
-                        5'b10100: data_mem[ s_index ][ s_match ][ 335:320 ] <= i_data[ 15:0 ]; 
-                        5'b10101: data_mem[ s_index ][ s_match ][ 351:336 ] <= i_data[ 15:0 ]; 
-                        5'b10110: data_mem[ s_index ][ s_match ][ 367:352 ] <= i_data[ 15:0 ]; 
-                        5'b10111: data_mem[ s_index ][ s_match ][ 383:368 ] <= i_data[ 15:0 ]; 
-                        5'b11000: data_mem[ s_index ][ s_match ][ 399:384 ] <= i_data[ 15:0 ]; 
-                        5'b11001: data_mem[ s_index ][ s_match ][ 415:400 ] <= i_data[ 15:0 ]; 
+                        5'b01111: data_mem[ s_index ][ s_match ][ 255:240 ] <= i_data[ 15:0 ];
+                        5'b10000: data_mem[ s_index ][ s_match ][ 271:256 ] <= i_data[ 15:0 ];
+                        5'b10001: data_mem[ s_index ][ s_match ][ 287:272 ] <= i_data[ 15:0 ];
+                        5'b10010: data_mem[ s_index ][ s_match ][ 303:288 ] <= i_data[ 15:0 ];
+                        5'b10011: data_mem[ s_index ][ s_match ][ 319:304 ] <= i_data[ 15:0 ];
+                        5'b10100: data_mem[ s_index ][ s_match ][ 335:320 ] <= i_data[ 15:0 ];
+                        5'b10101: data_mem[ s_index ][ s_match ][ 351:336 ] <= i_data[ 15:0 ];
+                        5'b10110: data_mem[ s_index ][ s_match ][ 367:352 ] <= i_data[ 15:0 ];
+                        5'b10111: data_mem[ s_index ][ s_match ][ 383:368 ] <= i_data[ 15:0 ];
+                        5'b11000: data_mem[ s_index ][ s_match ][ 399:384 ] <= i_data[ 15:0 ];
+                        5'b11001: data_mem[ s_index ][ s_match ][ 415:400 ] <= i_data[ 15:0 ];
                         5'b11010: data_mem[ s_index ][ s_match ][ 431:416 ] <= i_data[ 15:0 ];
                         5'b11011: data_mem[ s_index ][ s_match ][ 447:432 ] <= i_data[ 15:0 ];
                         5'b11100: data_mem[ s_index ][ s_match ][ 463:448 ] <= i_data[ 15:0 ];
@@ -1239,85 +1239,85 @@ module data_cache
                 // SB Instruction.
                 2'b00: begin
                     case ( {s_word_offset, s_byte_offset} )
-                        6'b000000: data_mem[ s_index ][ s_match ][ 7  :0   ] <= i_data[ 7:0 ]; 
-                        6'b000001: data_mem[ s_index ][ s_match ][ 15 :8   ] <= i_data[ 7:0 ]; 
-                        6'b000010: data_mem[ s_index ][ s_match ][ 23 :16  ] <= i_data[ 7:0 ]; 
+                        6'b000000: data_mem[ s_index ][ s_match ][ 7  :0   ] <= i_data[ 7:0 ];
+                        6'b000001: data_mem[ s_index ][ s_match ][ 15 :8   ] <= i_data[ 7:0 ];
+                        6'b000010: data_mem[ s_index ][ s_match ][ 23 :16  ] <= i_data[ 7:0 ];
                         6'b000011: data_mem[ s_index ][ s_match ][ 31 :24  ] <= i_data[ 7:0 ];
 
-                        6'b000100: data_mem[ s_index ][ s_match ][ 39 :32  ] <= i_data[ 7:0 ]; 
-                        6'b000101: data_mem[ s_index ][ s_match ][ 47 :40  ] <= i_data[ 7:0 ]; 
-                        6'b000110: data_mem[ s_index ][ s_match ][ 55 :48  ] <= i_data[ 7:0 ]; 
-                        6'b000111: data_mem[ s_index ][ s_match ][ 63 :56  ] <= i_data[ 7:0 ]; 
+                        6'b000100: data_mem[ s_index ][ s_match ][ 39 :32  ] <= i_data[ 7:0 ];
+                        6'b000101: data_mem[ s_index ][ s_match ][ 47 :40  ] <= i_data[ 7:0 ];
+                        6'b000110: data_mem[ s_index ][ s_match ][ 55 :48  ] <= i_data[ 7:0 ];
+                        6'b000111: data_mem[ s_index ][ s_match ][ 63 :56  ] <= i_data[ 7:0 ];
 
-                        6'b001000: data_mem[ s_index ][ s_match ][ 71 :64  ] <= i_data[ 7:0 ]; 
-                        6'b001001: data_mem[ s_index ][ s_match ][ 79 :72  ] <= i_data[ 7:0 ]; 
-                        6'b001010: data_mem[ s_index ][ s_match ][ 87 :80  ] <= i_data[ 7:0 ]; 
-                        6'b001011: data_mem[ s_index ][ s_match ][ 95 :88  ] <= i_data[ 7:0 ]; 
+                        6'b001000: data_mem[ s_index ][ s_match ][ 71 :64  ] <= i_data[ 7:0 ];
+                        6'b001001: data_mem[ s_index ][ s_match ][ 79 :72  ] <= i_data[ 7:0 ];
+                        6'b001010: data_mem[ s_index ][ s_match ][ 87 :80  ] <= i_data[ 7:0 ];
+                        6'b001011: data_mem[ s_index ][ s_match ][ 95 :88  ] <= i_data[ 7:0 ];
 
-                        6'b001100: data_mem[ s_index ][ s_match ][ 103:96  ] <= i_data[ 7:0 ]; 
-                        6'b001101: data_mem[ s_index ][ s_match ][ 111:104 ] <= i_data[ 7:0 ]; 
-                        6'b001110: data_mem[ s_index ][ s_match ][ 119:112 ] <= i_data[ 7:0 ]; 
-                        6'b001111: data_mem[ s_index ][ s_match ][ 127:120 ] <= i_data[ 7:0 ]; 
+                        6'b001100: data_mem[ s_index ][ s_match ][ 103:96  ] <= i_data[ 7:0 ];
+                        6'b001101: data_mem[ s_index ][ s_match ][ 111:104 ] <= i_data[ 7:0 ];
+                        6'b001110: data_mem[ s_index ][ s_match ][ 119:112 ] <= i_data[ 7:0 ];
+                        6'b001111: data_mem[ s_index ][ s_match ][ 127:120 ] <= i_data[ 7:0 ];
 
-                        6'b010000: data_mem[ s_index ][ s_match ][ 135:128 ] <= i_data[ 7:0 ]; 
-                        6'b010001: data_mem[ s_index ][ s_match ][ 143:136 ] <= i_data[ 7:0 ]; 
-                        6'b010010: data_mem[ s_index ][ s_match ][ 151:144 ] <= i_data[ 7:0 ]; 
+                        6'b010000: data_mem[ s_index ][ s_match ][ 135:128 ] <= i_data[ 7:0 ];
+                        6'b010001: data_mem[ s_index ][ s_match ][ 143:136 ] <= i_data[ 7:0 ];
+                        6'b010010: data_mem[ s_index ][ s_match ][ 151:144 ] <= i_data[ 7:0 ];
                         6'b010011: data_mem[ s_index ][ s_match ][ 159:152 ] <= i_data[ 7:0 ];
 
-                        6'b010100: data_mem[ s_index ][ s_match ][ 167:160 ] <= i_data[ 7:0 ]; 
-                        6'b010101: data_mem[ s_index ][ s_match ][ 175:168 ] <= i_data[ 7:0 ]; 
-                        6'b010110: data_mem[ s_index ][ s_match ][ 183:176 ] <= i_data[ 7:0 ]; 
+                        6'b010100: data_mem[ s_index ][ s_match ][ 167:160 ] <= i_data[ 7:0 ];
+                        6'b010101: data_mem[ s_index ][ s_match ][ 175:168 ] <= i_data[ 7:0 ];
+                        6'b010110: data_mem[ s_index ][ s_match ][ 183:176 ] <= i_data[ 7:0 ];
                         6'b010111: data_mem[ s_index ][ s_match ][ 191:184 ] <= i_data[ 7:0 ];
 
-                        6'b011000: data_mem[ s_index ][ s_match ][ 199:192 ] <= i_data[ 7:0 ]; 
-                        6'b011001: data_mem[ s_index ][ s_match ][ 207:200 ] <= i_data[ 7:0 ]; 
-                        6'b011010: data_mem[ s_index ][ s_match ][ 215:208 ] <= i_data[ 7:0 ]; 
+                        6'b011000: data_mem[ s_index ][ s_match ][ 199:192 ] <= i_data[ 7:0 ];
+                        6'b011001: data_mem[ s_index ][ s_match ][ 207:200 ] <= i_data[ 7:0 ];
+                        6'b011010: data_mem[ s_index ][ s_match ][ 215:208 ] <= i_data[ 7:0 ];
                         6'b011011: data_mem[ s_index ][ s_match ][ 223:216 ] <= i_data[ 7:0 ];
 
                         6'b011100: data_mem[ s_index ][ s_match ][ 231:224 ] <= i_data[ 7:0 ];
-                        6'b011101: data_mem[ s_index ][ s_match ][ 239:232 ] <= i_data[ 7:0 ]; 
-                        6'b011110: data_mem[ s_index ][ s_match ][ 247:240 ] <= i_data[ 7:0 ]; 
+                        6'b011101: data_mem[ s_index ][ s_match ][ 239:232 ] <= i_data[ 7:0 ];
+                        6'b011110: data_mem[ s_index ][ s_match ][ 247:240 ] <= i_data[ 7:0 ];
                         6'b011111: data_mem[ s_index ][ s_match ][ 255:248 ] <= i_data[ 7:0 ];
 
-                        6'b100000: data_mem[ s_index ][ s_match ][ 263:256 ] <= i_data[ 7:0 ]; 
-                        6'b100001: data_mem[ s_index ][ s_match ][ 271:264 ] <= i_data[ 7:0 ]; 
-                        6'b100010: data_mem[ s_index ][ s_match ][ 279:272 ] <= i_data[ 7:0 ]; 
+                        6'b100000: data_mem[ s_index ][ s_match ][ 263:256 ] <= i_data[ 7:0 ];
+                        6'b100001: data_mem[ s_index ][ s_match ][ 271:264 ] <= i_data[ 7:0 ];
+                        6'b100010: data_mem[ s_index ][ s_match ][ 279:272 ] <= i_data[ 7:0 ];
                         6'b100011: data_mem[ s_index ][ s_match ][ 287:280 ] <= i_data[ 7:0 ];
 
-                        6'b100100: data_mem[ s_index ][ s_match ][ 295:288 ] <= i_data[ 7:0 ];  
-                        6'b100101: data_mem[ s_index ][ s_match ][ 303:296 ] <= i_data[ 7:0 ]; 
-                        6'b100110: data_mem[ s_index ][ s_match ][ 311:304 ] <= i_data[ 7:0 ]; 
-                        6'b100111: data_mem[ s_index ][ s_match ][ 319:312 ] <= i_data[ 7:0 ]; 
+                        6'b100100: data_mem[ s_index ][ s_match ][ 295:288 ] <= i_data[ 7:0 ];
+                        6'b100101: data_mem[ s_index ][ s_match ][ 303:296 ] <= i_data[ 7:0 ];
+                        6'b100110: data_mem[ s_index ][ s_match ][ 311:304 ] <= i_data[ 7:0 ];
+                        6'b100111: data_mem[ s_index ][ s_match ][ 319:312 ] <= i_data[ 7:0 ];
 
-                        6'b101000: data_mem[ s_index ][ s_match ][ 327:320 ] <= i_data[ 7:0 ]; 
-                        6'b101001: data_mem[ s_index ][ s_match ][ 335:328 ] <= i_data[ 7:0 ]; 
-                        6'b101010: data_mem[ s_index ][ s_match ][ 343:336 ] <= i_data[ 7:0 ]; 
-                        6'b101011: data_mem[ s_index ][ s_match ][ 351:344 ] <= i_data[ 7:0 ]; 
+                        6'b101000: data_mem[ s_index ][ s_match ][ 327:320 ] <= i_data[ 7:0 ];
+                        6'b101001: data_mem[ s_index ][ s_match ][ 335:328 ] <= i_data[ 7:0 ];
+                        6'b101010: data_mem[ s_index ][ s_match ][ 343:336 ] <= i_data[ 7:0 ];
+                        6'b101011: data_mem[ s_index ][ s_match ][ 351:344 ] <= i_data[ 7:0 ];
 
-                        6'b101100: data_mem[ s_index ][ s_match ][ 359:352 ] <= i_data[ 7:0 ]; 
-                        6'b101101: data_mem[ s_index ][ s_match ][ 367:360 ] <= i_data[ 7:0 ]; 
-                        6'b101110: data_mem[ s_index ][ s_match ][ 375:368 ] <= i_data[ 7:0 ]; 
+                        6'b101100: data_mem[ s_index ][ s_match ][ 359:352 ] <= i_data[ 7:0 ];
+                        6'b101101: data_mem[ s_index ][ s_match ][ 367:360 ] <= i_data[ 7:0 ];
+                        6'b101110: data_mem[ s_index ][ s_match ][ 375:368 ] <= i_data[ 7:0 ];
                         6'b101111: data_mem[ s_index ][ s_match ][ 383:376 ] <= i_data[ 7:0 ];
 
                         6'b110000: data_mem[ s_index ][ s_match ][ 391:384 ] <= i_data[ 7:0 ];
                         6'b110001: data_mem[ s_index ][ s_match ][ 399:392 ] <= i_data[ 7:0 ];
-                        6'b110010: data_mem[ s_index ][ s_match ][ 407:400 ] <= i_data[ 7:0 ]; 
+                        6'b110010: data_mem[ s_index ][ s_match ][ 407:400 ] <= i_data[ 7:0 ];
                         6'b110011: data_mem[ s_index ][ s_match ][ 415:408 ] <= i_data[ 7:0 ];
 
-                        6'b110100: data_mem[ s_index ][ s_match ][ 423:416 ] <= i_data[ 7:0 ]; 
+                        6'b110100: data_mem[ s_index ][ s_match ][ 423:416 ] <= i_data[ 7:0 ];
                         6'b110101: data_mem[ s_index ][ s_match ][ 431:424 ] <= i_data[ 7:0 ];
-                        6'b110110: data_mem[ s_index ][ s_match ][ 439:432 ] <= i_data[ 7:0 ]; 
+                        6'b110110: data_mem[ s_index ][ s_match ][ 439:432 ] <= i_data[ 7:0 ];
                         6'b110111: data_mem[ s_index ][ s_match ][ 447:440 ] <= i_data[ 7:0 ];
 
-                        6'b111000: data_mem[ s_index ][ s_match ][ 455:448 ] <= i_data[ 7:0 ]; 
-                        6'b111001: data_mem[ s_index ][ s_match ][ 463:456 ] <= i_data[ 7:0 ]; 
-                        6'b111010: data_mem[ s_index ][ s_match ][ 471:464 ] <= i_data[ 7:0 ]; 
-                        6'b111011: data_mem[ s_index ][ s_match ][ 479:472 ] <= i_data[ 7:0 ]; 
+                        6'b111000: data_mem[ s_index ][ s_match ][ 455:448 ] <= i_data[ 7:0 ];
+                        6'b111001: data_mem[ s_index ][ s_match ][ 463:456 ] <= i_data[ 7:0 ];
+                        6'b111010: data_mem[ s_index ][ s_match ][ 471:464 ] <= i_data[ 7:0 ];
+                        6'b111011: data_mem[ s_index ][ s_match ][ 479:472 ] <= i_data[ 7:0 ];
 
-                        6'b111100: data_mem[ s_index ][ s_match ][ 487:480 ] <= i_data[ 7:0 ]; 
-                        6'b111101: data_mem[ s_index ][ s_match ][ 495:488 ] <= i_data[ 7:0 ]; 
-                        6'b111110: data_mem[ s_index ][ s_match ][ 503:496 ] <= i_data[ 7:0 ]; 
-                        6'b111111: data_mem[ s_index ][ s_match ][ 511:504 ] <= i_data[ 7:0 ]; 
+                        6'b111100: data_mem[ s_index ][ s_match ][ 487:480 ] <= i_data[ 7:0 ];
+                        6'b111101: data_mem[ s_index ][ s_match ][ 495:488 ] <= i_data[ 7:0 ];
+                        6'b111110: data_mem[ s_index ][ s_match ][ 503:496 ] <= i_data[ 7:0 ];
+                        6'b111111: data_mem[ s_index ][ s_match ][ 511:504 ] <= i_data[ 7:0 ];
 
                     endcase
                 end
@@ -1326,11 +1326,11 @@ module data_cache
         end
         else if ( block_write_en ) begin
             data_mem[ s_index ][ s_lru ] <= i_data_block;
-            tag_mem [ s_index ][ s_lru ] <= s_tag_in; 
+            tag_mem [ s_index ][ s_lru ] <= s_tag_in;
         end
     end
 
-    // Modify dirty bit. 
+    // Modify dirty bit.
     always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) begin
             // For 2-way set associative cache.
@@ -1342,7 +1342,7 @@ module data_cache
         else if ( i_done_wb      ) dirty_mem[ s_count[1] ][ s_count[0] ] <= 1'b0;
     end
 
-    // Write valid bit. 
+    // Write valid bit.
     always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) begin
             // For 2-way set associative cache.
@@ -1397,19 +1397,19 @@ module data_cache
     // Read word.
     always_comb begin
         case ( s_word_offset )
-            4'b0000: o_data = data_mem[ s_index ][ s_match ][ 63 :0   ]; 
-            4'b0001: o_data = data_mem[ s_index ][ s_match ][ 95 :32  ]; 
-            4'b0010: o_data = data_mem[ s_index ][ s_match ][ 127:64  ]; 
-            4'b0011: o_data = data_mem[ s_index ][ s_match ][ 159:96  ]; 
-            4'b0100: o_data = data_mem[ s_index ][ s_match ][ 191:128 ]; 
-            4'b0101: o_data = data_mem[ s_index ][ s_match ][ 223:160 ]; 
-            4'b0110: o_data = data_mem[ s_index ][ s_match ][ 255:192 ]; 
-            4'b0111: o_data = data_mem[ s_index ][ s_match ][ 287:224 ]; 
-            4'b1000: o_data = data_mem[ s_index ][ s_match ][ 319:256 ]; 
-            4'b1001: o_data = data_mem[ s_index ][ s_match ][ 351:288 ]; 
-            4'b1010: o_data = data_mem[ s_index ][ s_match ][ 383:320 ]; 
-            4'b1011: o_data = data_mem[ s_index ][ s_match ][ 415:352 ]; 
-            4'b1100: o_data = data_mem[ s_index ][ s_match ][ 447:384 ]; 
+            4'b0000: o_data = data_mem[ s_index ][ s_match ][ 63 :0   ];
+            4'b0001: o_data = data_mem[ s_index ][ s_match ][ 95 :32  ];
+            4'b0010: o_data = data_mem[ s_index ][ s_match ][ 127:64  ];
+            4'b0011: o_data = data_mem[ s_index ][ s_match ][ 159:96  ];
+            4'b0100: o_data = data_mem[ s_index ][ s_match ][ 191:128 ];
+            4'b0101: o_data = data_mem[ s_index ][ s_match ][ 223:160 ];
+            4'b0110: o_data = data_mem[ s_index ][ s_match ][ 255:192 ];
+            4'b0111: o_data = data_mem[ s_index ][ s_match ][ 287:224 ];
+            4'b1000: o_data = data_mem[ s_index ][ s_match ][ 319:256 ];
+            4'b1001: o_data = data_mem[ s_index ][ s_match ][ 351:288 ];
+            4'b1010: o_data = data_mem[ s_index ][ s_match ][ 383:320 ];
+            4'b1011: o_data = data_mem[ s_index ][ s_match ][ 415:352 ];
+            4'b1100: o_data = data_mem[ s_index ][ s_match ][ 447:384 ];
             4'b1101: o_data = data_mem[ s_index ][ s_match ][ 479:416 ];
             4'b1110: o_data = data_mem[ s_index ][ s_match ][ 511:448 ];
             4'b1111: o_data = { 32'b0, data_mem[ s_index ][ s_match ][ 511:480 ]};
@@ -1433,14 +1433,14 @@ module data_cache
     end
 
     assign o_done_fence = i_done_wb & ( s_count == 2'b11 );
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -----------------------------------------------------------------------
 // This is a data cache FSM for N-way set associative cache.
 // -----------------------------------------------------------------------
 
-module data_cache_fsm 
+module data_cache_fsm
 #(
     parameter N = 4
 )
@@ -1546,12 +1546,12 @@ module data_cache_fsm
         case ( PS )
             IDLE: begin
                 o_stall = 1'b1;
-            end 
+            end
 
             COMPARE_TAG: begin
                 o_stall          = ~i_hit;
                 if      ( i_hit   ) o_lru_update   = 1'b1;
-                else if ( i_dirty ) o_addr_control = 1'b0; 
+                else if ( i_dirty ) o_addr_control = 1'b0;
             end
 
             ALLOCATE: begin
@@ -1585,7 +1585,7 @@ module data_cache_fsm
             end
         endcase
     end
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ---------------------------------------------------------------------------------------
@@ -1593,7 +1593,7 @@ endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 // ---------------------------------------------------------------------------------------
 
 module datapath
-// Parameters. 
+// Parameters.
 #(
     parameter REG_DATA_WIDTH   = 64,
               REG_ADDR_WIDTH   = 5,
@@ -1605,12 +1605,12 @@ module datapath
 
 
 )
-// Port declerations. 
+// Port declerations.
 (
-    //Clock & Reset signals. 
+    //Clock & Reset signals.
     input  logic                            clk,
     input  logic                            arst,
-    input  logic                            i_done_axi,   // NEEDS TO BE CONNECTED TO AXI 
+    input  logic                            i_done_axi,   // NEEDS TO BE CONNECTED TO AXI
     input  logic [ BLOCK_DATA_WIDTH - 1:0 ] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
     input  logic [ REG_DATA_WIDTH   - 1:0 ] i_data_non_cacheable,
     output logic [                   31:0 ] o_data_non_cacheable,
@@ -1648,7 +1648,7 @@ module datapath
     logic s_slt_flag;
     logic s_sltu_flag;
 
-    // Control unit signals. 
+    // Control unit signals.
     logic [6:0] s_op;
     logic [2:0] s_func_3;
     logic [4:0] s_alu_control;
@@ -1669,7 +1669,7 @@ module datapath
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_mem_addr;
     logic                           s_reg_mem_addr_we;
 
-    // Register file signals. 
+    // Register file signals.
     logic [ REG_ADDR_WIDTH - 1:0 ] s_reg_addr_1;
     logic [ REG_ADDR_WIDTH - 1:0 ] s_reg_addr_2;
     logic [ REG_ADDR_WIDTH - 1:0 ] s_reg_addr_3;
@@ -1681,7 +1681,7 @@ module datapath
     logic [ REG_DATA_WIDTH - 1:0 ] s_alu_src_data_2;
     logic [ REG_DATA_WIDTH - 1:0 ] s_alu_result;
 
-    // Registered signals. 
+    // Registered signals.
     logic [ MEM_INSTR_WIDTH - 1:0 ] s_reg_instr;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_pc;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_old_pc;
@@ -1697,7 +1697,7 @@ module datapath
     logic [ REG_DATA_WIDTH - 1:0 ] s_mem_data;
     logic [ REG_DATA_WIDTH - 1:0 ] s_load_data;
 
-    // Immediate extend unit signals. 
+    // Immediate extend unit signals.
     logic [                  24:0 ] s_imm;
     logic [ REG_DATA_WIDTH  - 1:0 ] s_imm_ext;
 
@@ -1755,17 +1755,17 @@ module datapath
 
 
     //----------------------------------
-    // Continious assignmnets. 
+    // Continious assignmnets.
     //----------------------------------
     assign s_imm         = s_reg_instr[31:7 ];
     assign s_op          = s_reg_instr[ 6:0 ];
-    assign s_func_3      = s_reg_instr[14:12];   
+    assign s_func_3      = s_reg_instr[14:12];
     assign s_reg_addr_1  = s_reg_instr[19:15];
     assign s_reg_addr_2  = s_reg_instr[24:20];
     assign s_reg_addr_3  = s_reg_instr[11:7 ];
 
     assign s_addr_offset = s_reg_mem_addr[2:0];
-    
+
     assign s_csr_jamp_addr  = ( s_csr_read_data >> 2 ) << 2;
     assign s_csr_mcause     = { s_interrupt, 59'b0, s_mcause };
     assign s_timer_int      = s_mie_mstatus & s_mtip_mip & s_mtie_mie;
@@ -1784,7 +1784,7 @@ module datapath
     assign s_reg_pc_val = s_fetch_state ? s_reg_pc : s_reg_old_pc;
 
 
- 
+
 
 
     //-----------------------------------
@@ -1796,7 +1796,7 @@ module datapath
     // Control Unit Instance.
     //---------------------------
     control_unit CU (
-        .clk                    ( clk                   ), 
+        .clk                    ( clk                   ),
         .arst                   ( arst                  ),
         .i_instr_22_20          ( s_reg_instr[22:20]    ),
         .i_op                   ( s_op                  ),
@@ -1861,7 +1861,7 @@ module datapath
 
 
     //--------------------------------
-    // Data Storage Unit Instances. 
+    // Data Storage Unit Instances.
     //--------------------------------
 
     // Register File Instance.
@@ -1956,9 +1956,9 @@ module datapath
 
 
     //------------------------------
-    // ALU Instance. 
+    // ALU Instance.
     //------------------------------
-    alu ALU (   
+    alu ALU (
         .alu_control     ( s_alu_control    ),
         .i_src_1         ( s_alu_src_data_1 ),
         .i_src_2         ( s_alu_src_data_2 ),
@@ -1971,10 +1971,10 @@ module datapath
 
 
     //-----------------------------------------
-    // Nonarchitectural Register Instances. 
+    // Nonarchitectural Register Instances.
     //-----------------------------------------
 
-    // Instruction Register Instance. 
+    // Instruction Register Instance.
     register_en # (.DATA_WIDTH (MEM_INSTR_WIDTH)) INSTR_REG (
         .clk          ( clk              ),
         .write_en     ( s_instr_write_en ),
@@ -1990,7 +1990,7 @@ module datapath
         .arst         ( arst          ),
         .i_write_data ( s_result      ),
         .o_read_data  ( s_reg_pc      )
-    ); 
+    );
 
     // Old PC Register Instance.
     register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) OLD_PC_REG (
@@ -2007,8 +2007,8 @@ module datapath
         .write_en     ( s_reg_mem_addr_we ),
         .arst         ( arst              ),
         .i_write_data ( s_result          ),
-        .o_read_data  ( s_reg_mem_addr    )   
-    ); 
+        .o_read_data  ( s_reg_mem_addr    )
+    );
 
     // CSR Register Instance.
     register_en # (.DATA_WIDTH (REG_DATA_WIDTH)) CSR_REG (
@@ -2017,7 +2017,7 @@ module datapath
         .arst         ( arst                ),
         .i_write_data ( s_csr_read_data     ),
         .o_read_data  ( s_csr_read_data_reg )
-    );  
+    );
 
     // Output addr Register Instance.
     register #(.DATA_WIDTH (OUT_ADDR_WIDTH)) OUTADDR_REG (
@@ -2025,7 +2025,7 @@ module datapath
         .arst         ( arst       ),
         .i_write_data ( s_out_addr ),
         .o_read_data  ( o_addr     )
-    ); 
+    );
 
     // R1 Register Instance.
     register R1 (
@@ -2051,7 +2051,7 @@ module datapath
         .o_read_data  ( s_reg_alu_result )
     );
 
-    // Memory Data Register. 
+    // Memory Data Register.
     register_en REG_MEM_DATA (
         .clk          ( clk                ),
         .arst         ( arst               ),
@@ -2090,14 +2090,14 @@ module datapath
     mux8to1 RESULT_MUX (
         .control_signal ( s_result_src        ),
         .i_mux_0        ( s_reg_alu_result    ),
-        .i_mux_1        ( s_mem_data          ), 
+        .i_mux_1        ( s_mem_data          ),
         .i_mux_2        ( s_alu_result        ),
         .i_mux_3        ( s_imm_ext           ),
         .i_mux_4        ( s_csr_read_data     ),
         .i_mux_5        ( s_csr_read_data_reg ),
         .i_mux_6        ( s_reg_pc_val        ),
         .i_mux_7        ( s_csr_jamp_addr     ),
-        .o_mux          ( s_result            ) 
+        .o_mux          ( s_result            )
     );
 
 
@@ -2113,7 +2113,7 @@ module datapath
     );
 
     //------------------------------
-    // LOAD Instruction mux. 
+    // LOAD Instruction mux.
     //------------------------------
     load_mux LOAD_MUX (
         .i_func_3        ( s_func_3             ),
@@ -2125,11 +2125,11 @@ module datapath
     );
 
 
-    // 
+    //
     assign s_out_addr = s_fetch_state ? { s_reg_pc[ OUT_ADDR_WIDTH - 1:6 ], 6'b0 } : s_addr_axi; // For a cache line size of 512 bits. e.g. 16 words in 1 line.
-    
+
     assign o_size_non_cacheable = { 1'b0, s_func_3 [ 1:0 ] };
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ----------------------------------------------------------------------------
@@ -2141,15 +2141,15 @@ module extend_imm
 #(
     parameter IMM_WIDTH = 25,
               OUT_WIDTH = 64
-) 
+)
 // Port decleration.
 (
-    // Control signal. 
+    // Control signal.
     input  logic [             2:0 ] control_signal,
 
     // Input interface.
     input  logic [ IMM_WIDTH - 1:0 ] i_imm,
-    
+
     // Output interface.
     output logic [ OUT_WIDTH - 1:0 ] o_imm_ext
 );
@@ -2161,7 +2161,7 @@ module extend_imm
     logic [ OUT_WIDTH - 1:0 ] s_u_type;
     logic [ OUT_WIDTH - 1:0 ] csr_type;
 
-    // Sign extend immediate for different instruction types. 
+    // Sign extend immediate for different instruction types.
     assign s_i_type = { {52{i_imm[24]}}, i_imm[24:13] };
     assign s_s_type = { {52{i_imm[24]}}, i_imm[24:18], i_imm[4:0] };
     assign s_b_type = { {52{i_imm[24]}}, i_imm[0] , i_imm[23:18], i_imm[4:1], 1'b0 };
@@ -2192,18 +2192,18 @@ module extend_imm
         endcase
     end
 
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ----------------------------------------------------------------------------------------
 // This is fifo module that is used to store and output data as a queue in caching system.
 // ----------------------------------------------------------------------------------------
 
-module fifo 
+module fifo
 #(
     parameter AXI_DATA_WIDTH = 32,
               FIFO_WIDTH     = 512
-) 
+)
 (
     // Control signals.
     input  logic                          clk,
@@ -2224,30 +2224,30 @@ module fifo
     always_ff @( posedge clk, posedge arst ) begin
         if      ( arst ) o_data_block <= '0;
         else if ( ( ~start_write ) & ( ~start_read ) ) o_data_block <= i_data_block;
-        else if ( write_en ) o_data_block <= { i_data, o_data_block[ FIFO_WIDTH - 1:AXI_DATA_WIDTH ] }; 
+        else if ( write_en ) o_data_block <= { i_data, o_data_block[ FIFO_WIDTH - 1:AXI_DATA_WIDTH ] };
     end
 
     assign o_data = o_data_block [ AXI_DATA_WIDTH - 1:0 ];
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -------------------------------------------------------------------
 // This is a instruction cache for for direct mapped cache.
 // -------------------------------------------------------------------
 
-module instr_cache 
+module instr_cache
 #(
     parameter BLOCK_COUNT   = 4,
               WORD_SIZE     = 32,
               BLOCK_WIDTH   = 512,
               ADDR_WIDTH    = 64
-) 
+)
 (
     // Control signals.
     input  logic                       clk,
     input  logic                       write_en,
     input  logic                       arst,
-    
+
     // Input Interface.
     input  logic [ ADDR_WIDTH  - 1:0 ] i_instr_addr,
     input  logic [ BLOCK_WIDTH - 1:0 ] i_inst,
@@ -2287,7 +2287,7 @@ module instr_cache
 
     // Continious assignments.
     assign s_tag_in      = i_instr_addr[ TAG_MSB        :TAG_LSB         ];
-    assign s_index       = i_instr_addr[ INDEX_MSB      :INDEX_LSB       ]; 
+    assign s_index       = i_instr_addr[ INDEX_MSB      :INDEX_LSB       ];
     assign s_word_offset = i_instr_addr[ WORD_OFFSET_MSB:WORD_OFFSET_LSB ];
 
     // Instruction address misaligned exception.
@@ -2335,19 +2335,19 @@ module instr_cache
 
     always_comb begin
         case ( s_word_offset )
-            4'b0000: o_instr = instr_mem[ s_index ][ 31 :0   ]; 
-            4'b0001: o_instr = instr_mem[ s_index ][ 63 :32  ]; 
-            4'b0010: o_instr = instr_mem[ s_index ][ 95 :64  ]; 
-            4'b0011: o_instr = instr_mem[ s_index ][ 127:96  ]; 
-            4'b0100: o_instr = instr_mem[ s_index ][ 159:128 ]; 
-            4'b0101: o_instr = instr_mem[ s_index ][ 191:160 ]; 
-            4'b0110: o_instr = instr_mem[ s_index ][ 223:192 ]; 
-            4'b0111: o_instr = instr_mem[ s_index ][ 255:224 ]; 
-            4'b1000: o_instr = instr_mem[ s_index ][ 287:256 ]; 
-            4'b1001: o_instr = instr_mem[ s_index ][ 319:288 ]; 
-            4'b1010: o_instr = instr_mem[ s_index ][ 351:320 ]; 
-            4'b1011: o_instr = instr_mem[ s_index ][ 383:352 ]; 
-            4'b1100: o_instr = instr_mem[ s_index ][ 415:384 ]; 
+            4'b0000: o_instr = instr_mem[ s_index ][ 31 :0   ];
+            4'b0001: o_instr = instr_mem[ s_index ][ 63 :32  ];
+            4'b0010: o_instr = instr_mem[ s_index ][ 95 :64  ];
+            4'b0011: o_instr = instr_mem[ s_index ][ 127:96  ];
+            4'b0100: o_instr = instr_mem[ s_index ][ 159:128 ];
+            4'b0101: o_instr = instr_mem[ s_index ][ 191:160 ];
+            4'b0110: o_instr = instr_mem[ s_index ][ 223:192 ];
+            4'b0111: o_instr = instr_mem[ s_index ][ 255:224 ];
+            4'b1000: o_instr = instr_mem[ s_index ][ 287:256 ];
+            4'b1001: o_instr = instr_mem[ s_index ][ 319:288 ];
+            4'b1010: o_instr = instr_mem[ s_index ][ 351:320 ];
+            4'b1011: o_instr = instr_mem[ s_index ][ 383:352 ];
+            4'b1100: o_instr = instr_mem[ s_index ][ 415:384 ];
             4'b1101: o_instr = instr_mem[ s_index ][ 447:416 ];
             4'b1110: o_instr = instr_mem[ s_index ][ 479:448 ];
             4'b1111: o_instr = instr_mem[ s_index ][ 511:480 ];
@@ -2357,14 +2357,14 @@ module instr_cache
 
     assign s_tag_match = (s_tag == s_tag_in);
     assign o_hit       = s_valid & s_tag_match;
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -----------------------------------------------------------------------
 // This is a instruction cache FSM for direct mapped cache.
 // -----------------------------------------------------------------------
 
-module instr_cache_fsm 
+module instr_cache_fsm
 (
     // Clock & Reset.
     input  logic clk,
@@ -2436,13 +2436,13 @@ module instr_cache_fsm
         o_stall          = 1'b0;
         o_start_read     = 1'b0;
         o_instr_write_en = 1'b0;
-        
+
         case ( PS )
             IDLE: begin
                 o_stall          = 1'b1;
                 o_start_read     = 1'b0;
                 o_instr_write_en = 1'b0;
-            end 
+            end
 
             COMPARE_TAG: begin
                 o_stall          = ~i_hit;
@@ -2466,8 +2466,8 @@ module instr_cache_fsm
         endcase
     end
 
-    assign o_in_idle = ( PS == IDLE ); 
-    
+    assign o_in_idle = ( PS == IDLE );
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -----------------------------------------------------------------------
@@ -2475,17 +2475,17 @@ endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 // ImmSrc is a signal designed to control immediate extension logic.
 // -----------------------------------------------------------------------
 
-module instr_decoder 
+module instr_decoder
 // Parameters.
 #(
     parameter OP_WIDTH  = 7,
               OUT_WIDTH = 3
 )
-// Ports. 
+// Ports.
 (
     input  logic [ OP_WIDTH  - 1:0 ] i_op,
     output logic [ OUT_WIDTH - 1:0 ] o_imm_src
-); 
+);
 
     //Decoder logic.
     /*
@@ -2517,12 +2517,12 @@ module instr_decoder
             7'b1100011: o_imm_src = 3'b010; // B type.
             7'b0100011: o_imm_src = 3'b001; // S type.
             7'b0010111: o_imm_src = 3'b100; // U type.
-            7'b0110111: o_imm_src = 3'b100; // U type. 
+            7'b0110111: o_imm_src = 3'b100; // U type.
             7'b0000011: o_imm_src = 3'b000; // I type.
             7'b0010011: o_imm_src = 3'b000; // I type.
             7'b1100111: o_imm_src = 3'b000; // I type.
             7'b0011011: o_imm_src = 3'b000; // I type.
-            7'b1110011: o_imm_src = 3'b101; // CSR. 
+            7'b1110011: o_imm_src = 3'b101; // CSR.
             default:    o_imm_src = 3'b000; // Default = for I type.
         endcase
     end
@@ -2530,19 +2530,19 @@ module instr_decoder
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -----------------------------------------------------------------------
-// This is a module designed to take 64-bit data from memory & adjust it 
-// based on different LOAD instruction requirements. 
+// This is a module designed to take 64-bit data from memory & adjust it
+// based on different LOAD instruction requirements.
 // -----------------------------------------------------------------------
 
-module load_mux 
+module load_mux
 #(
     parameter DATA_WIDTH = 64
-) 
+)
 (
     // Control logic.
     input  logic [              2:0 ] i_func_3,
 
-    // Input interface. 
+    // Input interface.
     input  logic [ DATA_WIDTH - 1:0 ] i_data,
     input  logic [              2:0 ] i_addr_offset,
 
@@ -2570,7 +2570,7 @@ module load_mux
             2'b10: s_byte = i_data[23:16];
             2'b11: s_byte = i_data[31:24];
             default: s_byte = i_data[ 7:0 ];
-        endcase 
+        endcase
     end
 
     assign s_half = i_addr_offset[1] ? i_data[31:16] : i_data[15:0];
@@ -2581,40 +2581,40 @@ module load_mux
 
         case ( i_func_3 )
             3'b000: begin
-                o_data          = { { 56{s_byte[7]} }, s_byte};        // LB  Instruction. 
-                o_load_addr_ma  = 1'b0;               
-            end 
+                o_data          = { { 56{s_byte[7]} }, s_byte};        // LB  Instruction.
+                o_load_addr_ma  = 1'b0;
+            end
 
             3'b001: begin
                o_data          = { { 48{s_half[15]} }, s_half};        // LH  Instruction.
                o_load_addr_ma  = s_load_addr_ma_lh;
             end
 
-            3'b010: begin 
+            3'b010: begin
                 o_data          = { { 32{i_data[31]} }, i_data[31:0]}; // LW  Instruction.
                 o_load_addr_ma  = s_load_addr_ma_lw;
             end
 
-            3'b011: begin 
+            3'b011: begin
                 o_data          = i_data;                              // LD  Instruction.
                 o_load_addr_ma  = s_load_addr_ma_ld;
             end
 
             3'b100: begin
-                o_data          = { { 56{1'b0} }, s_byte};            // LBU Instruction. 
-                o_load_addr_ma  = 1'b0;  
+                o_data          = { { 56{1'b0} }, s_byte};            // LBU Instruction.
+                o_load_addr_ma  = 1'b0;
             end
 
-            3'b101: begin 
+            3'b101: begin
                 o_data          = { { 48{1'b0} }, s_half};             // LHU Instruction.
                 o_load_addr_ma  = s_load_addr_ma_lh;
             end
 
-            3'b110: begin 
+            3'b110: begin
                 o_data          = { { 32{1'b0} }, i_data[31:0]};       // LWU Instruction.
                 o_load_addr_ma  = s_load_addr_ma_lw;
             end
-        
+
             default:  begin
                 o_data          = '0;
                 o_load_addr_ma  = 1'b0;
@@ -2623,27 +2623,27 @@ module load_mux
 
         endcase
     end
-    
+
 endmodule
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -----------------------------------------------------------------------------------------
-// This is a main fsm unit that controls all the control signals based on instruction input. 
+// This is a main fsm unit that controls all the control signals based on instruction input.
 // -----------------------------------------------------------------------------------------
 
-module main_fsm   
-// Port decleration. 
+module main_fsm
+// Port decleration.
 (
     // Common clock & reset.
     input  logic       clk,
     input  logic       arst,
 
-    // Input interface. 
+    // Input interface.
     input  logic [ 2:0] i_instr_22_20,
     input  logic [ 6:0] i_op,
     input  logic [ 2:0] i_func_3,
     input  logic        i_func_7_4,
-    input  logic        i_func_7_0, 
+    input  logic        i_func_7_0,
     input  logic        i_func_7_1,
     input  logic        i_func_7_6,
     input  logic        i_pred_0,
@@ -2655,7 +2655,7 @@ module main_fsm
     input  logic        i_illegal_instr_load,
     input  logic        i_illegal_instr_alu,
     input  logic        i_timer_int,
-    input  logic        i_software_int, 
+    input  logic        i_software_int,
     input  logic        i_cacheable_flag,
     input  logic        i_done_axi,
     input  logic        i_clint_mmio_flag,
@@ -2670,9 +2670,9 @@ module main_fsm
     output logic        o_reg_write_en,
     output logic        o_pc_update,
     output logic        o_mem_write_en,
-    output logic        o_instr_write_en, 
+    output logic        o_instr_write_en,
     output logic        o_start_i_cache,
-    output logic        o_start_d_cache, 
+    output logic        o_start_d_cache,
     output logic        o_branch,
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
@@ -2692,7 +2692,7 @@ module main_fsm
     output logic [ 2:0] o_csr_write_addr_1,
     output logic [ 2:0] o_csr_write_addr_2,
     output logic [ 2:0] o_csr_read_addr
-);  
+);
 
     logic s_func_3_reduction;
     logic [2:0] s_csr_addr;
@@ -2722,7 +2722,7 @@ module main_fsm
         FENCE_I     = 4'b1111
     } t_state;
 
-    // State variables. 
+    // State variables.
     t_state PS;
     t_state NS;
 
@@ -2744,10 +2744,10 @@ module main_fsm
         ILLEGAL     = 4'b1101
     } t_instruction;
 
-    // Instruction decoder signal. 
+    // Instruction decoder signal.
     t_instruction instr;
 
-    // Instruction decoder. 
+    // Instruction decoder.
     always_comb begin
         case ( i_op )
             7'b0000011: instr = I_Type;
@@ -2760,7 +2760,7 @@ module main_fsm
             7'b1100011: instr = B_Type;
             7'b1101111: instr = J_Type;
             7'b0010111: instr = U_Type_ALU;
-            7'b0110111: instr = U_Type_LOAD; 
+            7'b0110111: instr = U_Type_LOAD;
             7'b0001111: instr = FENCE_Type;
             7'b1110011: instr = CSR_Type;
             default:    instr = ILLEGAL;
@@ -2769,7 +2769,7 @@ module main_fsm
 
 
     // -----------------------------------
-    // FSM 
+    // FSM
     // -----------------------------------
     // FSM: Synchronization.
     always_ff @( posedge clk, posedge arst ) begin
@@ -2788,36 +2788,36 @@ module main_fsm
                 if ( ( i_instr_addr_ma | i_timer_int | i_software_int ) & i_icache_idle ) NS = CALL_0;
                 else if ( i_stall_instr            ) NS = PS;
                 else                                 NS = DECODE;
-            end 
+            end
 
             DECODE: begin
                 case ( instr )
                     I_Type     : NS = MEMADDR;
                     I_Type_ALU : NS = EXECUTEI;
                     I_Type_JALR: NS = MEMADDR;
-                    I_Type_IW  : NS = EXECUTEI; 
+                    I_Type_IW  : NS = EXECUTEI;
                     S_Type     : NS = MEMADDR;
-                    R_Type     : NS = EXECUTER; 
+                    R_Type     : NS = EXECUTER;
                     R_Type_W   : NS = EXECUTER;
                     B_Type     : NS = BRANCH;
                     J_Type     : NS = JAL;
                     U_Type_ALU : NS = ALUWB;
-                    U_Type_LOAD: NS = LOADI; 
+                    U_Type_LOAD: NS = LOADI;
                     FENCE_Type : NS = FENCE_I; // ONLY FENCE.I is IMPLEMENTED.
                     CSR_Type   : begin
                         if ( s_func_3_reduction ) NS = CSR_EXECUTE; // CSR.
                         else if ( i_func_7_4    ) NS = JAL;         // MRET. PROBLEM: NOT FINISHED.
-                        else                      NS = CALL_0;      // Break                             
-                    end 
+                        else                      NS = CALL_0;      // Break
+                    end
                     ILLEGAL    : NS = CALL_0;
-                    default:     NS = CALL_0; 
+                    default:     NS = CALL_0;
                 endcase
             end
 
             MEMADDR: begin
                 case ( instr )
                     I_Type     : NS = MEMREAD;
-                    S_Type     : NS = MEMWRITE; 
+                    S_Type     : NS = MEMWRITE;
                     I_Type_JALR: NS = JAL;
                     default: NS = PS;
                 endcase
@@ -2850,27 +2850,27 @@ module main_fsm
 
             ALUWB: begin
                 if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) NS = CALL_0;
-                else                       NS = FETCH;    
+                else                       NS = FETCH;
             end
 
             EXECUTEI: NS = ALUWB;
 
             JAL: begin
                 if ( instr == CSR_Type ) NS = FETCH;
-                else                     NS = ALUWB;          
-            end 
+                else                     NS = ALUWB;
+            end
 
 
             BRANCH: NS = FETCH;
-            
+
             LOADI: NS = FETCH;
 
             CALL_0: NS = FETCH;
 
             CSR_EXECUTE: begin
                 if ( i_illegal_instr_alu ) NS = CALL_0;
-                else                       NS = CSR_WB;                 
-            end 
+                else                       NS = CSR_WB;
+            end
 
             CSR_WB: NS = FETCH;
 
@@ -2885,7 +2885,7 @@ module main_fsm
     // FSM: Ouput logic.
     always_comb begin
 
-        // Default values. 
+        // Default values.
         o_alu_op           = 3'b000;
         o_result_src       = 3'b000;
         o_alu_src_1        = 2'b00;
@@ -2920,7 +2920,7 @@ module main_fsm
             FETCH: begin
                 o_result_src    = 3'b010; // Alu result
                 o_start_i_cache = 1'b1;
-                o_fetch_state   = 1'b1; 
+                o_fetch_state   = 1'b1;
                 o_alu_src_1     = 2'b00;
                 o_alu_src_2     = 2'b10;
                 o_alu_op        = 3'b000;
@@ -2929,10 +2929,10 @@ module main_fsm
                     o_mcause           = 4'd0; // Instruction address misaligned.
                     o_interrupt        = 1'b0;
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                     o_start_i_cache    = 1'b0;
                 end
 
@@ -2941,10 +2941,10 @@ module main_fsm
                     else               o_mcause = 4'd3; // Machine software interrupt.
                     o_interrupt        = 1'b1;
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                     o_start_i_cache    = 1'b0;
                 end
 
@@ -2954,10 +2954,10 @@ module main_fsm
                 end
                 else begin
                     o_instr_write_en   = 1'b1;
-                    o_pc_update        = 1'b1;      
+                    o_pc_update        = 1'b1;
                 end
-                
-            end 
+
+            end
 
             DECODE: begin
                 o_alu_src_1  = 2'b01;
@@ -2972,19 +2972,19 @@ module main_fsm
                         if ( ~i_instr_22_20[0] ) o_mcause = 4'd11; // Env call from M-mode.
                         else                     o_mcause = 4'd3; // Env breakpoint.
                         o_csr_write_addr_1 = 3'b100;  // mcause.
-                        o_csr_we_1         = 1'b1; 
+                        o_csr_we_1         = 1'b1;
                         o_csr_write_addr_2 = 3'b101;  // mepc.
-                        o_result_src       = 3'b110; // s_old_pc.  
-                        o_csr_we_2         = 1'b1;   
+                        o_result_src       = 3'b110; // s_old_pc.
+                        o_csr_we_2         = 1'b1;
                     end
                 end
                 if ( instr == ILLEGAL ) begin
                     o_mcause           = 4'd2; // Illegal instruction.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                 end
             end
 
@@ -3001,7 +3001,7 @@ module main_fsm
                 o_start_d_cache = 1'b1;
                 o_alu_op        = 3'b000;
                 o_alu_src_1     = 2'b10;
-                o_alu_src_2     = 2'b01; 
+                o_alu_src_2     = 2'b01;
 
                 if ( ~ i_cacheable_flag ) begin
                     o_start_d_cache = 1'b0;
@@ -3011,10 +3011,10 @@ module main_fsm
                 if ( i_load_addr_ma ) begin
                     o_mcause           = 4'd4; // Load address misaligned.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                     o_start_d_cache    = 1'b0;
                     o_start_read_nc    = 1'b0;
                 end
@@ -3022,16 +3022,16 @@ module main_fsm
                 if ( i_illegal_instr_load ) begin
                     o_mcause           = 4'd2; // Illegal instruction.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                     o_start_d_cache    = 1'b0;
                     o_start_read_nc    = 1'b0;
-                end 
+                end
 
                 if ( i_stall_data ) o_mem_reg_we = 1'b0;
-                else                o_mem_reg_we = 1'b1;   
+                else                o_mem_reg_we = 1'b1;
             end
 
             MEMWB: begin
@@ -3059,10 +3059,10 @@ module main_fsm
                 if ( i_store_addr_ma ) begin
                     o_mcause           = 4'd6; // Store address misaligned.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                     o_start_d_cache    = 1'b0;
                     o_start_write_nc   = 1'b0;
                     o_write_en_clint   = 1'b0;
@@ -3074,7 +3074,7 @@ module main_fsm
                 end
                 else begin
                     o_mem_write_en  = 1'b1;
-                    o_mem_reg_we    = 1'b1;      
+                    o_mem_reg_we    = 1'b1;
                 end
             end
 
@@ -3091,14 +3091,14 @@ module main_fsm
             ALUWB: begin
                 o_result_src   = 3'b000;
                 o_reg_write_en = 1'b1;
-                
+
                 if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) begin
                     o_mcause           = 4'd2; // Illegal instruction.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                 end
             end
 
@@ -3118,7 +3118,7 @@ module main_fsm
                 o_alu_op          = 3'b000;
                 o_pc_update       = 1'b1;
                 o_csr_read_addr   = 3'b101;  // mepc.
-                
+
                 if ( instr == CSR_Type ) o_result_src = 3'b100; // s_csr_data.
                 else                     o_result_src = 3'b000;
             end
@@ -3133,7 +3133,7 @@ module main_fsm
 
             LOADI: begin
                 o_result_src   = 3'b011;
-                o_reg_write_en = 1'b1; 
+                o_reg_write_en = 1'b1;
             end
 
             CALL_0: begin
@@ -3153,10 +3153,10 @@ module main_fsm
                 o_csr_writable = 1'b1;
                 if ( i_func_7_6 ) begin
                     o_csr_writable     = 1'b0;
-                    o_csr_we_2         = 1'b0;  
+                    o_csr_we_2         = 1'b0;
                     o_csr_read_addr    = s_csr_addr_read_only; // Mvendorid, Marchid, Mimpid, Mhartid.
                 end
-                else begin 
+                else begin
                     o_csr_write_addr_2 = s_csr_addr;
                     o_csr_read_addr    = s_csr_addr;
                 end
@@ -3219,17 +3219,17 @@ module main_fsm
             end
         endcase
     end
-    
+
 endmodule
 /* Copyright (c) 2025 Maveric NU. All rights reserved. */
 
 // ---------------------------------------------------------------
-// This is a memory module for simulation of outside memory unit. 
+// This is a memory module for simulation of outside memory unit.
 // ---------------------------------------------------------------
 
 // `define PATH_TO_MEM "./test/tests/instr/riscv-tests/rv64ui-p-xori.txt"
 
-module mem_sim 
+module mem_sim
 #(
     parameter DATA_WIDTH = 32,
               ADDR_WIDTH = 32,
@@ -3304,7 +3304,7 @@ module mem_sim
     //     .douta (o_data     )
     // );
 
-    
+
 endmodule
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
@@ -3313,10 +3313,10 @@ endmodule
 // ---------------------------------------------------
 
 module mux4to1
-// Parameters. 
+// Parameters.
 #(
     parameter DATA_WIDTH = 64
-) 
+)
 // Port decleration.
 (
     // Control signal.
@@ -3342,7 +3342,7 @@ module mux4to1
             default: o_mux = '0;
         endcase
     end
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // --------------------------------------------------
@@ -3350,10 +3350,10 @@ endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 // ---------------------------------------------------
 
 module mux8to1
-// Parameters. 
+// Parameters.
 #(
     parameter DATA_WIDTH = 64
-) 
+)
 // Port decleration.
 (
     // Control signal.
@@ -3387,7 +3387,7 @@ module mux8to1
             default: o_mux = '0;
         endcase
     end
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ----------------------------------------------------------------
@@ -3399,25 +3399,25 @@ module register
 #(
     parameter DATA_WIDTH = 64
 )
-// Port decleration. 
-(   
+// Port decleration.
+(
     // Common clock & enable signal.
     input  logic                      clk,
     input  logic                      arst,
 
-    //Input interface. 
+    //Input interface.
     input  logic [ DATA_WIDTH - 1:0 ] i_write_data,
-    
+
     // Output interface.
     output logic [ DATA_WIDTH - 1:0 ] o_read_data
 );
 
     // Write logic.
-    always_ff @( posedge clk, posedge arst ) begin 
+    always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) o_read_data <= '0;
         else o_read_data <= i_write_data;
     end
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -------------------------------------------------------------
@@ -3429,28 +3429,28 @@ module register_en
 #(
     parameter DATA_WIDTH = 64
 )
-// Port decleration. 
-(   
+// Port decleration.
+(
     // Common clock & enable signal.
     input  logic                      clk,
     input  logic                      write_en,
     input  logic                      arst,
 
-    //Input interface. 
+    //Input interface.
     input  logic [ DATA_WIDTH - 1:0 ] i_write_data,
-    
+
     // Output interface.
     output logic [ DATA_WIDTH - 1:0 ] o_read_data
 );
 
     // Write logic.
-    always_ff @( posedge clk, posedge arst ) begin 
+    always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) o_read_data <= '0;
         else if ( write_en ) begin
             o_read_data <= i_write_data;
         end
     end
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ----------------------------------------------------------------------------
@@ -3464,19 +3464,19 @@ module register_file
               ADDR_WIDTH = 5,
               REG_DEPTH  = 32
 )
-// Port decleration. 
-(   
+// Port decleration.
+(
     // Common clock & enable signal.
     input  logic                      clk,
     input  logic                      write_en_3,
     input  logic                      arst,
 
-    //Input interface. 
+    //Input interface.
     input  logic [ ADDR_WIDTH - 1:0 ] i_addr_1,
     input  logic [ ADDR_WIDTH - 1:0 ] i_addr_2,
     input  logic [ ADDR_WIDTH - 1:0 ] i_addr_3,
     input  logic [ DATA_WIDTH - 1:0 ] i_write_data_3,
-    
+
     // Output interface.
     output [3:0] led,
     output logic [ DATA_WIDTH - 1:0 ] o_read_data_1,
@@ -3487,7 +3487,7 @@ module register_file
     logic [ DATA_WIDTH - 1:0 ] mem [ REG_DEPTH - 1:0 ];
 
     // Write logic.
-    always_ff @( posedge clk, posedge arst ) begin 
+    always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) begin
             mem[0] <= '0;
             mem[1] <= '0;
@@ -3533,7 +3533,7 @@ module register_file
     assign o_read_data_2 = mem[i_addr_2];
     assign led = mem[10][22:19];
 
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ---------------------------------------------------------------------
@@ -3545,35 +3545,35 @@ module register_pc
 #(
     parameter DATA_WIDTH = 64
 )
-// Port decleration. 
-(   
+// Port decleration.
+(
     // Common clock & enable signal.
     input  logic                      clk,
     input  logic                      write_en,
     input  logic                      arst,
 
-    //Input interface. 
+    //Input interface.
     input  logic [ DATA_WIDTH - 1:0 ] i_write_data,
-    
+
     // Output interface.
     output logic [ DATA_WIDTH - 1:0 ] o_read_data
 );
 
     // Write logic.
-    always_ff @( posedge clk, posedge arst ) begin 
+    always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) o_read_data <= 64'h3000_0000;
         else if ( write_en ) begin
             o_read_data <= i_write_data;
         end
     end
-    
+
 endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // ----------------------------------------------------------------------------------------------
 // This is a reset syncronizer module.
 // ----------------------------------------------------------------------------------------------
 
-module reset_sync 
+module reset_sync
 (
     input  logic clk,
     input  logic arst,
@@ -3586,7 +3586,7 @@ module reset_sync
         if ( arst ) { arst_sync, rst_signal } <= 2'b11;
         else        { arst_sync, rst_signal } <= { rst_signal, 1'b0 };
     end
-    
+
 endmodule/* Copyright (c) 2025 Maveric NU. All rights reserved. */
 
 // ---------------------------------------------------------------------------------------
@@ -3876,7 +3876,7 @@ module uart_top
     //---------------------------
     // Internal nets.
     //---------------------------
-    
+
     // Unused.
     logic rtsn;
     logic ctsn = 1'b0;
@@ -3951,7 +3951,7 @@ module uart_top
         .wb_re_i      (re_o                                   ),
         .modem_inputs ({~ctsn, dsr_pad_i, ri_pad_i, dcd_pad_i}),
         .stx_pad_o    (uart_tx                                ),
-        .srx_pad_i    (uart_rx                                ),				  
+        .srx_pad_i    (uart_rx                                ),
         .rts_pad_o    (rts_internal                           ),
         .dtr_pad_o    (dtr_pad_o                              ),
         .int_o        (interrupt                              )
@@ -4208,7 +4208,7 @@ module wb_master
                     if (start_rd_i)
                         NS = RD_DONE;
                     else if (start_wr_i)
-                        NS = WR_DONE; 
+                        NS = WR_DONE;
                 end
             end
             RD_DONE,
@@ -4252,7 +4252,7 @@ module wb_master
                             SEL_O <= sel_i;
                             STB_O <= 1'b1;
                             CYC_O <= 1'b1;
-                        end 
+                        end
                     end
                 end
                 RD_DONE: begin

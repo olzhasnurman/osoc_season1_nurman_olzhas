@@ -4,19 +4,19 @@
 // This is a instruction cache for for direct mapped cache.
 // -------------------------------------------------------------------
 
-module instr_cache 
+module instr_cache
 #(
     parameter BLOCK_COUNT   = 4,
               WORD_SIZE     = 32,
               BLOCK_WIDTH   = 512,
               ADDR_WIDTH    = 64
-) 
+)
 (
     // Control signals.
     input  logic                       clk,
     input  logic                       write_en,
     input  logic                       arst,
-    
+
     // Input Interface.
     input  logic [ ADDR_WIDTH  - 1:0 ] i_instr_addr,
     input  logic [ BLOCK_WIDTH - 1:0 ] i_inst,
@@ -56,7 +56,7 @@ module instr_cache
 
     // Continious assignments.
     assign s_tag_in      = i_instr_addr[ TAG_MSB        :TAG_LSB         ];
-    assign s_index       = i_instr_addr[ INDEX_MSB      :INDEX_LSB       ]; 
+    assign s_index       = i_instr_addr[ INDEX_MSB      :INDEX_LSB       ];
     assign s_word_offset = i_instr_addr[ WORD_OFFSET_MSB:WORD_OFFSET_LSB ];
 
     // Instruction address misaligned exception.
@@ -104,19 +104,19 @@ module instr_cache
 
     always_comb begin
         case ( s_word_offset )
-            4'b0000: o_instr = instr_mem[ s_index ][ 31 :0   ]; 
-            4'b0001: o_instr = instr_mem[ s_index ][ 63 :32  ]; 
-            4'b0010: o_instr = instr_mem[ s_index ][ 95 :64  ]; 
-            4'b0011: o_instr = instr_mem[ s_index ][ 127:96  ]; 
-            4'b0100: o_instr = instr_mem[ s_index ][ 159:128 ]; 
-            4'b0101: o_instr = instr_mem[ s_index ][ 191:160 ]; 
-            4'b0110: o_instr = instr_mem[ s_index ][ 223:192 ]; 
-            4'b0111: o_instr = instr_mem[ s_index ][ 255:224 ]; 
-            4'b1000: o_instr = instr_mem[ s_index ][ 287:256 ]; 
-            4'b1001: o_instr = instr_mem[ s_index ][ 319:288 ]; 
-            4'b1010: o_instr = instr_mem[ s_index ][ 351:320 ]; 
-            4'b1011: o_instr = instr_mem[ s_index ][ 383:352 ]; 
-            4'b1100: o_instr = instr_mem[ s_index ][ 415:384 ]; 
+            4'b0000: o_instr = instr_mem[ s_index ][ 31 :0   ];
+            4'b0001: o_instr = instr_mem[ s_index ][ 63 :32  ];
+            4'b0010: o_instr = instr_mem[ s_index ][ 95 :64  ];
+            4'b0011: o_instr = instr_mem[ s_index ][ 127:96  ];
+            4'b0100: o_instr = instr_mem[ s_index ][ 159:128 ];
+            4'b0101: o_instr = instr_mem[ s_index ][ 191:160 ];
+            4'b0110: o_instr = instr_mem[ s_index ][ 223:192 ];
+            4'b0111: o_instr = instr_mem[ s_index ][ 255:224 ];
+            4'b1000: o_instr = instr_mem[ s_index ][ 287:256 ];
+            4'b1001: o_instr = instr_mem[ s_index ][ 319:288 ];
+            4'b1010: o_instr = instr_mem[ s_index ][ 351:320 ];
+            4'b1011: o_instr = instr_mem[ s_index ][ 383:352 ];
+            4'b1100: o_instr = instr_mem[ s_index ][ 415:384 ];
             4'b1101: o_instr = instr_mem[ s_index ][ 447:416 ];
             4'b1110: o_instr = instr_mem[ s_index ][ 479:448 ];
             4'b1111: o_instr = instr_mem[ s_index ][ 511:480 ];
@@ -126,5 +126,5 @@ module instr_cache
 
     assign s_tag_match = (s_tag == s_tag_in);
     assign o_hit       = s_valid & s_tag_match;
-    
+
 endmodule

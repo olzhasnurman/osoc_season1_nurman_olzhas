@@ -4,13 +4,13 @@
 // This is a Arithmetic Logic Unit (ALU).
 // --------------------------------------
 
-module alu 
+module alu
 // Parameters.
 #(
     parameter DATA_WIDTH    = 64,
               WORD_WIDTH    = 32,
-              CONTROL_WIDTH = 5   
-) 
+              CONTROL_WIDTH = 5
+)
 // Port decleration.
 (
     // ALU control signal.
@@ -47,7 +47,7 @@ module alu
     localparam SRLW  = 5'b01101;
     localparam SRAW  = 5'b01110;
     localparam ADDIW = 5'b01111;
-    
+
     localparam CSRRW = 5'b10000;
     localparam CSRRS = 5'b10001;
     localparam CSRRC = 5'b10010;
@@ -58,7 +58,7 @@ module alu
     //-------------------------
     // Internal nets.
     //-------------------------
-    
+
     // ALU regular & immediate operation outputs.
     logic [ DATA_WIDTH - 1:0 ] s_add_out;
     logic [ DATA_WIDTH - 1:0 ] s_sub_out;
@@ -79,7 +79,7 @@ module alu
     logic [ WORD_WIDTH - 1:0 ] s_srlw_out;
     logic [ WORD_WIDTH - 1:0 ] s_sraw_out;
 
-    // Flag signals. 
+    // Flag signals.
     // logic s_carry_flag_add;
     // logic s_carry_flag_sub;
     // logic s_overflow;
@@ -89,8 +89,8 @@ module alu
     //---------------------------------
     // Arithmetic & Logic Operations.
     //---------------------------------
-    
-    // ALU regular & immediate operations. 
+
+    // ALU regular & immediate operations.
     assign s_add_out = i_src_1 + i_src_2;
     assign s_sub_out = $unsigned($signed(i_src_1) - $signed(i_src_2));
     assign s_and_out = i_src_1 & i_src_2;
@@ -105,17 +105,17 @@ module alu
 
     // ALU word operations.
     assign s_addw_out = i_src_1[31:0] + i_src_2[31:0];
-    assign s_subw_out = $unsigned($signed(i_src_1[31:0]) -  $signed(i_src_2[31:0])); 
+    assign s_subw_out = $unsigned($signed(i_src_1[31:0]) -  $signed(i_src_2[31:0]));
     assign s_sllw_out = i_src_1[31:0] << i_src_2[4:0];
     assign s_srlw_out = i_src_1[31:0] >> i_src_2[4:0];
     assign s_sraw_out = $unsigned($signed(i_src_1[31:0]) >>> i_src_2[4:0]);
 
 
-    // Flags. 
+    // Flags.
     assign o_zero_flag = !(|o_alu_result);
     assign o_slt_flag  = less_than;
     assign o_sltu_flag = less_than_u;
-    // assign s_overflow      = (o_alu_result[DATA_WIDTH - 1] ^ i_src_1[DATA_WIDTH - 1]) & 
+    // assign s_overflow      = (o_alu_result[DATA_WIDTH - 1] ^ i_src_1[DATA_WIDTH - 1]) &
     //                          (i_src_2[DATA_WIDTH - 1] ~^ i_src_1[DATA_WIDTH - 1] ~^ alu_control[0]);
 
 
@@ -152,8 +152,8 @@ module alu
 
             default: begin
                 o_alu_result    = 'b0;
-            end 
+            end
         endcase
 
-    end   
+    end
 endmodule

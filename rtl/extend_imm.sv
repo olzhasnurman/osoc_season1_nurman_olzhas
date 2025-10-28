@@ -9,15 +9,15 @@ module extend_imm
 #(
     parameter IMM_WIDTH = 25,
               OUT_WIDTH = 64
-) 
+)
 // Port decleration.
 (
-    // Control signal. 
+    // Control signal.
     input  logic [             2:0 ] control_signal,
 
     // Input interface.
     input  logic [ IMM_WIDTH - 1:0 ] i_imm,
-    
+
     // Output interface.
     output logic [ OUT_WIDTH - 1:0 ] o_imm_ext
 );
@@ -29,7 +29,7 @@ module extend_imm
     logic [ OUT_WIDTH - 1:0 ] s_u_type;
     logic [ OUT_WIDTH - 1:0 ] csr_type;
 
-    // Sign extend immediate for different instruction types. 
+    // Sign extend immediate for different instruction types.
     assign s_i_type = { {52{i_imm[24]}}, i_imm[24:13] };
     assign s_s_type = { {52{i_imm[24]}}, i_imm[24:18], i_imm[4:0] };
     assign s_b_type = { {52{i_imm[24]}}, i_imm[0] , i_imm[23:18], i_imm[4:1], 1'b0 };
@@ -60,5 +60,5 @@ module extend_imm
         endcase
     end
 
-    
+
 endmodule

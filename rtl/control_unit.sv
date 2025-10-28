@@ -2,23 +2,23 @@
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -------------------------------------------------------------------------------------
-// This is a main control unit that instantiates control fsm, alu and instr decoders to 
-//  controls all the control signals based on instruction input. 
+// This is a main control unit that instantiates control fsm, alu and instr decoders to
+//  controls all the control signals based on instruction input.
 // -------------------------------------------------------------------------------------
 
-module control_unit   
-// Port decleration. 
+module control_unit
+// Port decleration.
 (
     // Common clock & reset.
     input  logic       clk,
     input  logic       arst,
 
-    // Input interface. 
+    // Input interface.
     input  logic [ 2:0] i_instr_22_20,
     input  logic [ 6:0] i_op,
     input  logic [ 2:0] i_func_3,
     input  logic [ 2:0] i_func7_6_4,
-    input  logic [ 1:0] i_func7_1_0, 
+    input  logic [ 1:0] i_func7_1_0,
     input  logic        i_pred_0,
     input  logic        i_zero_flag,
     input  logic        i_slt_flag,
@@ -75,14 +75,14 @@ module control_unit
     output logic [ 2:0] o_csr_write_addr_2,
     output logic [ 2:0] o_csr_read_addr
 
-); 
+);
 
     // Main FSM.
     logic       s_instr_branch;
     logic       s_branch;
     logic       s_pc_update;
     logic [2:0] s_alu_op;
-    
+
     // Instruction cache.
     logic s_stall_instr;
     logic s_start_instr_cache;
@@ -107,7 +107,7 @@ module control_unit
 
     assign o_start_read_axi = s_start_read_data | s_start_read_instr;
 
-    // Branch type decoder. 
+    // Branch type decoder.
     always_comb begin : BRANCH_TYPE
         case ( i_func_3 )
             3'b000: s_branch = s_instr_branch & i_zero_flag;        // BEQ instruction.
@@ -125,7 +125,7 @@ module control_unit
     // Modulle Instantiations.
     //-------------------------------------
 
-    // Main FSM module instance. 
+    // Main FSM module instance.
     main_fsm M_FSM (
         .clk                  ( clk                    ),
         .arst                 ( arst                   ),
@@ -133,7 +133,7 @@ module control_unit
         .i_op                 ( i_op                   ),
         .i_func_3             ( i_func_3               ),
         .i_func_7_4           ( i_func7_6_4[0]         ),
-        .i_func_7_0           ( i_func7_1_0[0]         ), 
+        .i_func_7_0           ( i_func7_1_0[0]         ),
         .i_func_7_1           ( i_func7_1_0[1]         ),
         .i_func_7_6           ( i_func7_6_4[2]         ),
         .i_pred_0             ( i_pred_0               ),
@@ -226,7 +226,7 @@ module control_unit
         .o_illegal_instr ( s_illegal_instr_alu )
     );
 
-    // Instruction decoder. 
+    // Instruction decoder.
     instr_decoder INSTR_DECODER (
         .i_op      ( i_op      ),
         .o_imm_src ( o_imm_src )

@@ -88,35 +88,35 @@
 // `timescale 1ns/1ns
 // synopsys translate_on
 
-//Following is the Verilog code for a dual-port RAM with asynchronous read. 
-module raminfr   
-        (clk, we, a, dpra, di, dpo); 
+//Following is the Verilog code for a dual-port RAM with asynchronous read.
+module raminfr
+        (clk, we, a, dpra, di, dpo);
 
 parameter addr_width = 4;
 parameter data_width = 8;
 parameter depth = 16;
 
-input clk;   
-input we;   
-input  [addr_width-1:0] a;   
-input  [addr_width-1:0] dpra;   
-input  [data_width-1:0] di;   
-//output [data_width-1:0] spo;   
-output [data_width-1:0] dpo;   
-reg    [data_width-1:0] ram [depth-1:0]; 
+input clk;
+input we;
+input  [addr_width-1:0] a;
+input  [addr_width-1:0] dpra;
+input  [data_width-1:0] di;
+//output [data_width-1:0] spo;
+output [data_width-1:0] dpo;
+reg    [data_width-1:0] ram [depth-1:0];
 
 wire [data_width-1:0] dpo;
-wire  [data_width-1:0] di;   
-wire  [addr_width-1:0] a;   
-wire  [addr_width-1:0] dpra;   
- 
-  always @(posedge clk) begin   
-    if (we)   
-      ram[a] <= di;   
-  end   
-//  assign spo = ram[a];   
-  assign dpo = ram[dpra];   
-endmodule 
+wire  [data_width-1:0] di;
+wire  [addr_width-1:0] a;
+wire  [addr_width-1:0] dpra;
+
+  always @(posedge clk) begin
+    if (we)
+      ram[a] <= di;
+  end
+//  assign spo = ram[a];
+  assign dpo = ram[dpra];
+endmodule
 `endif
 
 //////////////////////////////////////////////////////////////////////
@@ -319,227 +319,227 @@ endmodule
 
 `include "uart_defines.v"
 
-module uart_receiver (clk, wb_rst_i, lcr, rf_pop, srx_pad_i, enable, 
-	counter_t, rf_count, rf_data_out, rf_error_bit, rf_overrun, rx_reset, lsr_mask, rstate, rf_push_pulse);
+module uart_receiver (clk, wb_rst_i, lcr, rf_pop, srx_pad_i, enable,
+    counter_t, rf_count, rf_data_out, rf_error_bit, rf_overrun, rx_reset, lsr_mask, rstate, rf_push_pulse);
 
-input				clk;
-input				wb_rst_i;
-input	[7:0]	lcr;
-input				rf_pop;
-input				srx_pad_i;
-input				enable;
-input				rx_reset;
+input                clk;
+input                wb_rst_i;
+input    [7:0]    lcr;
+input                rf_pop;
+input                srx_pad_i;
+input                enable;
+input                rx_reset;
 input       lsr_mask;
 
-output	[9:0]			counter_t;
-output	[`UART_FIFO_COUNTER_W-1:0]	rf_count;
-output	[`UART_FIFO_REC_WIDTH-1:0]	rf_data_out;
-output				rf_overrun;
-output				rf_error_bit;
-output [3:0] 		rstate;
-output 				rf_push_pulse;
+output    [9:0]            counter_t;
+output    [`UART_FIFO_COUNTER_W-1:0]    rf_count;
+output    [`UART_FIFO_REC_WIDTH-1:0]    rf_data_out;
+output                rf_overrun;
+output                rf_error_bit;
+output [3:0]         rstate;
+output                 rf_push_pulse;
 
-reg	[3:0]	rstate;
-reg	[3:0]	rcounter16;
-reg	[2:0]	rbit_counter;
-reg	[7:0]	rshift;			// receiver shift register
-reg		rparity;		// received parity
-reg		rparity_error;
-reg		rframing_error;		// framing error flag
-reg		rbit_in;
-reg		rparity_xor;
-reg	[7:0]	counter_b;	// counts the 0 (low) signals
+reg    [3:0]    rstate;
+reg    [3:0]    rcounter16;
+reg    [2:0]    rbit_counter;
+reg    [7:0]    rshift;            // receiver shift register
+reg        rparity;        // received parity
+reg        rparity_error;
+reg        rframing_error;        // framing error flag
+reg        rbit_in;
+reg        rparity_xor;
+reg    [7:0]    counter_b;    // counts the 0 (low) signals
 reg   rf_push_q;
 
 // RX FIFO signals
-reg	[`UART_FIFO_REC_WIDTH-1:0]	rf_data_in;
-wire	[`UART_FIFO_REC_WIDTH-1:0]	rf_data_out;
+reg    [`UART_FIFO_REC_WIDTH-1:0]    rf_data_in;
+wire    [`UART_FIFO_REC_WIDTH-1:0]    rf_data_out;
 wire      rf_push_pulse;
-reg				rf_push;
-wire				rf_pop;
-wire				rf_overrun;
-wire	[`UART_FIFO_COUNTER_W-1:0]	rf_count;
-wire				rf_error_bit; // an error (parity or framing) is inside the fifo
-wire 				break_error = (counter_b == 0);
+reg                rf_push;
+wire                rf_pop;
+wire                rf_overrun;
+wire    [`UART_FIFO_COUNTER_W-1:0]    rf_count;
+wire                rf_error_bit; // an error (parity or framing) is inside the fifo
+wire                 break_error = (counter_b == 0);
 
 // RX FIFO instance
 uart_rfifo #(`UART_FIFO_REC_WIDTH) fifo_rx(
-	.clk(		clk		), 
-	.wb_rst_i(	wb_rst_i	),
-	.data_in(	rf_data_in	),
-	.data_out(	rf_data_out	),
-	.push(		rf_push_pulse		),
-	.pop(		rf_pop		),
-	.overrun(	rf_overrun	),
-	.count(		rf_count	),
-	.error_bit(	rf_error_bit	),
-	.fifo_reset(	rx_reset	),
-	.reset_status(lsr_mask)
+    .clk(        clk        ),
+    .wb_rst_i(    wb_rst_i    ),
+    .data_in(    rf_data_in    ),
+    .data_out(    rf_data_out    ),
+    .push(        rf_push_pulse        ),
+    .pop(        rf_pop        ),
+    .overrun(    rf_overrun    ),
+    .count(        rf_count    ),
+    .error_bit(    rf_error_bit    ),
+    .fifo_reset(    rx_reset    ),
+    .reset_status(lsr_mask)
 );
 
-wire 		rcounter16_eq_7 = (rcounter16 == 4'd7);
-wire		rcounter16_eq_0 = (rcounter16 == 4'd0);
-wire		rcounter16_eq_1 = (rcounter16 == 4'd1);
+wire         rcounter16_eq_7 = (rcounter16 == 4'd7);
+wire        rcounter16_eq_0 = (rcounter16 == 4'd0);
+wire        rcounter16_eq_1 = (rcounter16 == 4'd1);
 
 wire [3:0] rcounter16_minus_1 = rcounter16 - 1'b1;
 
-parameter  sr_idle 					= 4'd0;
-parameter  sr_rec_start 			= 4'd1;
-parameter  sr_rec_bit 				= 4'd2;
-parameter  sr_rec_parity			= 4'd3;
-parameter  sr_rec_stop 				= 4'd4;
-parameter  sr_check_parity 		= 4'd5;
-parameter  sr_rec_prepare 			= 4'd6;
-parameter  sr_end_bit				= 4'd7;
-parameter  sr_ca_lc_parity	      = 4'd8;
-parameter  sr_wait1 					= 4'd9;
-parameter  sr_push 					= 4'd10;
+parameter  sr_idle                     = 4'd0;
+parameter  sr_rec_start             = 4'd1;
+parameter  sr_rec_bit                 = 4'd2;
+parameter  sr_rec_parity            = 4'd3;
+parameter  sr_rec_stop                 = 4'd4;
+parameter  sr_check_parity         = 4'd5;
+parameter  sr_rec_prepare             = 4'd6;
+parameter  sr_end_bit                = 4'd7;
+parameter  sr_ca_lc_parity          = 4'd8;
+parameter  sr_wait1                     = 4'd9;
+parameter  sr_push                     = 4'd10;
 
 
 always @(posedge clk or posedge wb_rst_i)
 begin
   if (wb_rst_i)
   begin
-     rstate 			<=  sr_idle;
-	  rbit_in 				<=  1'b0;
-	  rcounter16 			<=  0;
-	  rbit_counter 		<=  0;
-	  rparity_xor 		<=  1'b0;
-	  rframing_error 	<=  1'b0;
-	  rparity_error 		<=  1'b0;
-	  rparity 				<=  1'b0;
-	  rshift 				<=  0;
-	  rf_push 				<=  1'b0;
-	  rf_data_in 			<=  0;
+     rstate             <=  sr_idle;
+      rbit_in                 <=  1'b0;
+      rcounter16             <=  0;
+      rbit_counter         <=  0;
+      rparity_xor         <=  1'b0;
+      rframing_error     <=  1'b0;
+      rparity_error         <=  1'b0;
+      rparity                 <=  1'b0;
+      rshift                 <=  0;
+      rf_push                 <=  1'b0;
+      rf_data_in             <=  0;
   end
   else
   if (enable)
   begin
-	case (rstate)
-	sr_idle : begin
-			rf_push 			  <=  1'b0;
-			rf_data_in 	  <=  0;
-			rcounter16 	  <=  4'b1110;
-			if (srx_pad_i==1'b0 & ~break_error)   // detected a pulse (start bit?)
-			begin
-				rstate 		  <=  sr_rec_start;
-			end
-		end
-	sr_rec_start :	begin
-  			rf_push 			  <=  1'b0;
-				if (rcounter16_eq_7)    // check the pulse
-					if (srx_pad_i==1'b1)   // no start bit
-						rstate <=  sr_idle;
-					else            // start bit detected
-						rstate <=  sr_rec_prepare;
-				rcounter16 <=  rcounter16_minus_1;
-			end
-	sr_rec_prepare:begin
-				case (lcr[/*`UART_LC_BITS*/1:0])  // number of bits in a word
-				2'b00 : rbit_counter <=  3'b100;
-				2'b01 : rbit_counter <=  3'b101;
-				2'b10 : rbit_counter <=  3'b110;
-				2'b11 : rbit_counter <=  3'b111;
-				endcase
-				if (rcounter16_eq_0)
-				begin
-					rstate		<=  sr_rec_bit;
-					rcounter16	<=  4'b1110;
-					rshift		<=  0;
-				end
-				else
-					rstate <=  sr_rec_prepare;
-				rcounter16 <=  rcounter16_minus_1;
-			end
-	sr_rec_bit :	begin
-				if (rcounter16_eq_0)
-					rstate <=  sr_end_bit;
-				if (rcounter16_eq_7) // read the bit
-					case (lcr[/*`UART_LC_BITS*/1:0])  // number of bits in a word
-					2'b00 : rshift[4:0]  <=  {srx_pad_i, rshift[4:1]};
-					2'b01 : rshift[5:0]  <=  {srx_pad_i, rshift[5:1]};
-					2'b10 : rshift[6:0]  <=  {srx_pad_i, rshift[6:1]};
-					2'b11 : rshift[7:0]  <=  {srx_pad_i, rshift[7:1]};
-					endcase
-				rcounter16 <=  rcounter16_minus_1;
-			end
-	sr_end_bit :   begin
-				if (rbit_counter==3'b0) // no more bits in word
-					if (lcr[`UART_LC_PE]) // choose state based on parity
-						rstate <=  sr_rec_parity;
-					else
-					begin
-						rstate <=  sr_rec_stop;
-						rparity_error <=  1'b0;  // no parity - no error :)
-					end
-				else		// else we have more bits to read
-				begin
-					rstate <=  sr_rec_bit;
-					rbit_counter <=  rbit_counter - 1'b1;
-				end
-				rcounter16 <=  4'b1110;
-			end
-	sr_rec_parity: begin
-				if (rcounter16_eq_7)	// read the parity
-				begin
-					rparity <=  srx_pad_i;
-					rstate <=  sr_ca_lc_parity;
-				end
-				rcounter16 <=  rcounter16_minus_1;
-			end
-	sr_ca_lc_parity : begin    // rcounter equals 6
-				rcounter16  <=  rcounter16_minus_1;
-				rparity_xor <=  ^{rshift,rparity}; // calculate parity on all incoming data
-				rstate      <=  sr_check_parity;
-			  end
-	sr_check_parity: begin	  // rcounter equals 5
-				case ({lcr[`UART_LC_EP],lcr[`UART_LC_SP]})
-					2'b00: rparity_error <=   rparity_xor == 0;  // no error if parity 1
-					2'b01: rparity_error <=  ~rparity;      // parity should sticked to 1
-					2'b10: rparity_error <=   rparity_xor == 1;   // error if parity is odd
-					2'b11: rparity_error <=   rparity;	  // parity should be sticked to 0
-				endcase
-				rcounter16 <=  rcounter16_minus_1;
-				rstate <=  sr_wait1;
-			  end
-	sr_wait1 :	if (rcounter16_eq_0)
-			begin
-				rstate <=  sr_rec_stop;
-				rcounter16 <=  4'b1110;
-			end
-			else
-				rcounter16 <=  rcounter16_minus_1;
-	sr_rec_stop :	begin
-				if (rcounter16_eq_7)	// read the parity
-				begin
-					rframing_error <=  !srx_pad_i; // no framing error if input is 1 (stop bit)
-					rstate <=  sr_push;
-				end
-				rcounter16 <=  rcounter16_minus_1;
-			end
-	sr_push :	begin
+    case (rstate)
+    sr_idle : begin
+            rf_push               <=  1'b0;
+            rf_data_in       <=  0;
+            rcounter16       <=  4'b1110;
+            if (srx_pad_i==1'b0 & ~break_error)   // detected a pulse (start bit?)
+            begin
+                rstate           <=  sr_rec_start;
+            end
+        end
+    sr_rec_start :    begin
+              rf_push               <=  1'b0;
+                if (rcounter16_eq_7)    // check the pulse
+                    if (srx_pad_i==1'b1)   // no start bit
+                        rstate <=  sr_idle;
+                    else            // start bit detected
+                        rstate <=  sr_rec_prepare;
+                rcounter16 <=  rcounter16_minus_1;
+            end
+    sr_rec_prepare:begin
+                case (lcr[/*`UART_LC_BITS*/1:0])  // number of bits in a word
+                2'b00 : rbit_counter <=  3'b100;
+                2'b01 : rbit_counter <=  3'b101;
+                2'b10 : rbit_counter <=  3'b110;
+                2'b11 : rbit_counter <=  3'b111;
+                endcase
+                if (rcounter16_eq_0)
+                begin
+                    rstate        <=  sr_rec_bit;
+                    rcounter16    <=  4'b1110;
+                    rshift        <=  0;
+                end
+                else
+                    rstate <=  sr_rec_prepare;
+                rcounter16 <=  rcounter16_minus_1;
+            end
+    sr_rec_bit :    begin
+                if (rcounter16_eq_0)
+                    rstate <=  sr_end_bit;
+                if (rcounter16_eq_7) // read the bit
+                    case (lcr[/*`UART_LC_BITS*/1:0])  // number of bits in a word
+                    2'b00 : rshift[4:0]  <=  {srx_pad_i, rshift[4:1]};
+                    2'b01 : rshift[5:0]  <=  {srx_pad_i, rshift[5:1]};
+                    2'b10 : rshift[6:0]  <=  {srx_pad_i, rshift[6:1]};
+                    2'b11 : rshift[7:0]  <=  {srx_pad_i, rshift[7:1]};
+                    endcase
+                rcounter16 <=  rcounter16_minus_1;
+            end
+    sr_end_bit :   begin
+                if (rbit_counter==3'b0) // no more bits in word
+                    if (lcr[`UART_LC_PE]) // choose state based on parity
+                        rstate <=  sr_rec_parity;
+                    else
+                    begin
+                        rstate <=  sr_rec_stop;
+                        rparity_error <=  1'b0;  // no parity - no error :)
+                    end
+                else        // else we have more bits to read
+                begin
+                    rstate <=  sr_rec_bit;
+                    rbit_counter <=  rbit_counter - 1'b1;
+                end
+                rcounter16 <=  4'b1110;
+            end
+    sr_rec_parity: begin
+                if (rcounter16_eq_7)    // read the parity
+                begin
+                    rparity <=  srx_pad_i;
+                    rstate <=  sr_ca_lc_parity;
+                end
+                rcounter16 <=  rcounter16_minus_1;
+            end
+    sr_ca_lc_parity : begin    // rcounter equals 6
+                rcounter16  <=  rcounter16_minus_1;
+                rparity_xor <=  ^{rshift,rparity}; // calculate parity on all incoming data
+                rstate      <=  sr_check_parity;
+              end
+    sr_check_parity: begin      // rcounter equals 5
+                case ({lcr[`UART_LC_EP],lcr[`UART_LC_SP]})
+                    2'b00: rparity_error <=   rparity_xor == 0;  // no error if parity 1
+                    2'b01: rparity_error <=  ~rparity;      // parity should sticked to 1
+                    2'b10: rparity_error <=   rparity_xor == 1;   // error if parity is odd
+                    2'b11: rparity_error <=   rparity;      // parity should be sticked to 0
+                endcase
+                rcounter16 <=  rcounter16_minus_1;
+                rstate <=  sr_wait1;
+              end
+    sr_wait1 :    if (rcounter16_eq_0)
+            begin
+                rstate <=  sr_rec_stop;
+                rcounter16 <=  4'b1110;
+            end
+            else
+                rcounter16 <=  rcounter16_minus_1;
+    sr_rec_stop :    begin
+                if (rcounter16_eq_7)    // read the parity
+                begin
+                    rframing_error <=  !srx_pad_i; // no framing error if input is 1 (stop bit)
+                    rstate <=  sr_push;
+                end
+                rcounter16 <=  rcounter16_minus_1;
+            end
+    sr_push :    begin
 ///////////////////////////////////////
-//				$display($time, ": received: %b", rf_data_in);
+//                $display($time, ": received: %b", rf_data_in);
         if(srx_pad_i | break_error)
           begin
             if(break_error)
-        		  rf_data_in 	<=  {8'b0, 3'b100}; // break input (empty character) to receiver FIFO
+                  rf_data_in     <=  {8'b0, 3'b100}; // break input (empty character) to receiver FIFO
             else
-        			rf_data_in  <=  {rshift, 1'b0, rparity_error, rframing_error};
-      		  rf_push 		  <=  1'b1;
-    				rstate        <=  sr_idle;
+                    rf_data_in  <=  {rshift, 1'b0, rparity_error, rframing_error};
+                rf_push           <=  1'b1;
+                    rstate        <=  sr_idle;
           end
         else if(~rframing_error)  // There's always a framing before break_error -> wait for break or srx_pad_i
           begin
-       			rf_data_in  <=  {rshift, 1'b0, rparity_error, rframing_error};
-      		  rf_push 		  <=  1'b1;
-      			rcounter16 	  <=  4'b1110;
-    				rstate 		  <=  sr_rec_start;
+                   rf_data_in  <=  {rshift, 1'b0, rparity_error, rframing_error};
+                rf_push           <=  1'b1;
+                  rcounter16       <=  4'b1110;
+                    rstate           <=  sr_rec_start;
           end
-                      
-			end
-	default : rstate <=  sr_idle;
-	endcase
+
+            end
+    default : rstate <=  sr_idle;
+    endcase
   end  // if (enable)
 end // always of receiver
 
@@ -553,56 +553,56 @@ end
 
 assign rf_push_pulse = rf_push & ~rf_push_q;
 
-  
+
 //
 // Break condition detection.
 // Works in conjuction with the receiver state machine
 
-reg 	[9:0]	toc_value; // value to be set to timeout counter
+reg     [9:0]    toc_value; // value to be set to timeout counter
 
 always @(lcr)
-	case (lcr[3:0])
-		4'b0000										: toc_value = 447; // 7 bits
-		4'b0100										: toc_value = 479; // 7.5 bits
-		4'b0001,	4'b1000							: toc_value = 511; // 8 bits
-		4'b1100										: toc_value = 543; // 8.5 bits
-		4'b0010, 4'b0101, 4'b1001				: toc_value = 575; // 9 bits
-		4'b0011, 4'b0110, 4'b1010, 4'b1101	: toc_value = 639; // 10 bits
-		4'b0111, 4'b1011, 4'b1110				: toc_value = 703; // 11 bits
-		4'b1111										: toc_value = 767; // 12 bits
-	endcase // case(lcr[3:0])
+    case (lcr[3:0])
+        4'b0000                                        : toc_value = 447; // 7 bits
+        4'b0100                                        : toc_value = 479; // 7.5 bits
+        4'b0001,    4'b1000                            : toc_value = 511; // 8 bits
+        4'b1100                                        : toc_value = 543; // 8.5 bits
+        4'b0010, 4'b0101, 4'b1001                : toc_value = 575; // 9 bits
+        4'b0011, 4'b0110, 4'b1010, 4'b1101    : toc_value = 639; // 10 bits
+        4'b0111, 4'b1011, 4'b1110                : toc_value = 703; // 11 bits
+        4'b1111                                        : toc_value = 767; // 12 bits
+    endcase // case(lcr[3:0])
 
-wire [7:0] 	brc_value; // value to be set to break counter
-assign 		brc_value = toc_value[9:2]; // the same as timeout but 1 insead of 4 character times
+wire [7:0]     brc_value; // value to be set to break counter
+assign         brc_value = toc_value[9:2]; // the same as timeout but 1 insead of 4 character times
 
 always @(posedge clk or posedge wb_rst_i)
 begin
-	if (wb_rst_i)
-		counter_b <=  8'd159;
-	else
-	if (srx_pad_i)
-		counter_b <=  brc_value; // character time length - 1
-	else
-	if(enable & counter_b != 8'b0)            // only work on enable times  break not reached.
-		counter_b <=  counter_b - 1;  // decrement break counter
+    if (wb_rst_i)
+        counter_b <=  8'd159;
+    else
+    if (srx_pad_i)
+        counter_b <=  brc_value; // character time length - 1
+    else
+    if(enable & counter_b != 8'b0)            // only work on enable times  break not reached.
+        counter_b <=  counter_b - 1;  // decrement break counter
 end // always of break condition detection
 
 ///
 /// Timeout condition detection
-reg	[9:0]	counter_t;	// counts the timeout condition clocks
+reg    [9:0]    counter_t;    // counts the timeout condition clocks
 
 always @(posedge clk or posedge wb_rst_i)
 begin
-	if (wb_rst_i)
-		counter_t <=  10'd639; // 10 bits for the default 8N1
-	else
-		if(rf_push_pulse || rf_pop || rf_count == 0) // counter is reset when RX FIFO is empty, accessed or above trigger level
-			counter_t <=  toc_value;
-		else
-		if (enable && counter_t != 10'b0)  // we don't want to underflow
-			counter_t <=  counter_t - 1;		
+    if (wb_rst_i)
+        counter_t <=  10'd639; // 10 bits for the default 8N1
+    else
+        if(rf_push_pulse || rf_pop || rf_count == 0) // counter is reset when RX FIFO is empty, accessed or above trigger level
+            counter_t <=  toc_value;
+        else
+        if (enable && counter_t != 10'b0)  // we don't want to underflow
+            counter_t <=  counter_t - 1;
 end
-	
+
 endmodule
 //////////////////////////////////////////////////////////////////////
 ////                                                              ////
@@ -839,7 +839,7 @@ endmodule
 `define UART_DL2 15:8
 
 module uart_regs (clk,
-    wb_rst_i, wb_addr_i, wb_dat_i, wb_dat_o, wb_we_i, wb_re_i, 
+    wb_rst_i, wb_addr_i, wb_dat_i, wb_dat_o, wb_we_i, wb_re_i,
 
 // additional signals
     modem_inputs,
@@ -849,7 +849,7 @@ module uart_regs (clk,
 `else
 // debug interface signals    enabled
 ier, iir, fcr, mcr, lcr, msr, lsr, rf_count, tf_count, tstate, rstate,
-`endif                
+`endif
     rts_pad_o, dtr_pad_o, int_o
 `ifdef UART_HAS_BAUDRATE_OUTPUT
     , baud_o
@@ -1007,11 +1007,11 @@ wire serial_in = loopback ? serial_out : srx_pad;
 assign stx_pad_o = loopback ? 1'b1 : serial_out;
 
 // Receiver Instance
-uart_receiver receiver(clk, wb_rst_i, lcr, rf_pop, serial_in, enable, 
+uart_receiver receiver(clk, wb_rst_i, lcr, rf_pop, serial_in, enable,
     counter_t, rf_count, rf_data_out, rf_error_bit, rf_overrun, rx_reset, lsr_mask, rstate, rf_push_pulse);
 
 
-// Asynchronous reading here because the outputs are sampled in uart_wb.v file 
+// Asynchronous reading here because the outputs are sampled in uart_wb.v file
 always @(dl or dlab or ier or iir or scratch
             or lcr or lsr or msr or rf_data_out or wb_addr_i or wb_re_i)   // asynchrounous reading
 begin
@@ -1032,7 +1032,7 @@ end // always @ (dl or dlab or ier or iir or scratch...
 always @(posedge clk or posedge wb_rst_i)
 begin
     if (wb_rst_i)
-        rf_pop <=  0; 
+        rf_pop <=  0;
     else
     if (rf_pop)    // restore the signal to 0 after one clock cycle
         rf_pop <=  0;
@@ -1110,7 +1110,7 @@ always @(posedge clk or posedge wb_rst_i)
 // FIFO Control Register and rx_reset, tx_reset signals
 always @(posedge clk or posedge wb_rst_i)
     if (wb_rst_i) begin
-        fcr <=  2'b11; 
+        fcr <=  2'b11;
         rx_reset <=  0;
         tx_reset <=  0;
     end else
@@ -1126,7 +1126,7 @@ always @(posedge clk or posedge wb_rst_i)
 // Modem Control Register
 always @(posedge clk or posedge wb_rst_i)
     if (wb_rst_i)
-        mcr <=  5'b0; 
+        mcr <=  5'b0;
     else
     if (wb_we_i && wb_addr_i==`UART_REG_MC)
             mcr <=  wb_dat_i[4:0];
@@ -1175,7 +1175,7 @@ always @(fcr)
         2'b10 : trigger_level = 8;
         2'b11 : trigger_level = 14;
     endcase // case(fcr[`UART_FC_TL])
-    
+
 //
 //  STATUS REGISTERS  //
 //
@@ -1220,7 +1220,7 @@ always @(posedge clk or posedge wb_rst_i)
 always @(posedge clk or posedge wb_rst_i)
     if (wb_rst_i) lsr0r <=  0;
     else lsr0r <=  (rf_count==1 && rf_pop && !rf_push_pulse || rx_reset) ? 0 : // deassert condition
-                      lsr0r || (lsr0 && ~lsr0_d); // set on rise of lsr0 and keep asserted until deasserted 
+                      lsr0r || (lsr0 && ~lsr0_d); // set on rise of lsr0 and keep asserted until deasserted
 
 // lsr bit 1 (receiver overrun)
 reg lsr1_d; // delayed
@@ -1300,7 +1300,7 @@ always @(posedge clk or posedge wb_rst_i)
     else lsr7r <=  lsr_mask ? 0 : lsr7r || (lsr7 && ~lsr7_d);
 
 // Frequency divider
-always @(posedge clk or posedge wb_rst_i) 
+always @(posedge clk or posedge wb_rst_i)
 begin
     if (wb_rst_i)
         dlc <=  0;
@@ -1412,37 +1412,37 @@ reg     ti_int_pnd;
 
 // interrupt pending flags assignments
 always  @(posedge clk or posedge wb_rst_i)
-    if (wb_rst_i) rls_int_pnd <=  0; 
-    else 
+    if (wb_rst_i) rls_int_pnd <=  0;
+    else
         rls_int_pnd <=  lsr_mask ? 0 :                          // reset condition
                             rls_int_rise ? 1 :                        // latch condition
                             rls_int_pnd && ier[`UART_IE_RLS];    // default operation: remove if masked
 
 always  @(posedge clk or posedge wb_rst_i)
-    if (wb_rst_i) rda_int_pnd <=  0; 
-    else 
+    if (wb_rst_i) rda_int_pnd <=  0;
+    else
         rda_int_pnd <=  ((rf_count == {1'b0,trigger_level}) && fifo_read) ? 0 :      // reset condition
                             rda_int_rise ? 1 :                        // latch condition
                             rda_int_pnd && ier[`UART_IE_RDA];    // default operation: remove if masked
 
 always  @(posedge clk or posedge wb_rst_i)
-    if (wb_rst_i) thre_int_pnd <=  0; 
-    else 
-        thre_int_pnd <=  fifo_write || (iir_read & ~iir[`UART_II_IP] & iir[`UART_II_II] == `UART_II_THRE)? 0 : 
+    if (wb_rst_i) thre_int_pnd <=  0;
+    else
+        thre_int_pnd <=  fifo_write || (iir_read & ~iir[`UART_II_IP] & iir[`UART_II_II] == `UART_II_THRE)? 0 :
                             thre_int_rise ? 1 :
                             thre_int_pnd && ier[`UART_IE_THRE];
 
 always  @(posedge clk or posedge wb_rst_i)
-    if (wb_rst_i) ms_int_pnd <=  0; 
-    else 
-        ms_int_pnd <=  msr_read ? 0 : 
+    if (wb_rst_i) ms_int_pnd <=  0;
+    else
+        ms_int_pnd <=  msr_read ? 0 :
                             ms_int_rise ? 1 :
                             ms_int_pnd && ier[`UART_IE_MS];
 
 always  @(posedge clk or posedge wb_rst_i)
-    if (wb_rst_i) ti_int_pnd <=  0; 
-    else 
-        ti_int_pnd <=  fifo_read ? 0 : 
+    if (wb_rst_i) ti_int_pnd <=  0;
+    else
+        ti_int_pnd <=  fifo_read ? 0 :
                             ti_int_rise ? 1 :
                             ti_int_pnd && ier[`UART_IE_RDA];
 // end of pending flags
@@ -1450,10 +1450,10 @@ always  @(posedge clk or posedge wb_rst_i)
 // INT_O logic
 always @(posedge clk or posedge wb_rst_i)
 begin
-    if (wb_rst_i)    
+    if (wb_rst_i)
         int_o <=  1'b0;
     else
-        int_o <=  
+        int_o <=
                     rls_int_pnd        ?    ~lsr_mask                    :
                     rda_int_pnd        ? 1                                :
                     ti_int_pnd        ? ~fifo_read                    :
@@ -1659,18 +1659,18 @@ endmodule
 
 `include "uart_defines.v"
 
-module uart_rfifo (clk, 
-	wb_rst_i, data_in, data_out,
+module uart_rfifo (clk,
+    wb_rst_i, data_in, data_out,
 // Control signals
-	push, // push strobe, active high
-	pop,   // pop strobe, active high
+    push, // push strobe, active high
+    pop,   // pop strobe, active high
 // status signals
-	overrun,
-	count,
-	error_bit,
-	fifo_reset,
-	reset_status
-	);
+    overrun,
+    count,
+    error_bit,
+    fifo_reset,
+    reset_status
+    );
 
 
 // FIFO parameters
@@ -1679,111 +1679,111 @@ parameter fifo_depth = `UART_FIFO_DEPTH;
 parameter fifo_pointer_w = `UART_FIFO_POINTER_W;
 parameter fifo_counter_w = `UART_FIFO_COUNTER_W;
 
-input				clk;
-input				wb_rst_i;
-input				push;
-input				pop;
-input	[fifo_width-1:0]	data_in;
-input				fifo_reset;
+input                clk;
+input                wb_rst_i;
+input                push;
+input                pop;
+input    [fifo_width-1:0]    data_in;
+input                fifo_reset;
 input       reset_status;
 
-output	[fifo_width-1:0]	data_out;
-output				overrun;
-output	[fifo_counter_w-1:0]	count;
-output				error_bit;
+output    [fifo_width-1:0]    data_out;
+output                overrun;
+output    [fifo_counter_w-1:0]    count;
+output                error_bit;
 
-wire	[fifo_width-1:0]	data_out;
+wire    [fifo_width-1:0]    data_out;
 wire [7:0] data8_out;
 // flags FIFO
-reg	[2:0]	fifo[fifo_depth-1:0];
+reg    [2:0]    fifo[fifo_depth-1:0];
 
 // FIFO pointers
-reg	[fifo_pointer_w-1:0]	top    = 'h0;
-reg	[fifo_pointer_w-1:0]	bottom = 'h0;
+reg    [fifo_pointer_w-1:0]    top    = 'h0;
+reg    [fifo_pointer_w-1:0]    bottom = 'h0;
 
-reg	[fifo_counter_w-1:0]	count  = 'h0;
-reg				overrun;
+reg    [fifo_counter_w-1:0]    count  = 'h0;
+reg                overrun;
 
 wire [fifo_pointer_w-1:0] top_plus_1 = top + 1'b1;
 
-raminfr #(fifo_pointer_w,8,fifo_depth) rfifo  
-        (.clk(clk), 
-			.we(push), 
-			.a(top), 
-			.dpra(bottom), 
-			.di(data_in[fifo_width-1:fifo_width-8]), 
-			.dpo(data8_out)
-		); 
+raminfr #(fifo_pointer_w,8,fifo_depth) rfifo
+        (.clk(clk),
+            .we(push),
+            .a(top),
+            .dpra(bottom),
+            .di(data_in[fifo_width-1:fifo_width-8]),
+            .dpo(data8_out)
+        );
 
 always @(posedge clk or posedge wb_rst_i) // synchronous FIFO
 begin
-	if (wb_rst_i)
-	begin
-		top		<=  'b0;
-		bottom		<=  'b0;
-		count		<=  'b0;
-		fifo[0] <=  0;
-		fifo[1] <=  0;
-		fifo[2] <=  0;
-		fifo[3] <=  0;
-		fifo[4] <=  0;
-		fifo[5] <=  0;
-		fifo[6] <=  0;
-		fifo[7] <=  0;
-		fifo[8] <=  0;
-		fifo[9] <=  0;
-		fifo[10] <=  0;
-		fifo[11] <=  0;
-		fifo[12] <=  0;
-		fifo[13] <=  0;
-		fifo[14] <=  0;
-		fifo[15] <=  0;
-	end
-	else
-	if (fifo_reset) begin
-		top		<=  'b0;
-		bottom		<=  'b0;
-		count		<=  'b0;
-		fifo[0] <=  0;
-		fifo[1] <=  0;
-		fifo[2] <=  0;
-		fifo[3] <=  0;
-		fifo[4] <=  0;
-		fifo[5] <=  0;
-		fifo[6] <=  0;
-		fifo[7] <=  0;
-		fifo[8] <=  0;
-		fifo[9] <=  0;
-		fifo[10] <=  0;
-		fifo[11] <=  0;
-		fifo[12] <=  0;
-		fifo[13] <=  0;
-		fifo[14] <=  0;
-		fifo[15] <=  0;
-	end
+    if (wb_rst_i)
+    begin
+        top        <=  'b0;
+        bottom        <=  'b0;
+        count        <=  'b0;
+        fifo[0] <=  0;
+        fifo[1] <=  0;
+        fifo[2] <=  0;
+        fifo[3] <=  0;
+        fifo[4] <=  0;
+        fifo[5] <=  0;
+        fifo[6] <=  0;
+        fifo[7] <=  0;
+        fifo[8] <=  0;
+        fifo[9] <=  0;
+        fifo[10] <=  0;
+        fifo[11] <=  0;
+        fifo[12] <=  0;
+        fifo[13] <=  0;
+        fifo[14] <=  0;
+        fifo[15] <=  0;
+    end
+    else
+    if (fifo_reset) begin
+        top        <=  'b0;
+        bottom        <=  'b0;
+        count        <=  'b0;
+        fifo[0] <=  0;
+        fifo[1] <=  0;
+        fifo[2] <=  0;
+        fifo[3] <=  0;
+        fifo[4] <=  0;
+        fifo[5] <=  0;
+        fifo[6] <=  0;
+        fifo[7] <=  0;
+        fifo[8] <=  0;
+        fifo[9] <=  0;
+        fifo[10] <=  0;
+        fifo[11] <=  0;
+        fifo[12] <=  0;
+        fifo[13] <=  0;
+        fifo[14] <=  0;
+        fifo[15] <=  0;
+    end
   else
-	begin
-		case ({push, pop})
-		2'b10 : if (count<fifo_depth)  // overrun condition
-			begin
-				top       <=  top_plus_1;
-				fifo[top] <=  data_in[2:0];
-				count     <=  count + 1'b1;
-			end
-		2'b01 : if(count>0)
-			begin
+    begin
+        case ({push, pop})
+        2'b10 : if (count<fifo_depth)  // overrun condition
+            begin
+                top       <=  top_plus_1;
+                fifo[top] <=  data_in[2:0];
+                count     <=  count + 1'b1;
+            end
+        2'b01 : if(count>0)
+            begin
         fifo[bottom] <=  0;
-				bottom   <=  bottom + 1'b1;
-				count	 <=  count - 1'b1;
-			end
-		2'b11 : begin
-				bottom   <=  bottom + 1'b1;
-				top       <=  top_plus_1;
-				fifo[top] <=  data_in[2:0];
-		        end
+                bottom   <=  bottom + 1'b1;
+                count     <=  count - 1'b1;
+            end
+        2'b11 : begin
+                bottom   <=  bottom + 1'b1;
+                top       <=  top_plus_1;
+                fifo[top] <=  data_in[2:0];
+                end
     default: ;
-		endcase
-	end
+        endcase
+    end
 end   // always
 
 always @(posedge clk or posedge wb_rst_i) // synchronous FIFO
@@ -1791,7 +1791,7 @@ begin
   if (wb_rst_i)
     overrun   <=  1'b0;
   else
-  if(fifo_reset | reset_status) 
+  if(fifo_reset | reset_status)
     overrun   <=  1'b0;
   else
   if(push & ~pop & (count==fifo_depth))
@@ -1805,29 +1805,29 @@ assign data_out = {data8_out,fifo[bottom]};
 // Additional logic for detection of error conditions (parity and framing) inside the FIFO
 // for the Line Status Register bit 7
 
-wire	[2:0]	word0 = fifo[0];
-wire	[2:0]	word1 = fifo[1];
-wire	[2:0]	word2 = fifo[2];
-wire	[2:0]	word3 = fifo[3];
-wire	[2:0]	word4 = fifo[4];
-wire	[2:0]	word5 = fifo[5];
-wire	[2:0]	word6 = fifo[6];
-wire	[2:0]	word7 = fifo[7];
+wire    [2:0]    word0 = fifo[0];
+wire    [2:0]    word1 = fifo[1];
+wire    [2:0]    word2 = fifo[2];
+wire    [2:0]    word3 = fifo[3];
+wire    [2:0]    word4 = fifo[4];
+wire    [2:0]    word5 = fifo[5];
+wire    [2:0]    word6 = fifo[6];
+wire    [2:0]    word7 = fifo[7];
 
-wire	[2:0]	word8 = fifo[8];
-wire	[2:0]	word9 = fifo[9];
-wire	[2:0]	word10 = fifo[10];
-wire	[2:0]	word11 = fifo[11];
-wire	[2:0]	word12 = fifo[12];
-wire	[2:0]	word13 = fifo[13];
-wire	[2:0]	word14 = fifo[14];
-wire	[2:0]	word15 = fifo[15];
+wire    [2:0]    word8 = fifo[8];
+wire    [2:0]    word9 = fifo[9];
+wire    [2:0]    word10 = fifo[10];
+wire    [2:0]    word11 = fifo[11];
+wire    [2:0]    word12 = fifo[12];
+wire    [2:0]    word13 = fifo[13];
+wire    [2:0]    word14 = fifo[14];
+wire    [2:0]    word15 = fifo[15];
 
 // a 1 is returned if any of the error bits in the fifo is 1
-assign	error_bit = |(word0[2:0]  | word1[2:0]  | word2[2:0]  | word3[2:0]  |
-            		      word4[2:0]  | word5[2:0]  | word6[2:0]  | word7[2:0]  |
-            		      word8[2:0]  | word9[2:0]  | word10[2:0] | word11[2:0] |
-            		      word12[2:0] | word13[2:0] | word14[2:0] | word15[2:0] );
+assign    error_bit = |(word0[2:0]  | word1[2:0]  | word2[2:0]  | word3[2:0]  |
+                          word4[2:0]  | word5[2:0]  | word6[2:0]  | word7[2:0]  |
+                          word8[2:0]  | word9[2:0]  | word10[2:0] | word11[2:0] |
+                          word12[2:0] | word13[2:0] | word14[2:0] | word15[2:0] );
 
 endmodule
 //////////////////////////////////////////////////////////////////////
@@ -1939,7 +1939,7 @@ begin
     if (rst_i)
         flop_0 <=  {width{init_value}};
     else
-        flop_0 <=  async_dat_i;    
+        flop_0 <=  async_dat_i;
 end
 
 // second stage
@@ -1950,7 +1950,7 @@ begin
     else if (stage1_rst_i)
         sync_dat_o <=  {width{init_value}};
     else if (stage1_clk_en_i)
-        sync_dat_o <=  flop_0;       
+        sync_dat_o <=  flop_0;
 end
 
 endmodule
@@ -2100,7 +2100,7 @@ endmodule
 
 `include "uart_defines.v"
 
-module uart_tfifo (clk, 
+module uart_tfifo (clk,
     wb_rst_i, data_in, data_out,
 // Control signals
     push, // push strobe, active high
@@ -2141,14 +2141,14 @@ reg    [fifo_counter_w-1:0] count  = 'h0;
 reg                         overrun;
 wire [fifo_pointer_w-1:0] top_plus_1 = top + 1'b1;
 
-raminfr #(fifo_pointer_w,fifo_width,fifo_depth) tfifo  
-        (   .clk (clk), 
-            .we  (push), 
-            .a   (top), 
-            .dpra(bottom), 
-            .di  (data_in), 
+raminfr #(fifo_pointer_w,fifo_width,fifo_depth) tfifo
+        (   .clk (clk),
+            .we  (push),
+            .a   (top),
+            .dpra(bottom),
+            .di  (data_in),
             .dpo (data_out)
-        ); 
+        );
 
 
 always @(posedge clk or posedge wb_rst_i) // synchronous FIFO
@@ -2189,7 +2189,7 @@ begin
   if (wb_rst_i)
     overrun   <=  1'b0;
   else
-  if(fifo_reset | reset_status) 
+  if(fifo_reset | reset_status)
     overrun   <=  1'b0;
   else
   if(push & (count==fifo_depth))
@@ -2389,7 +2389,7 @@ wire [`UART_FIFO_COUNTER_W-1:0] tf_count;
 assign tf_data_in = wb_dat_i;
 
 uart_tfifo fifo_tx(    // error bit signal is not used in transmitter FIFO
-    .clk         ( clk        ), 
+    .clk         ( clk        ),
     .wb_rst_i    ( wb_rst_i    ),
     .data_in     ( tf_data_in    ),
     .data_out    ( tf_data_out    ),
@@ -2555,7 +2555,7 @@ assign stx_pad_o = lcr[`UART_LC_BC] ? 1'b0 : stx_o_tmp;    // Break condition
            $dumpvars(1, tf_push, tf_pop, tf_overrun, tx_reset, lsr_mask);
    end
 `endif
-    
+
 endmodule
 //////////////////////////////////////////////////////////////////////
 ////                                                              ////
@@ -2687,7 +2687,7 @@ endmodule
 //
 //
 
-// UART core WISHBONE interface 
+// UART core WISHBONE interface
 //
 // Author: Jacob Gorban   (jacob.gorban@flextronicssemi.com)
 // Company: Flextronics Semiconductor
@@ -2700,165 +2700,165 @@ endmodule
 `include "uart_defines.v"
 `define LITLE_ENDIAN
 `define DATA_BUS_WIDTH_8
- 
-module uart_wb (clk, wb_rst_i, 
-	wb_we_i, wb_stb_i, wb_cyc_i, wb_ack_o, wb_adr_i,
-	wb_adr_int, wb_dat_i, wb_dat_o, wb_dat8_i, wb_dat8_o, wb_dat32_o, wb_sel_i,
-	we_o, re_o // Write and read enable output for the core
+
+module uart_wb (clk, wb_rst_i,
+    wb_we_i, wb_stb_i, wb_cyc_i, wb_ack_o, wb_adr_i,
+    wb_adr_int, wb_dat_i, wb_dat_o, wb_dat8_i, wb_dat8_o, wb_dat32_o, wb_sel_i,
+    we_o, re_o // Write and read enable output for the core
 );
 
-input 		  clk;
+input           clk;
 
-// WISHBONE interface	
-input 		  wb_rst_i;
-input 		  wb_we_i;
-input 		  wb_stb_i;
-input 		  wb_cyc_i;
+// WISHBONE interface
+input           wb_rst_i;
+input           wb_we_i;
+input           wb_stb_i;
+input           wb_cyc_i;
 input [3:0]   wb_sel_i;
-input [`UART_ADDR_WIDTH-1:0] 	wb_adr_i; //WISHBONE address line
+input [`UART_ADDR_WIDTH-1:0]     wb_adr_i; //WISHBONE address line
 
 `ifdef DATA_BUS_WIDTH_8
-input [7:0]  wb_dat_i; //input WISHBONE bus 
+input [7:0]  wb_dat_i; //input WISHBONE bus
 output [7:0] wb_dat_o;
-reg [7:0] 	 wb_dat_o;
-wire [7:0] 	 wb_dat_i;
-reg [7:0] 	 wb_dat_is;
+reg [7:0]      wb_dat_o;
+wire [7:0]      wb_dat_i;
+reg [7:0]      wb_dat_is;
 `else // for 32 data bus mode
-input [31:0]  wb_dat_i; //input WISHBONE bus 
+input [31:0]  wb_dat_i; //input WISHBONE bus
 output [31:0] wb_dat_o;
-reg [31:0] 	  wb_dat_o;
+reg [31:0]       wb_dat_o;
 wire [31:0]   wb_dat_i;
-reg [31:0] 	  wb_dat_is;
+reg [31:0]       wb_dat_is;
 `endif // !`ifdef DATA_BUS_WIDTH_8
 
-output [`UART_ADDR_WIDTH-1:0]	wb_adr_int; // internal signal for address bus
+output [`UART_ADDR_WIDTH-1:0]    wb_adr_int; // internal signal for address bus
 input [7:0]   wb_dat8_o; // internal 8 bit output to be put into wb_dat_o
 output [7:0]  wb_dat8_i;
 input [31:0]  wb_dat32_o; // 32 bit data output (for debug interface)
-output 		  wb_ack_o;
-output 		  we_o;
-output 		  re_o;
+output           wb_ack_o;
+output           we_o;
+output           re_o;
 
-wire 			  we_o;
-reg 			  wb_ack_o;
-reg [7:0] 	  wb_dat8_i;
-wire [7:0] 	  wb_dat8_o;
-wire [`UART_ADDR_WIDTH-1:0]	wb_adr_int; // internal signal for address bus
-reg [`UART_ADDR_WIDTH-1:0]	wb_adr_is;
-reg 								wb_we_is;
-reg 								wb_cyc_is;
-reg 								wb_stb_is;
-reg [3:0] 						wb_sel_is;
+wire               we_o;
+reg               wb_ack_o;
+reg [7:0]       wb_dat8_i;
+wire [7:0]       wb_dat8_o;
+wire [`UART_ADDR_WIDTH-1:0]    wb_adr_int; // internal signal for address bus
+reg [`UART_ADDR_WIDTH-1:0]    wb_adr_is;
+reg                                 wb_we_is;
+reg                                 wb_cyc_is;
+reg                                 wb_stb_is;
+reg [3:0]                         wb_sel_is;
 wire [3:0]   wb_sel_i;
-reg 			 wre ;// timing control signal for write or read enable
+reg              wre ;// timing control signal for write or read enable
 
 // wb_ack_o FSM
-reg [1:0] 	 wbstate;
+reg [1:0]      wbstate;
 always  @(posedge clk or posedge wb_rst_i)
-	if (wb_rst_i) begin
-		wb_ack_o <= 1'b0;
-		wbstate <= 0;
-		wre <= 1'b1;
-	end else
-		case (wbstate)
-			0: begin
-				if (wb_stb_is & wb_cyc_is) begin
-					wre <= 0;
-					wbstate <= 1;
-					wb_ack_o <= 1;
-				end else begin
-					wre <= 1;
-					wb_ack_o <= 0;
-				end
-			end
-			1: begin
-			   wb_ack_o <= 0;
-				wbstate <= 2;
-				wre <= 0;
-			end
-			2,3: begin
-				wb_ack_o <= 0;
-				wbstate <= 0;
-				wre <= 0;
-			end
-		endcase
+    if (wb_rst_i) begin
+        wb_ack_o <= 1'b0;
+        wbstate <= 0;
+        wre <= 1'b1;
+    end else
+        case (wbstate)
+            0: begin
+                if (wb_stb_is & wb_cyc_is) begin
+                    wre <= 0;
+                    wbstate <= 1;
+                    wb_ack_o <= 1;
+                end else begin
+                    wre <= 1;
+                    wb_ack_o <= 0;
+                end
+            end
+            1: begin
+               wb_ack_o <= 0;
+                wbstate <= 2;
+                wre <= 0;
+            end
+            2,3: begin
+                wb_ack_o <= 0;
+                wbstate <= 0;
+                wre <= 0;
+            end
+        endcase
 
-assign we_o =  wb_we_is & wb_stb_is & wb_cyc_is & wre ; //WE for registers	
-assign re_o = ~wb_we_is & wb_stb_is & wb_cyc_is & wre ; //RE for registers	
+assign we_o =  wb_we_is & wb_stb_is & wb_cyc_is & wre ; //WE for registers
+assign re_o = ~wb_we_is & wb_stb_is & wb_cyc_is & wre ; //RE for registers
 
 // Sample input signals
 always  @(posedge clk or posedge wb_rst_i)
-	if (wb_rst_i) begin
-		wb_adr_is <= 0;
-		wb_we_is <= 0;
-		wb_cyc_is <= 0;
-		wb_stb_is <= 0;
-		wb_dat_is <= 0;
-		wb_sel_is <= 0;
-	end else begin
-		wb_adr_is <= wb_adr_i;
-		wb_we_is <= wb_we_i;
-		wb_cyc_is <= wb_cyc_i;
-		wb_stb_is <= wb_stb_i;
-		wb_dat_is <= wb_dat_i;
-		wb_sel_is <= wb_sel_i;
-	end
+    if (wb_rst_i) begin
+        wb_adr_is <= 0;
+        wb_we_is <= 0;
+        wb_cyc_is <= 0;
+        wb_stb_is <= 0;
+        wb_dat_is <= 0;
+        wb_sel_is <= 0;
+    end else begin
+        wb_adr_is <= wb_adr_i;
+        wb_we_is <= wb_we_i;
+        wb_cyc_is <= wb_cyc_i;
+        wb_stb_is <= wb_stb_i;
+        wb_dat_is <= wb_dat_i;
+        wb_sel_is <= wb_sel_i;
+    end
 
 `ifdef DATA_BUS_WIDTH_8 // 8-bit data bus
 always @(posedge clk or posedge wb_rst_i)
-	if (wb_rst_i)
-		wb_dat_o <= 0;
-	else
-		wb_dat_o <= wb_dat8_o;
+    if (wb_rst_i)
+        wb_dat_o <= 0;
+    else
+        wb_dat_o <= wb_dat8_o;
 
 always @(wb_dat_is)
-	wb_dat8_i = wb_dat_is;
+    wb_dat8_i = wb_dat_is;
 
 assign wb_adr_int = wb_adr_is;
 
 `else // 32-bit bus
 // put output to the correct byte in 32 bits using select line
 always @(posedge clk or posedge wb_rst_i)
-	if (wb_rst_i)
-		wb_dat_o <= 0;
-	else if (re_o)
-		case (wb_sel_is)
-			4'b0001: wb_dat_o <= {24'b0, wb_dat8_o};
-			4'b0010: wb_dat_o <= {16'b0, wb_dat8_o, 8'b0};
-			4'b0100: wb_dat_o <= {8'b0, wb_dat8_o, 16'b0};
-			4'b1000: wb_dat_o <= {wb_dat8_o, 24'b0};
-			4'b1111: wb_dat_o <= wb_dat32_o; // debug interface output
- 			default: wb_dat_o <= 0;
-		endcase // case(wb_sel_i)
+    if (wb_rst_i)
+        wb_dat_o <= 0;
+    else if (re_o)
+        case (wb_sel_is)
+            4'b0001: wb_dat_o <= {24'b0, wb_dat8_o};
+            4'b0010: wb_dat_o <= {16'b0, wb_dat8_o, 8'b0};
+            4'b0100: wb_dat_o <= {8'b0, wb_dat8_o, 16'b0};
+            4'b1000: wb_dat_o <= {wb_dat8_o, 24'b0};
+            4'b1111: wb_dat_o <= wb_dat32_o; // debug interface output
+             default: wb_dat_o <= 0;
+        endcase // case(wb_sel_i)
 
 reg [1:0] wb_adr_int_lsb;
 
 always @(wb_sel_is or wb_dat_is)
 begin
-	case (wb_sel_is)
-		4'b0001 : wb_dat8_i = wb_dat_is[7:0];
-		4'b0010 : wb_dat8_i = wb_dat_is[15:8];
-		4'b0100 : wb_dat8_i = wb_dat_is[23:16];
-		4'b1000 : wb_dat8_i = wb_dat_is[31:24];
-		default : wb_dat8_i = wb_dat_is[7:0];
-	endcase // case(wb_sel_i)
+    case (wb_sel_is)
+        4'b0001 : wb_dat8_i = wb_dat_is[7:0];
+        4'b0010 : wb_dat8_i = wb_dat_is[15:8];
+        4'b0100 : wb_dat8_i = wb_dat_is[23:16];
+        4'b1000 : wb_dat8_i = wb_dat_is[31:24];
+        default : wb_dat8_i = wb_dat_is[7:0];
+    endcase // case(wb_sel_i)
 
   `ifdef LITLE_ENDIAN
-	case (wb_sel_is)
-		4'b0001 : wb_adr_int_lsb = 2'h0;
-		4'b0010 : wb_adr_int_lsb = 2'h1;
-		4'b0100 : wb_adr_int_lsb = 2'h2;
-		4'b1000 : wb_adr_int_lsb = 2'h3;
-		default : wb_adr_int_lsb = 2'h0;
-	endcase // case(wb_sel_i)
+    case (wb_sel_is)
+        4'b0001 : wb_adr_int_lsb = 2'h0;
+        4'b0010 : wb_adr_int_lsb = 2'h1;
+        4'b0100 : wb_adr_int_lsb = 2'h2;
+        4'b1000 : wb_adr_int_lsb = 2'h3;
+        default : wb_adr_int_lsb = 2'h0;
+    endcase // case(wb_sel_i)
   `else
-	case (wb_sel_is)
-		4'b0001 : wb_adr_int_lsb = 2'h3;
-		4'b0010 : wb_adr_int_lsb = 2'h2;
-		4'b0100 : wb_adr_int_lsb = 2'h1;
-		4'b1000 : wb_adr_int_lsb = 2'h0;
-		default : wb_adr_int_lsb = 2'h0;
-	endcase // case(wb_sel_i)
+    case (wb_sel_is)
+        4'b0001 : wb_adr_int_lsb = 2'h3;
+        4'b0010 : wb_adr_int_lsb = 2'h2;
+        4'b0100 : wb_adr_int_lsb = 2'h1;
+        4'b1000 : wb_adr_int_lsb = 2'h0;
+        default : wb_adr_int_lsb = 2'h0;
+    endcase // case(wb_sel_i)
   `endif
 end
 

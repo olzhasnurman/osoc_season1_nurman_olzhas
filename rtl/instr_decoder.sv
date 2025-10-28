@@ -5,17 +5,17 @@
 // ImmSrc is a signal designed to control immediate extension logic.
 // -----------------------------------------------------------------------
 
-module instr_decoder 
+module instr_decoder
 // Parameters.
 #(
     parameter OP_WIDTH  = 7,
               OUT_WIDTH = 3
 )
-// Ports. 
+// Ports.
 (
     input  logic [ OP_WIDTH  - 1:0 ] i_op,
     output logic [ OUT_WIDTH - 1:0 ] o_imm_src
-); 
+);
 
     //Decoder logic.
     /*
@@ -47,12 +47,12 @@ module instr_decoder
             7'b1100011: o_imm_src = 3'b010; // B type.
             7'b0100011: o_imm_src = 3'b001; // S type.
             7'b0010111: o_imm_src = 3'b100; // U type.
-            7'b0110111: o_imm_src = 3'b100; // U type. 
+            7'b0110111: o_imm_src = 3'b100; // U type.
             7'b0000011: o_imm_src = 3'b000; // I type.
             7'b0010011: o_imm_src = 3'b000; // I type.
             7'b1100111: o_imm_src = 3'b000; // I type.
             7'b0011011: o_imm_src = 3'b000; // I type.
-            7'b1110011: o_imm_src = 3'b101; // CSR. 
+            7'b1110011: o_imm_src = 3'b101; // CSR.
             default:    o_imm_src = 3'b000; // Default = for I type.
         endcase
     end

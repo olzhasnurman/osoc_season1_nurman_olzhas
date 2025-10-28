@@ -4,7 +4,7 @@
 // This is a reset syncronizer module.
 // ----------------------------------------------------------------------------------------------
 
-module reset_sync 
+module reset_sync
 (
     input  logic clk,
     input  logic arst,
@@ -17,5 +17,5 @@ module reset_sync
         if ( arst ) { arst_sync, rst_signal } <= 2'b11;
         else        { arst_sync, rst_signal } <= { rst_signal, 1'b0 };
     end
-    
+
 endmodule

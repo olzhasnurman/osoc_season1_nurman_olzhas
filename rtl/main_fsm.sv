@@ -2,22 +2,22 @@
 /* Copyright (c) 2024 Maveric NU. All rights reserved. */
 
 // -----------------------------------------------------------------------------------------
-// This is a main fsm unit that controls all the control signals based on instruction input. 
+// This is a main fsm unit that controls all the control signals based on instruction input.
 // -----------------------------------------------------------------------------------------
 
-module main_fsm   
-// Port decleration. 
+module main_fsm
+// Port decleration.
 (
     // Common clock & reset.
     input  logic       clk,
     input  logic       arst,
 
-    // Input interface. 
+    // Input interface.
     input  logic [ 2:0] i_instr_22_20,
     input  logic [ 6:0] i_op,
     input  logic [ 2:0] i_func_3,
     input  logic        i_func_7_4,
-    input  logic        i_func_7_0, 
+    input  logic        i_func_7_0,
     input  logic        i_func_7_1,
     input  logic        i_func_7_6,
     input  logic        i_pred_0,
@@ -29,7 +29,7 @@ module main_fsm
     input  logic        i_illegal_instr_load,
     input  logic        i_illegal_instr_alu,
     input  logic        i_timer_int,
-    input  logic        i_software_int, 
+    input  logic        i_software_int,
     input  logic        i_cacheable_flag,
     input  logic        i_done_axi,
     input  logic        i_clint_mmio_flag,
@@ -44,9 +44,9 @@ module main_fsm
     output logic        o_reg_write_en,
     output logic        o_pc_update,
     output logic        o_mem_write_en,
-    output logic        o_instr_write_en, 
+    output logic        o_instr_write_en,
     output logic        o_start_i_cache,
-    output logic        o_start_d_cache, 
+    output logic        o_start_d_cache,
     output logic        o_branch,
     output logic        o_mem_reg_we,
     output logic        o_fetch_state,
@@ -66,7 +66,7 @@ module main_fsm
     output logic [ 2:0] o_csr_write_addr_1,
     output logic [ 2:0] o_csr_write_addr_2,
     output logic [ 2:0] o_csr_read_addr
-);  
+);
 
     logic s_func_3_reduction;
     logic [2:0] s_csr_addr;
@@ -96,7 +96,7 @@ module main_fsm
         FENCE_I     = 4'b1111
     } t_state;
 
-    // State variables. 
+    // State variables.
     t_state PS;
     t_state NS;
 
@@ -118,10 +118,10 @@ module main_fsm
         ILLEGAL     = 4'b1101
     } t_instruction;
 
-    // Instruction decoder signal. 
+    // Instruction decoder signal.
     t_instruction instr;
 
-    // Instruction decoder. 
+    // Instruction decoder.
     always_comb begin
         case ( i_op )
             7'b0000011: instr = I_Type;
@@ -134,7 +134,7 @@ module main_fsm
             7'b1100011: instr = B_Type;
             7'b1101111: instr = J_Type;
             7'b0010111: instr = U_Type_ALU;
-            7'b0110111: instr = U_Type_LOAD; 
+            7'b0110111: instr = U_Type_LOAD;
             7'b0001111: instr = FENCE_Type;
             7'b1110011: instr = CSR_Type;
             default:    instr = ILLEGAL;
@@ -143,7 +143,7 @@ module main_fsm
 
 
     // -----------------------------------
-    // FSM 
+    // FSM
     // -----------------------------------
     // FSM: Synchronization.
     always_ff @( posedge clk, posedge arst ) begin
@@ -162,36 +162,36 @@ module main_fsm
                 if ( ( i_instr_addr_ma | i_timer_int | i_software_int ) & i_icache_idle ) NS = CALL_0;
                 else if ( i_stall_instr            ) NS = PS;
                 else                                 NS = DECODE;
-            end 
+            end
 
             DECODE: begin
                 case ( instr )
                     I_Type     : NS = MEMADDR;
                     I_Type_ALU : NS = EXECUTEI;
                     I_Type_JALR: NS = MEMADDR;
-                    I_Type_IW  : NS = EXECUTEI; 
+                    I_Type_IW  : NS = EXECUTEI;
                     S_Type     : NS = MEMADDR;
-                    R_Type     : NS = EXECUTER; 
+                    R_Type     : NS = EXECUTER;
                     R_Type_W   : NS = EXECUTER;
                     B_Type     : NS = BRANCH;
                     J_Type     : NS = JAL;
                     U_Type_ALU : NS = ALUWB;
-                    U_Type_LOAD: NS = LOADI; 
+                    U_Type_LOAD: NS = LOADI;
                     FENCE_Type : NS = FENCE_I; // ONLY FENCE.I is IMPLEMENTED.
                     CSR_Type   : begin
                         if ( s_func_3_reduction ) NS = CSR_EXECUTE; // CSR.
                         else if ( i_func_7_4    ) NS = JAL;         // MRET. PROBLEM: NOT FINISHED.
-                        else                      NS = CALL_0;      // Break                             
-                    end 
+                        else                      NS = CALL_0;      // Break
+                    end
                     ILLEGAL    : NS = CALL_0;
-                    default:     NS = CALL_0; 
+                    default:     NS = CALL_0;
                 endcase
             end
 
             MEMADDR: begin
                 case ( instr )
                     I_Type     : NS = MEMREAD;
-                    S_Type     : NS = MEMWRITE; 
+                    S_Type     : NS = MEMWRITE;
                     I_Type_JALR: NS = JAL;
                     default: NS = PS;
                 endcase
@@ -224,27 +224,27 @@ module main_fsm
 
             ALUWB: begin
                 if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) NS = CALL_0;
-                else                       NS = FETCH;    
+                else                       NS = FETCH;
             end
 
             EXECUTEI: NS = ALUWB;
 
             JAL: begin
                 if ( instr == CSR_Type ) NS = FETCH;
-                else                     NS = ALUWB;          
-            end 
+                else                     NS = ALUWB;
+            end
 
 
             BRANCH: NS = FETCH;
-            
+
             LOADI: NS = FETCH;
 
             CALL_0: NS = FETCH;
 
             CSR_EXECUTE: begin
                 if ( i_illegal_instr_alu ) NS = CALL_0;
-                else                       NS = CSR_WB;                 
-            end 
+                else                       NS = CSR_WB;
+            end
 
             CSR_WB: NS = FETCH;
 
@@ -259,7 +259,7 @@ module main_fsm
     // FSM: Ouput logic.
     always_comb begin
 
-        // Default values. 
+        // Default values.
         o_alu_op           = 3'b000;
         o_result_src       = 3'b000;
         o_alu_src_1        = 2'b00;
@@ -294,7 +294,7 @@ module main_fsm
             FETCH: begin
                 o_result_src    = 3'b010; // Alu result
                 o_start_i_cache = 1'b1;
-                o_fetch_state   = 1'b1; 
+                o_fetch_state   = 1'b1;
                 o_alu_src_1     = 2'b00;
                 o_alu_src_2     = 2'b10;
                 o_alu_op        = 3'b000;
@@ -303,10 +303,10 @@ module main_fsm
                     o_mcause           = 4'd0; // Instruction address misaligned.
                     o_interrupt        = 1'b0;
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                     o_start_i_cache    = 1'b0;
                 end
 
@@ -315,10 +315,10 @@ module main_fsm
                     else               o_mcause = 4'd3; // Machine software interrupt.
                     o_interrupt        = 1'b1;
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                     o_start_i_cache    = 1'b0;
                 end
 
@@ -328,10 +328,10 @@ module main_fsm
                 end
                 else begin
                     o_instr_write_en   = 1'b1;
-                    o_pc_update        = 1'b1;      
+                    o_pc_update        = 1'b1;
                 end
-                
-            end 
+
+            end
 
             DECODE: begin
                 o_alu_src_1  = 2'b01;
@@ -346,19 +346,19 @@ module main_fsm
                         if ( ~i_instr_22_20[0] ) o_mcause = 4'd11; // Env call from M-mode.
                         else                     o_mcause = 4'd3; // Env breakpoint.
                         o_csr_write_addr_1 = 3'b100;  // mcause.
-                        o_csr_we_1         = 1'b1; 
+                        o_csr_we_1         = 1'b1;
                         o_csr_write_addr_2 = 3'b101;  // mepc.
-                        o_result_src       = 3'b110; // s_old_pc.  
-                        o_csr_we_2         = 1'b1;   
+                        o_result_src       = 3'b110; // s_old_pc.
+                        o_csr_we_2         = 1'b1;
                     end
                 end
                 if ( instr == ILLEGAL ) begin
                     o_mcause           = 4'd2; // Illegal instruction.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                 end
             end
 
@@ -375,7 +375,7 @@ module main_fsm
                 o_start_d_cache = 1'b1;
                 o_alu_op        = 3'b000;
                 o_alu_src_1     = 2'b10;
-                o_alu_src_2     = 2'b01; 
+                o_alu_src_2     = 2'b01;
 
                 if ( ~ i_cacheable_flag ) begin
                     o_start_d_cache = 1'b0;
@@ -385,10 +385,10 @@ module main_fsm
                 if ( i_load_addr_ma ) begin
                     o_mcause           = 4'd4; // Load address misaligned.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                     o_start_d_cache    = 1'b0;
                     o_start_read_nc    = 1'b0;
                 end
@@ -396,16 +396,16 @@ module main_fsm
                 if ( i_illegal_instr_load ) begin
                     o_mcause           = 4'd2; // Illegal instruction.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                     o_start_d_cache    = 1'b0;
                     o_start_read_nc    = 1'b0;
-                end 
+                end
 
                 if ( i_stall_data ) o_mem_reg_we = 1'b0;
-                else                o_mem_reg_we = 1'b1;   
+                else                o_mem_reg_we = 1'b1;
             end
 
             MEMWB: begin
@@ -433,10 +433,10 @@ module main_fsm
                 if ( i_store_addr_ma ) begin
                     o_mcause           = 4'd6; // Store address misaligned.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                     o_start_d_cache    = 1'b0;
                     o_start_write_nc   = 1'b0;
                     o_write_en_clint   = 1'b0;
@@ -448,7 +448,7 @@ module main_fsm
                 end
                 else begin
                     o_mem_write_en  = 1'b1;
-                    o_mem_reg_we    = 1'b1;      
+                    o_mem_reg_we    = 1'b1;
                 end
             end
 
@@ -465,14 +465,14 @@ module main_fsm
             ALUWB: begin
                 o_result_src   = 3'b000;
                 o_reg_write_en = 1'b1;
-                
+
                 if ( i_illegal_instr_alu | ( i_func_7_0 & i_op[5] & (~ i_op[6]) )) begin
                     o_mcause           = 4'd2; // Illegal instruction.
                     o_csr_write_addr_1 = 3'b100;  // mcause.
-                    o_csr_we_1         = 1'b1; 
+                    o_csr_we_1         = 1'b1;
                     o_csr_write_addr_2 = 3'b101;  // mepc.
-                    o_result_src       = 3'b110; // s_old_pc.  
-                    o_csr_we_2         = 1'b1; 
+                    o_result_src       = 3'b110; // s_old_pc.
+                    o_csr_we_2         = 1'b1;
                 end
             end
 
@@ -492,7 +492,7 @@ module main_fsm
                 o_alu_op          = 3'b000;
                 o_pc_update       = 1'b1;
                 o_csr_read_addr   = 3'b101;  // mepc.
-                
+
                 if ( instr == CSR_Type ) o_result_src = 3'b100; // s_csr_data.
                 else                     o_result_src = 3'b000;
             end
@@ -507,7 +507,7 @@ module main_fsm
 
             LOADI: begin
                 o_result_src   = 3'b011;
-                o_reg_write_en = 1'b1; 
+                o_reg_write_en = 1'b1;
             end
 
             CALL_0: begin
@@ -527,10 +527,10 @@ module main_fsm
                 o_csr_writable = 1'b1;
                 if ( i_func_7_6 ) begin
                     o_csr_writable     = 1'b0;
-                    o_csr_we_2         = 1'b0;  
+                    o_csr_we_2         = 1'b0;
                     o_csr_read_addr    = s_csr_addr_read_only; // Mvendorid, Marchid, Mimpid, Mhartid.
                 end
-                else begin 
+                else begin
                     o_csr_write_addr_2 = s_csr_addr;
                     o_csr_read_addr    = s_csr_addr;
                 end
@@ -593,5 +593,5 @@ module main_fsm
             end
         endcase
     end
-    
+
 endmodule

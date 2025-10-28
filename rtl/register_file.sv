@@ -11,19 +11,19 @@ module register_file
               ADDR_WIDTH = 5,
               REG_DEPTH  = 32
 )
-// Port decleration. 
-(   
+// Port decleration.
+(
     // Common clock & enable signal.
     input  logic                      clk,
     input  logic                      write_en_3,
     input  logic                      arst,
 
-    //Input interface. 
+    //Input interface.
     input  logic [ ADDR_WIDTH - 1:0 ] i_addr_1,
     input  logic [ ADDR_WIDTH - 1:0 ] i_addr_2,
     input  logic [ ADDR_WIDTH - 1:0 ] i_addr_3,
     input  logic [ DATA_WIDTH - 1:0 ] i_write_data_3,
-    
+
     // Output interface.
     output [3:0] led,
     output logic [ DATA_WIDTH - 1:0 ] o_read_data_1,
@@ -34,7 +34,7 @@ module register_file
     logic [ DATA_WIDTH - 1:0 ] mem [ REG_DEPTH - 1:0 ];
 
     // Write logic.
-    always_ff @( posedge clk, posedge arst ) begin 
+    always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) begin
             mem[0] <= '0;
             mem[1] <= '0;
@@ -80,5 +80,5 @@ module register_file
     assign o_read_data_2 = mem[i_addr_2];
     assign led = mem[10][22:19];
 
-    
+
 endmodule

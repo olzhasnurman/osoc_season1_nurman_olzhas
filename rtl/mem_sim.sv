@@ -1,12 +1,12 @@
 /* Copyright (c) 2025 Maveric NU. All rights reserved. */
 
 // ---------------------------------------------------------------
-// This is a memory module for simulation of outside memory unit. 
+// This is a memory module for simulation of outside memory unit.
 // ---------------------------------------------------------------
 
 // `define PATH_TO_MEM "./test/tests/instr/riscv-tests/rv64ui-p-xori.txt"
 
-module mem_sim 
+module mem_sim
 #(
     parameter DATA_WIDTH = 32,
               ADDR_WIDTH = 32,
@@ -81,5 +81,5 @@ module mem_sim
     //     .douta (o_data     )
     // );
 
-    
+
 endmodule

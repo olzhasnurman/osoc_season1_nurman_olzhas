@@ -107,7 +107,7 @@ begin
     if (rst_i)
         flop_0 <=  {width{init_value}};
     else
-        flop_0 <=  async_dat_i;    
+        flop_0 <=  async_dat_i;
 end
 
 // second stage
@@ -118,7 +118,7 @@ begin
     else if (stage1_rst_i)
         sync_dat_o <=  {width{init_value}};
     else if (stage1_clk_en_i)
-        sync_dat_o <=  flop_0;       
+        sync_dat_o <=  flop_0;
 end
 
 endmodule

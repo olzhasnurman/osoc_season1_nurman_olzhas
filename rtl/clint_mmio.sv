@@ -4,10 +4,10 @@
 // This is a nonarchitectural register with write enable signal.
 // -------------------------------------------------------------
 
-module clint_mmio 
+module clint_mmio
 #(
     parameter REG_WIDTH = 64
-) 
+)
 (
     input  logic                     clk,
     input  logic                     arst,
@@ -35,12 +35,12 @@ module clint_mmio
         end
         else begin
             mem [ 1 ] <= mem [ 1 ] + 64'b1;
-            
+
             if ( write_en ) mem [ i_addr ] <= i_data;
         end
     end
 
-    assign msip     = mem [ 0 ]; 
+    assign msip     = mem [ 0 ];
     assign mtime    = mem [ 1 ];
     assign mtimecmp = mem [ 2 ];
 
@@ -48,5 +48,5 @@ module clint_mmio
     assign o_software_int_call  = ( msip != '0 );
 
     assign o_data = mem [ i_addr ];
-    
+
 endmodule

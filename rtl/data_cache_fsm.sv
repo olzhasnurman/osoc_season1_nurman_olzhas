@@ -4,7 +4,7 @@
 // This is a data cache FSM for N-way set associative cache.
 // -----------------------------------------------------------------------
 
-module data_cache_fsm 
+module data_cache_fsm
 #(
     parameter N = 4
 )
@@ -110,12 +110,12 @@ module data_cache_fsm
         case ( PS )
             IDLE: begin
                 o_stall = 1'b1;
-            end 
+            end
 
             COMPARE_TAG: begin
                 o_stall          = ~i_hit;
                 if      ( i_hit   ) o_lru_update   = 1'b1;
-                else if ( i_dirty ) o_addr_control = 1'b0; 
+                else if ( i_dirty ) o_addr_control = 1'b0;
             end
 
             ALLOCATE: begin
@@ -149,5 +149,5 @@ module data_cache_fsm
             end
         endcase
     end
-    
+
 endmodule

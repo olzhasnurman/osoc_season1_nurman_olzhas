@@ -4,7 +4,7 @@
 // This module facilitates the data transfer between cache and AXI interfaces.
 // -----------------------------------------------------------------------------
 
-module cache_data_transfer 
+module cache_data_transfer
 #(
     parameter AXI_DATA_WIDTH = 32,
               AXI_ADDR_WIDTH = 64,
@@ -12,7 +12,7 @@ module cache_data_transfer
               COUNT_LIMIT    = 4'b1111,
               COUNT_TO       = 16,
               ADDR_INCR_VAL  = 64'd4
-) 
+)
 (
     // Control signals.
     input  logic                          clk,
@@ -46,8 +46,8 @@ module cache_data_transfer
 
     // Counter module instance.
     counter # (
-        .LIMIT ( COUNT_LIMIT ), 
-        .SIZE  ( COUNT_TO    )  
+        .LIMIT ( COUNT_LIMIT ),
+        .SIZE  ( COUNT_TO    )
     ) COUNT0 (
         .clk      ( clk          ),
         .arst     ( arst         ),
@@ -84,5 +84,5 @@ module cache_data_transfer
         .o_data       ( o_data_axi         ),
         .o_data_block ( o_data_block_cache )
     );
-    
+
 endmodule

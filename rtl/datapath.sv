@@ -5,7 +5,7 @@
 // ---------------------------------------------------------------------------------------
 
 module datapath
-// Parameters. 
+// Parameters.
 #(
     parameter REG_DATA_WIDTH   = 64,
               REG_ADDR_WIDTH   = 5,
@@ -17,12 +17,12 @@ module datapath
 
 
 )
-// Port declerations. 
+// Port declerations.
 (
-    //Clock & Reset signals. 
+    //Clock & Reset signals.
     input  logic                            clk,
     input  logic                            arst,
-    input  logic                            i_done_axi,   // NEEDS TO BE CONNECTED TO AXI 
+    input  logic                            i_done_axi,   // NEEDS TO BE CONNECTED TO AXI
     input  logic [ BLOCK_DATA_WIDTH - 1:0 ] i_data_read_axi,   // NEEDS TO BE CONNECTED TO AXI
     input  logic [ REG_DATA_WIDTH   - 1:0 ] i_data_non_cacheable,
     output logic [                   31:0 ] o_data_non_cacheable,
@@ -60,7 +60,7 @@ module datapath
     logic s_slt_flag;
     logic s_sltu_flag;
 
-    // Control unit signals. 
+    // Control unit signals.
     logic [6:0] s_op;
     logic [2:0] s_func_3;
     logic [4:0] s_alu_control;
@@ -81,7 +81,7 @@ module datapath
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_mem_addr;
     logic                           s_reg_mem_addr_we;
 
-    // Register file signals. 
+    // Register file signals.
     logic [ REG_ADDR_WIDTH - 1:0 ] s_reg_addr_1;
     logic [ REG_ADDR_WIDTH - 1:0 ] s_reg_addr_2;
     logic [ REG_ADDR_WIDTH - 1:0 ] s_reg_addr_3;
@@ -93,7 +93,7 @@ module datapath
     logic [ REG_DATA_WIDTH - 1:0 ] s_alu_src_data_2;
     logic [ REG_DATA_WIDTH - 1:0 ] s_alu_result;
 
-    // Registered signals. 
+    // Registered signals.
     logic [ MEM_INSTR_WIDTH - 1:0 ] s_reg_instr;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_pc;
     logic [ MEM_ADDR_WIDTH  - 1:0 ] s_reg_old_pc;
@@ -109,7 +109,7 @@ module datapath
     logic [ REG_DATA_WIDTH - 1:0 ] s_mem_data;
     logic [ REG_DATA_WIDTH - 1:0 ] s_load_data;
 
-    // Immediate extend unit signals. 
+    // Immediate extend unit signals.
     logic [                  24:0 ] s_imm;
     logic [ REG_DATA_WIDTH  - 1:0 ] s_imm_ext;
 
@@ -167,17 +167,17 @@ module datapath
 
 
     //----------------------------------
-    // Continious assignmnets. 
+    // Continious assignmnets.
     //----------------------------------
     assign s_imm         = s_reg_instr[31:7 ];
     assign s_op          = s_reg_instr[ 6:0 ];
-    assign s_func_3      = s_reg_instr[14:12];   
+    assign s_func_3      = s_reg_instr[14:12];
     assign s_reg_addr_1  = s_reg_instr[19:15];
     assign s_reg_addr_2  = s_reg_instr[24:20];
     assign s_reg_addr_3  = s_reg_instr[11:7 ];
 
     assign s_addr_offset = s_reg_mem_addr[2:0];
-    
+
     assign s_csr_jamp_addr  = ( s_csr_read_data >> 2 ) << 2;
     assign s_csr_mcause     = { s_interrupt, 59'b0, s_mcause };
     assign s_timer_int      = s_mie_mstatus & s_mtip_mip & s_mtie_mie;
@@ -196,7 +196,7 @@ module datapath
     assign s_reg_pc_val = s_fetch_state ? s_reg_pc : s_reg_old_pc;
 
 
- 
+
 
 
     //-----------------------------------
@@ -208,7 +208,7 @@ module datapath
     // Control Unit Instance.
     //---------------------------
     control_unit CU (
-        .clk                    ( clk                   ), 
+        .clk                    ( clk                   ),
         .arst                   ( arst                  ),
         .i_instr_22_20          ( s_reg_instr[22:20]    ),
         .i_op                   ( s_op                  ),
@@ -273,7 +273,7 @@ module datapath
 
 
     //--------------------------------
-    // Data Storage Unit Instances. 
+    // Data Storage Unit Instances.
     //--------------------------------
 
     // Register File Instance.
@@ -368,9 +368,9 @@ module datapath
 
 
     //------------------------------
-    // ALU Instance. 
+    // ALU Instance.
     //------------------------------
-    alu ALU (   
+    alu ALU (
         .alu_control     ( s_alu_control    ),
         .i_src_1         ( s_alu_src_data_1 ),
         .i_src_2         ( s_alu_src_data_2 ),
@@ -383,10 +383,10 @@ module datapath
 
 
     //-----------------------------------------
-    // Nonarchitectural Register Instances. 
+    // Nonarchitectural Register Instances.
     //-----------------------------------------
 
-    // Instruction Register Instance. 
+    // Instruction Register Instance.
     register_en # (.DATA_WIDTH (MEM_INSTR_WIDTH)) INSTR_REG (
         .clk          ( clk              ),
         .write_en     ( s_instr_write_en ),
@@ -402,7 +402,7 @@ module datapath
         .arst         ( arst          ),
         .i_write_data ( s_result      ),
         .o_read_data  ( s_reg_pc      )
-    ); 
+    );
 
     // Old PC Register Instance.
     register_en # (.DATA_WIDTH (MEM_ADDR_WIDTH)) OLD_PC_REG (
@@ -419,8 +419,8 @@ module datapath
         .write_en     ( s_reg_mem_addr_we ),
         .arst         ( arst              ),
         .i_write_data ( s_result          ),
-        .o_read_data  ( s_reg_mem_addr    )   
-    ); 
+        .o_read_data  ( s_reg_mem_addr    )
+    );
 
     // CSR Register Instance.
     register_en # (.DATA_WIDTH (REG_DATA_WIDTH)) CSR_REG (
@@ -429,7 +429,7 @@ module datapath
         .arst         ( arst                ),
         .i_write_data ( s_csr_read_data     ),
         .o_read_data  ( s_csr_read_data_reg )
-    );  
+    );
 
     // Output addr Register Instance.
     register #(.DATA_WIDTH (OUT_ADDR_WIDTH)) OUTADDR_REG (
@@ -437,7 +437,7 @@ module datapath
         .arst         ( arst       ),
         .i_write_data ( s_out_addr ),
         .o_read_data  ( o_addr     )
-    ); 
+    );
 
     // R1 Register Instance.
     register R1 (
@@ -463,7 +463,7 @@ module datapath
         .o_read_data  ( s_reg_alu_result )
     );
 
-    // Memory Data Register. 
+    // Memory Data Register.
     register_en REG_MEM_DATA (
         .clk          ( clk                ),
         .arst         ( arst               ),
@@ -502,14 +502,14 @@ module datapath
     mux8to1 RESULT_MUX (
         .control_signal ( s_result_src        ),
         .i_mux_0        ( s_reg_alu_result    ),
-        .i_mux_1        ( s_mem_data          ), 
+        .i_mux_1        ( s_mem_data          ),
         .i_mux_2        ( s_alu_result        ),
         .i_mux_3        ( s_imm_ext           ),
         .i_mux_4        ( s_csr_read_data     ),
         .i_mux_5        ( s_csr_read_data_reg ),
         .i_mux_6        ( s_reg_pc_val        ),
         .i_mux_7        ( s_csr_jamp_addr     ),
-        .o_mux          ( s_result            ) 
+        .o_mux          ( s_result            )
     );
 
 
@@ -525,7 +525,7 @@ module datapath
     );
 
     //------------------------------
-    // LOAD Instruction mux. 
+    // LOAD Instruction mux.
     //------------------------------
     load_mux LOAD_MUX (
         .i_func_3        ( s_func_3             ),
@@ -537,9 +537,9 @@ module datapath
     );
 
 
-    // 
+    //
     assign s_out_addr = s_fetch_state ? { s_reg_pc[ OUT_ADDR_WIDTH - 1:6 ], 6'b0 } : s_addr_axi; // For a cache line size of 512 bits. e.g. 16 words in 1 line.
-    
+
     assign o_size_non_cacheable = { 1'b0, s_func_3 [ 1:0 ] };
-    
+
 endmodule

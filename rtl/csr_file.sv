@@ -11,15 +11,15 @@ module csr_file
               ADDR_WIDTH = 3,
               REG_DEPTH  = 8
 )
-// Port decleration. 
-(   
+// Port decleration.
+(
     // Common clock & enable signal.
     input  logic                      clk,
     input  logic                      write_en_1,
     input  logic                      write_en_2,
     input  logic                      arst,
 
-    //Input interface. 
+    //Input interface.
     input  logic [ ADDR_WIDTH - 1:0 ] i_read_addr,
     input  logic [ ADDR_WIDTH - 1:0 ] i_write_addr_1,
     input  logic [ ADDR_WIDTH - 1:0 ] i_write_addr_2,
@@ -30,7 +30,7 @@ module csr_file
     input  logic                      i_interrupt_jump,
     input  logic                      i_mret_instr,
     input  logic                      i_writable,
-    
+
     // Output interface.
     output logic [ DATA_WIDTH - 1:0 ] o_read_data,
     output logic                      o_mie_mstatus,
@@ -45,7 +45,7 @@ module csr_file
     logic [ DATA_WIDTH - 1:0 ] csr_read_only [             3:0 ];
 
     // Write logic.
-    always_ff @( posedge clk, posedge arst ) begin 
+    always_ff @( posedge clk, posedge arst ) begin
         if ( arst ) begin
             mem[ 0 ] <= '0; // Mstatus.
             mem[ 1 ] <= '0; // Reserved.
@@ -63,7 +63,7 @@ module csr_file
             if ( i_software_int_call ) mem [ 6 ][ 3 ] <= 1'b1; // mip MSIP bit set.
             else                       mem [ 6 ][ 3 ] <= 1'b0; // mip MSIP bit clear.
 
-            if ( i_interrupt_jump ) begin 
+            if ( i_interrupt_jump ) begin
                 mem[ 0 ][ 3 ] <= 1'b0; // mstatus MIE bit clear.
                 mem[ 0 ][ 7 ] <= mem[ 0 ][ 3 ]; // mstatus MPIE = MIE when jump to interrupt handler is taken.
             end
@@ -78,7 +78,7 @@ module csr_file
                     default: mem[ i_write_addr_1 ] <= i_write_data_1;
                 endcase
             end
-    
+
             if ( write_en_2 ) begin
                 case ( i_write_addr_2 )
                     6: mem [ 6 ] <= { i_write_data_2[ DATA_WIDTH - 1:8 ], i_timer_int_call, i_write_data_2[ 6:4 ], i_software_int_call, i_write_data_2[ 2:0 ] };
@@ -104,7 +104,7 @@ module csr_file
     assign o_mie_mstatus = mem [ 0 ][ 3 ];
     assign o_mtip_mip    = mem [ 6 ][ 7 ];
     assign o_msip_mip    = mem [ 6 ][ 3 ];
-    assign o_mtie_mie    = mem [ 2 ][ 7 ];  
-    assign o_msie_mie    = mem [ 2 ][ 3 ];  
-    
+    assign o_mtie_mie    = mem [ 2 ][ 7 ];
+    assign o_msie_mie    = mem [ 2 ][ 3 ];
+
 endmodule

@@ -4,7 +4,7 @@
 // This is a instruction cache FSM for direct mapped cache.
 // -----------------------------------------------------------------------
 
-module instr_cache_fsm 
+module instr_cache_fsm
 (
     // Clock & Reset.
     input  logic clk,
@@ -76,13 +76,13 @@ module instr_cache_fsm
         o_stall          = 1'b0;
         o_start_read     = 1'b0;
         o_instr_write_en = 1'b0;
-        
+
         case ( PS )
             IDLE: begin
                 o_stall          = 1'b1;
                 o_start_read     = 1'b0;
                 o_instr_write_en = 1'b0;
-            end 
+            end
 
             COMPARE_TAG: begin
                 o_stall          = ~i_hit;
@@ -106,6 +106,6 @@ module instr_cache_fsm
         endcase
     end
 
-    assign o_in_idle = ( PS == IDLE ); 
-    
+    assign o_in_idle = ( PS == IDLE );
+
 endmodule

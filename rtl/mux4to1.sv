@@ -5,10 +5,10 @@
 // ---------------------------------------------------
 
 module mux4to1
-// Parameters. 
+// Parameters.
 #(
     parameter DATA_WIDTH = 64
-) 
+)
 // Port decleration.
 (
     // Control signal.
@@ -34,5 +34,5 @@ module mux4to1
             default: o_mux = '0;
         endcase
     end
-    
+
 endmodule

@@ -74,7 +74,7 @@ module wb_master
                     if (start_rd_i)
                         NS = RD_DONE;
                     else if (start_wr_i)
-                        NS = WR_DONE; 
+                        NS = WR_DONE;
                 end
             end
             RD_DONE,
@@ -118,7 +118,7 @@ module wb_master
                             SEL_O <= sel_i;
                             STB_O <= 1'b1;
                             CYC_O <= 1'b1;
-                        end 
+                        end
                     end
                 end
                 RD_DONE: begin
