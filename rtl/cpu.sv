@@ -67,9 +67,9 @@ module cpu
 
 
     assign s_start_read_wb_cache  = s_read_req  & ( ~ s_count_done_apb );
-    assign o_start_read_wb        = s_read_req_non_cacheable | s_start_read_wb_cache;
+    assign o_start_read_wb        = (s_read_req_non_cacheable & (~ i_wb_done)) | s_start_read_wb_cache;
     assign s_start_write_wb_cache = s_write_req & ( ~ s_count_done_apb );
-    assign o_start_write_wb       = s_write_req_non_cacheable | s_start_write_wb_cache;
+    assign o_start_write_wb       = (s_write_req_non_cacheable & (~ i_wb_done)) | s_start_write_wb_cache;
     
     assign o_addr_wb      = ( s_read_req_non_cacheable | s_write_req_non_cacheable ) ? s_addr_non_cacheable : s_addr_calc_apb;
     assign s_wb_sel       = s_write_req_non_cacheable  ? (4'h1 << s_addr_non_cacheable[2:0]) : s_wb_sel_cache;
