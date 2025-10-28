@@ -184,8 +184,8 @@ module datapath
     assign s_software_int   = s_mie_mstatus & s_msip_mip & s_msie_mie;
 
 
-    assign s_cacheable_flag  = 1'b1; // ( s_reg_mem_addr >= 64'h3000_0000 );
-    assign s_clint_mmio_flag = 1'b0; // ( s_reg_mem_addr >= 64'h0200_0000 ) & ( s_reg_mem_addr <= 64'h0200_ffff );
+    assign s_cacheable_flag  = ( s_reg_mem_addr >= 64'h3000_0000 );
+    assign s_clint_mmio_flag = ( s_reg_mem_addr >= 64'h0200_0000 ) & ( s_reg_mem_addr <= 64'h0200_ffff );
 
     assign o_addr_non_cacheable = s_reg_mem_addr [ OUT_ADDR_WIDTH - 1:0 ];
     assign o_data_non_cacheable = s_reg_data_2 [ 31:0 ];

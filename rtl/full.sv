@@ -778,9 +778,9 @@ module cpu
 
 
     assign s_start_read_wb_cache  = s_read_req  & ( ~ s_count_done_apb );
-    assign o_start_read_wb        = s_read_req_non_cacheable | s_start_read_wb_cache;
+    assign o_start_read_wb        = (s_read_req_non_cacheable & (~ i_wb_done)) | s_start_read_wb_cache;
     assign s_start_write_wb_cache = s_write_req & ( ~ s_count_done_apb );
-    assign o_start_write_wb       = s_write_req_non_cacheable | s_start_write_wb_cache;
+    assign o_start_write_wb       = (s_write_req_non_cacheable & (~ i_wb_done)) | s_start_write_wb_cache;
     
     assign o_addr_wb      = ( s_read_req_non_cacheable | s_write_req_non_cacheable ) ? s_addr_non_cacheable : s_addr_calc_apb;
     assign s_wb_sel       = s_write_req_non_cacheable  ? (4'h1 << s_addr_non_cacheable[2:0]) : s_wb_sel_cache;
@@ -1772,8 +1772,8 @@ module datapath
     assign s_software_int   = s_mie_mstatus & s_msip_mip & s_msie_mie;
 
 
-    assign s_cacheable_flag  = 1'b1; // ( s_reg_mem_addr >= 64'h3000_0000 );
-    assign s_clint_mmio_flag = 1'b0; // ( s_reg_mem_addr >= 64'h0200_0000 ) & ( s_reg_mem_addr <= 64'h0200_ffff );
+    assign s_cacheable_flag  = ( s_reg_mem_addr >= 64'h3000_0000 );
+    assign s_clint_mmio_flag = ( s_reg_mem_addr >= 64'h0200_0000 ) & ( s_reg_mem_addr <= 64'h0200_ffff );
 
     assign o_addr_non_cacheable = s_reg_mem_addr [ OUT_ADDR_WIDTH - 1:0 ];
     assign o_data_non_cacheable = s_reg_data_2 [ 31:0 ];
@@ -3587,7 +3587,7 @@ module reset_sync
         else        { arst_sync, rst_signal } <= { rst_signal, 1'b0 };
     end
     
-endmodule/* Copyright (c) 2024 Maveric NU. All rights reserved. */
+endmodule/* Copyright (c) 2025 Maveric NU. All rights reserved. */
 
 // ---------------------------------------------------------------------------------------
 // This is a top SoC module that connects all lower level modules.
@@ -3604,7 +3604,9 @@ module soc
 (
     input  logic        clock,
     input  logic        reset,
+    input  logic        uart_rx,
 
+    output logic        uart_tx,
     output logic [ 3:0] led
 );
 
@@ -3633,9 +3635,41 @@ module soc
     logic                    s_successful_write;
 
 
+    // WB Master interface: CPU.
+    logic [DATA_WIDTH   - 1:0] M_DAT_I;
+    logic [ADDR_WIDTH   - 1:0] M_ADR_O;
+    logic [DATA_WIDTH   - 1:0] M_DAT_O;
+    logic                      M_WE_O;
+    logic [DATA_WIDTH/8 - 1:0] M_SEL_O;
+    logic                      M_STB_O;
+    logic                      M_ACK_I;
+    logic                      M_CYC_O;
+
+    // WB Slave 0 interface: Memory.
+    logic [DATA_WIDTH   - 1:0] S0_DAT_I;
+    logic [ADDR_WIDTH   - 1:0] S0_ADR_I;
+    logic [DATA_WIDTH   - 1:0] S0_DAT_O;
+    logic                      S0_WE_I;
+    logic [DATA_WIDTH/8 - 1:0] S0_SEL_I;
+    logic                      S0_STB_I;
+    logic                      S0_ACK_O;
+    logic                      S0_CYC_I;
+
+    // WB Slave 1 interface: UART.
+    logic [DATA_WIDTH   - 1:0] S1_DAT_I;
+    logic [ADDR_WIDTH   - 1:0] S1_ADR_I;
+    logic [DATA_WIDTH   - 1:0] S1_DAT_O;
+    logic                      S1_WE_I;
+    logic [DATA_WIDTH/8 - 1:0] S1_SEL_I;
+    logic                      S1_STB_I;
+    logic                      S1_ACK_O;
+    logic                      S1_CYC_I;
+
+
     //-----------------------------------
     // LOWER LEVEL MODULE INSTANTIATIONS.
     //-----------------------------------
+
 
     //------------------------------
     // Reset Synchronizer Instance.
@@ -3671,32 +3705,93 @@ module soc
     //-----------------------------
     // WB Master Module.
     //-----------------------------
-    wb_top #(
+    wb_master #(
         .ADDR_WIDTH  (ADDR_WIDTH ),
         .DATA_WIDTH  (DATA_WIDTH )
-    ) WB_TOP0 (
-        .clk_i                   (clock              ),
-        .rst_i                   (arst               ),
-        .cpu_start_rd_i          (s_start_read_wb    ),
-        .cpu_start_wr_i          (s_start_write_wb   ),
-        .cpu_write_sel_i         (s_write_sel_wb     ),
-        .cpu_data_i              (s_write_data_wb    ),
-        .cpu_addr_i              (s_addr_wb          ),
-        .mem_successful_access_i (s_successful_access),
-        .mem_successful_rd_i     (s_successful_read  ),
-        .mem_successful_wr_i     (s_successful_write ),
-        .mem_data_i              (s_mem_data_out     ),
-        .cpu_data_o              (s_read_data_wb     ),
-        .cpu_done_o              (s_wb_done          ),
-        .mem_rd_req_o            (s_mem_read_request ),
-        .mem_wr_en_o             (s_mem_we           ),
-        .mem_addr_o              (s_mem_addr         ),
-        .mem_data_o              (s_mem_data_in      )
+    ) WB_MASTER0 (
+        .clk_i      (clock           ),
+        .rst_i      (arst            ),
+        .start_rd_i (s_start_read_wb ),
+        .start_wr_i (s_start_write_wb),
+        .sel_i      (s_write_sel_wb  ),
+        .data_i     (s_write_data_wb ),
+        .addr_i     (s_addr_wb       ),
+        .done_o     (s_wb_done       ),
+        .data_o     (s_read_data_wb  ),
+        .DAT_I      (M_DAT_I         ),
+        .ADR_O      (M_ADR_O         ),
+        .DAT_O      (M_DAT_O         ),
+        .WE_O       (M_WE_O          ),
+        .SEL_O      (M_SEL_O         ),
+        .STB_O      (M_STB_O         ),
+        .ACK_I      (M_ACK_I         ),
+        .CYC_O      (M_CYC_O         )
     );
 
+
     //-----------------------------
-    // WB Slave Module.
+    // WB Interconnect.
     //-----------------------------
+    wb_interconnect #(
+        .ADDR_WIDTH  (ADDR_WIDTH ),
+        .DATA_WIDTH  (DATA_WIDTH )
+    ) WB_INT0 (
+        .clk_i     (clock    ),
+        .rst_i     (arst     ),
+        .wb_done_i (s_wb_done),
+        .M_DAT_I   (M_DAT_I  ),
+        .M_ADR_O   (M_ADR_O  ),
+        .M_DAT_O   (M_DAT_O  ),
+        .M_WE_O    (M_WE_O   ),
+        .M_SEL_O   (M_SEL_O  ),
+        .M_STB_O   (M_STB_O  ),
+        .M_ACK_I   (M_ACK_I  ),
+        .M_CYC_O   (M_CYC_O  ),
+        .S0_DAT_I  (S0_DAT_I ),
+        .S0_ADR_I  (S0_ADR_I ),
+        .S0_DAT_O  (S0_DAT_O ),
+        .S0_WE_I   (S0_WE_I  ),
+        .S0_SEL_I  (S0_SEL_I ),
+        .S0_STB_I  (S0_STB_I ),
+        .S0_ACK_O  (S0_ACK_O ),
+        .S0_CYC_I  (S0_CYC_I ),
+        .S1_DAT_I  (S1_DAT_I ),
+        .S1_ADR_I  (S1_ADR_I ),
+        .S1_DAT_O  (S1_DAT_O ),
+        .S1_WE_I   (S1_WE_I  ),
+        .S1_SEL_I  (S1_SEL_I ),
+        .S1_STB_I  (S1_STB_I ),
+        .S1_ACK_O  (S1_ACK_O ),
+        .S1_CYC_I  (S1_CYC_I )
+    );
+
+
+    //-----------------------------
+    // WB Memory Slave Module.
+    //-----------------------------
+    wb_slave #(
+        .ADDR_WIDTH  (ADDR_WIDTH ),
+        .DATA_WIDTH  (DATA_WIDTH )
+    ) WB_SLAVE0 (
+        .clk_i               (clock              ),
+        .rst_i               (arst               ),
+        .successful_access_i (s_successful_access),
+        .successful_rd_i     (s_successful_read  ),
+        .successful_wr_i     (s_successful_write ),
+        .data_i              (s_mem_data_out     ),
+        .rd_req_o            (s_mem_read_request ),
+        .wr_en_o             (s_mem_we           ),
+        .addr_o              (s_mem_addr         ),
+        .data_o              (s_mem_data_in      ),
+        .DAT_I               (S0_DAT_I           ),
+        .ADR_I               (S0_ADR_I           ),
+        .DAT_O               (S0_DAT_O           ),
+        .WE_I                (S0_WE_I            ),
+        .SEL_I               (S0_SEL_I           ),
+        .STB_I               (S0_STB_I           ),
+        .ACK_O               (S0_ACK_O           ),
+        .CYC_I               (S0_CYC_I           )
+    );
 
 
     //---------------------------
@@ -3719,8 +3814,325 @@ module soc
         .o_successful_write  ( s_successful_write  )
     );
 
+
+    //---------------------------
+    // UART Instance.
+    //---------------------------
+    uart_top #(
+        .WB_ADDR_WIDTH (ADDR_WIDTH),
+        .WB_DATA_WIDTH (DATA_WIDTH)
+    ) UART_TOP0 (
+        .clk     (clock   ),
+        .arst    (arst    ),
+        .S_DAT_I (S1_DAT_I),
+        .S_ADR_I (S1_ADR_I),
+        .S_DAT_O (S1_DAT_O),
+        .S_WE_I  (S1_WE_I ),
+        .S_SEL_I (S1_SEL_I),
+        .S_STB_I (S1_STB_I),
+        .S_ACK_O (S1_ACK_O),
+        .S_CYC_I (S1_CYC_I),
+        .uart_rx (uart_rx ),
+        .uart_tx (uart_tx )
+    );
+
 endmodule
-/* Copyright (c) 2025 Maveric NU. All rights reserved. */
+
+
+//-------------------------------------------
+// This is a top UART WB module.
+//-------------------------------------------
+
+// synopsys translate_off
+// `timescale 1ns/1ns
+// synopsys translate_on
+
+module uart_top
+#(
+    parameter WB_DATA_WIDTH   = 32,
+    parameter WB_ADDR_WIDTH   = 32,
+    parameter UART_DATA_WIDTH = 8,
+    parameter UART_ADDR_WIDTH = 3
+)
+(
+    input  logic clk,
+    input  logic arst,
+
+    // Wishbone interface.
+    input  logic [WB_DATA_WIDTH   - 1:0] S_DAT_I,
+    input  logic [WB_ADDR_WIDTH   - 1:0] S_ADR_I,
+    output logic [WB_DATA_WIDTH   - 1:0] S_DAT_O,
+    input  logic                         S_WE_I,
+    input  logic [WB_DATA_WIDTH/8 - 1:0] S_SEL_I,
+    input  logic                         S_STB_I,
+    output logic                         S_ACK_O,
+    input  logic                         S_CYC_I,
+
+    // UART interface.
+    input  logic uart_rx,
+    output logic uart_tx
+);
+
+    //---------------------------
+    // Internal nets.
+    //---------------------------
+    
+    // Unused.
+    logic rtsn;
+    logic ctsn = 1'b0;
+    logic dtr_pad_o;
+    logic dsr_pad_i =1'b0;
+    logic ri_pad_i  =1'b0;
+    logic dcd_pad_i =1'b0;
+    logic interrupt;
+    logic rts_internal;
+    assign rtsn = ~rts_internal;
+
+
+    // Wishbone.
+    logic [UART_DATA_WIDTH - 1:0] wb_dat_i;
+    logic [UART_DATA_WIDTH - 1:0] wb_dat_o;
+    logic [UART_DATA_WIDTH - 1:0] wb_dat8_i;
+    logic [UART_DATA_WIDTH - 1:0] wb_dat8_o;
+    logic [UART_ADDR_WIDTH - 1:0] wb_adr_i;
+    logic [UART_ADDR_WIDTH - 1:0] wb_adr_int;
+    logic                         we_o;
+    logic                         re_o;
+
+
+
+    //---------------------------
+    // Convert data width.
+    //---------------------------
+    assign wb_adr_i = S_ADR_I[UART_ADDR_WIDTH - 1:0];
+    assign S_DAT_O = {4{wb_dat_o}};
+
+    always_comb begin
+        case (wb_adr_i[1:0])
+            2'b00: wb_dat_i = S_DAT_I[ 7:0];
+            2'b01: wb_dat_i = S_DAT_I[15:8];
+            2'b10: wb_dat_i = S_DAT_I[23:16];
+            2'b11: wb_dat_i = S_DAT_I[31:24];
+            default: wb_dat_i = S_DAT_I[7:0];
+        endcase
+    end
+
+
+    //---------------------------
+    // Lower-level modules.
+    //---------------------------
+    uart_wb wb_interface (
+        .clk        (clk       ),
+        .wb_rst_i   (arst      ),
+        .wb_dat_i   (wb_dat_i  ),
+        .wb_dat_o   (wb_dat_o  ),
+        .wb_dat8_i  (wb_dat8_i ),
+        .wb_dat8_o  (wb_dat8_o ),
+        .wb_dat32_o (32'b0     ),
+        .wb_sel_i   (4'b0      ),
+        .wb_we_i    (S_WE_I    ),
+        .wb_stb_i   (S_STB_I   ),
+        .wb_cyc_i   (S_CYC_I   ),
+        .wb_ack_o   (S_ACK_O   ),
+        .wb_adr_i   (wb_adr_i  ),
+        .wb_adr_int (wb_adr_int),
+        .we_o       (we_o      ),
+        .re_o       (re_o      )
+    );
+
+
+    uart_regs regs(
+        .clk          (clk                                    ),
+        .wb_rst_i     (arst                                   ),
+        .wb_addr_i    (wb_adr_int                             ),
+        .wb_dat_i     (wb_dat8_i                              ),
+        .wb_dat_o     (wb_dat8_o                              ),
+        .wb_we_i      (we_o                                   ),
+        .wb_re_i      (re_o                                   ),
+        .modem_inputs ({~ctsn, dsr_pad_i, ri_pad_i, dcd_pad_i}),
+        .stx_pad_o    (uart_tx                                ),
+        .srx_pad_i    (uart_rx                                ),				  
+        .rts_pad_o    (rts_internal                           ),
+        .dtr_pad_o    (dtr_pad_o                              ),
+        .int_o        (interrupt                              )
+    );
+
+endmodule/* Copyright (c) 2025 Maveric NU. All rights reserved. */
+
+
+// ---------------------------------------------------------------------------------------
+// This is a top WB module for establishing connection between CPU and its peripherals.
+// ---------------------------------------------------------------------------------------
+
+module wb_interconnect
+// Parameters.
+#(
+    parameter ADDR_WIDTH = 32,
+    parameter DATA_WIDTH = 32
+)
+// Port declerations.
+(
+    // Common clock & reset.
+    input  logic               clk_i,
+    input  logic               rst_i,
+
+    // Master interface: CPU.
+    input  logic                      wb_done_i,
+    output logic [DATA_WIDTH   - 1:0] M_DAT_I,
+    input  logic [ADDR_WIDTH   - 1:0] M_ADR_O,
+    input  logic [DATA_WIDTH   - 1:0] M_DAT_O,
+    input  logic                      M_WE_O,
+    input  logic [DATA_WIDTH/8 - 1:0] M_SEL_O,
+    input  logic                      M_STB_O,
+    output logic                      M_ACK_I,
+    input  logic                      M_CYC_O,
+
+    // Slave 0 interface: Memory.
+    output logic [DATA_WIDTH   - 1:0] S0_DAT_I,
+    output logic [ADDR_WIDTH   - 1:0] S0_ADR_I,
+    input  logic [DATA_WIDTH   - 1:0] S0_DAT_O,
+    output logic                      S0_WE_I,
+    output logic [DATA_WIDTH/8 - 1:0] S0_SEL_I,
+    output logic                      S0_STB_I,
+    input  logic                      S0_ACK_O,
+    output logic                      S0_CYC_I,
+
+    // Slave 1 interface: UART.
+    output logic [DATA_WIDTH   - 1:0] S1_DAT_I,
+    output logic [ADDR_WIDTH   - 1:0] S1_ADR_I,
+    input  logic [DATA_WIDTH   - 1:0] S1_DAT_O,
+    output logic                      S1_WE_I,
+    output logic [DATA_WIDTH/8 - 1:0] S1_SEL_I,
+    output logic                      S1_STB_I,
+    input  logic                      S1_ACK_O,
+    output logic                      S1_CYC_I
+);
+
+    //------------------------
+    // Internal nets.
+    //------------------------
+    logic memory_access = (M_ADR_O >= 32'h3000_0000);
+
+
+    //-----------------------------------
+    // FSM.
+    //-----------------------------------
+
+    // FSM: States.
+    typedef enum logic [1:0] {
+        IDLE = 2'd0,
+        SLV0 = 2'd1,
+        SLV1 = 2'd2
+    } state_t;
+
+    state_t PS;
+    state_t NS;
+
+
+    // FSM: Next state synchronization.
+    always_ff @(posedge clk_i, negedge rst_i) begin
+        if (rst_i) PS <= IDLE;
+        else       PS <= NS;
+    end
+
+
+    // FSM: Next state logic.
+    always_comb begin
+        // Default values.
+        NS = PS;
+
+        case (PS)
+            IDLE: begin
+                if (M_STB_O & M_CYC_O) begin
+                    if (memory_access)
+                        NS = SLV0;
+                    else
+                        NS = SLV1;
+                end
+            end
+            SLV0: begin
+                if (wb_done_i)
+                    NS = IDLE;
+            end
+            SLV1: begin
+                if (wb_done_i)
+                    NS = IDLE;
+            end
+            default: NS = PS;
+        endcase
+    end
+
+
+    // FSM: Output logic.
+    always_comb begin
+        // Default values.
+        // Master: CPU
+        M_DAT_I = 'd0;
+        M_ACK_I = 'd0;
+        // Slave 0: Memory.
+        S0_DAT_I = 'd0;
+        S0_ADR_I = 'd0;
+        S0_WE_I  = 'd0;
+        S0_SEL_I = 'd0;
+        S0_STB_I = 'd0;
+        S0_CYC_I = 'd0;
+        // Slave 1: UART.
+        S0_DAT_I = 'd0;
+        S0_ADR_I = 'd0;
+        S0_WE_I  = 'd0;
+        S0_SEL_I = 'd0;
+        S0_STB_I = 'd0;
+        S0_CYC_I = 'd0;
+
+        case (PS)
+            SLV0: begin
+                // Master: CPU
+                M_DAT_I = S0_DAT_O;
+                M_ACK_I = S0_ACK_O;
+                // Slave 0: Memory.
+                S0_DAT_I = M_DAT_O;
+                S0_ADR_I = M_ADR_O;
+                S0_WE_I  = M_WE_O;
+                S0_SEL_I = M_SEL_O;
+                S0_STB_I = M_STB_O;
+                S0_CYC_I = M_CYC_O;
+            end
+            SLV1: begin
+                // Master: CPU
+                M_DAT_I = S1_DAT_O;
+                M_ACK_I = S1_ACK_O;
+                // Slave 1: UART.
+                S1_DAT_I = M_DAT_O;
+                S1_ADR_I = M_ADR_O;
+                S1_WE_I  = M_WE_O;
+                S1_SEL_I = M_SEL_O;
+                S1_STB_I = M_STB_O;
+                S1_CYC_I = M_CYC_O;
+            end
+            default: begin
+                // Default values.
+                // Master: CPU
+                M_DAT_I = 'd0;
+                M_ACK_I = 'd0;
+                // Slave 0: Memory.
+                S0_DAT_I = 'd0;
+                S0_ADR_I = 'd0;
+                S0_WE_I  = 'd0;
+                S0_SEL_I = 'd0;
+                S0_STB_I = 'd0;
+                S0_CYC_I = 'd0;
+                // Slave 1: UART.
+                S0_DAT_I = 'd0;
+                S0_ADR_I = 'd0;
+                S0_WE_I  = 'd0;
+                S0_SEL_I = 'd0;
+                S0_STB_I = 'd0;
+                S0_CYC_I = 'd0;
+            end
+        endcase
+    end
+
+endmodule/* Copyright (c) 2025 Maveric NU. All rights reserved. */
 
 
 // ---------------------------------------------------------------------------------------
@@ -4034,134 +4446,5 @@ module wb_slave
             endcase
         end
     end
-
-endmodule/* Copyright (c) 2025 Maveric NU. All rights reserved. */
-
-
-// ---------------------------------------------------------------------------------------
-// This is a top WB module for establishing connection between CPU and its peripherals.
-// ---------------------------------------------------------------------------------------
-
-module wb_top
-// Parameters.
-#(
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 32
-)
-// Port declerations.
-(
-    // Common clock & reset.
-    input  logic                    clk_i,
-    input  logic                    rst_i,
-
-    // Input interface.
-    input  logic                      cpu_start_rd_i,
-    input  logic                      cpu_start_wr_i,
-    input  logic [DATA_WIDTH/8 - 1:0] cpu_write_sel_i,
-    input  logic [DATA_WIDTH   - 1:0] cpu_data_i,
-    input  logic [ADDR_WIDTH   - 1:0] cpu_addr_i,
-    input  logic                      mem_successful_access_i,
-    input  logic                      mem_successful_rd_i,
-    input  logic                      mem_successful_wr_i,
-    input  logic [DATA_WIDTH   - 1:0] mem_data_i,
-
-
-    // Output interface.
-    output logic [DATA_WIDTH - 1:0] cpu_data_o,
-    output logic                    cpu_done_o,
-    output logic                    mem_rd_req_o,
-    output logic                    mem_wr_en_o,
-    output logic [ADDR_WIDTH - 1:0] mem_addr_o,
-    output logic [DATA_WIDTH - 1:0] mem_data_o
-);
-
-    //------------------------
-    // Internal nets.
-    //------------------------
-
-    // Master interface.
-    logic [DATA_WIDTH   - 1:0] M_DAT_I;
-    logic [ADDR_WIDTH   - 1:0] M_ADR_O;
-    logic [DATA_WIDTH   - 1:0] M_DAT_O;
-    logic                      M_WE_O;
-    logic [DATA_WIDTH/8 - 1:0] M_SEL_O;
-    logic                      M_STB_O;
-    logic                      M_ACK_I;
-    logic                      M_CYC_O;
-
-    // Slave interface.
-    logic [DATA_WIDTH   - 1:0] S_DAT_I;
-    logic [ADDR_WIDTH   - 1:0] S_ADR_I;
-    logic [DATA_WIDTH   - 1:0] S_DAT_O;
-    logic                      S_WE_I;
-    logic [DATA_WIDTH/8 - 1:0] S_SEL_I;
-    logic                      S_STB_I;
-    logic                      S_ACK_O;
-    logic                      S_CYC_I;
-
-
-    //-----------------------------------
-    // Lower-level module instantiations.
-    //-----------------------------------
-
-    // WB Master.
-    wb_master #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH)
-    ) WB_MASTER0 (
-        .clk_i      (clk_i         ),
-        .rst_i      (rst_i         ),
-        .start_rd_i (cpu_start_rd_i),
-        .start_wr_i (cpu_start_wr_i),
-        .sel_i      (cpu_write_sel_i),
-        .data_i     (cpu_data_i    ),
-        .addr_i     (cpu_addr_i    ),
-        .done_o     (cpu_done_o    ),
-        .data_o     (cpu_data_o    ),
-        .DAT_I      (M_DAT_I       ),
-        .ADR_O      (M_ADR_O       ),
-        .DAT_O      (M_DAT_O       ),
-        .WE_O       (M_WE_O        ),
-        .SEL_O      (M_SEL_O       ),
-        .STB_O      (M_STB_O       ),
-        .ACK_I      (M_ACK_I       ),
-        .CYC_O      (M_CYC_O       )
-    );
-
-    // WB Slave.
-    wb_slave #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH)
-    ) WB_SLAVE0 (
-        .clk_i               (clk_i                  ),
-        .rst_i               (rst_i                  ),
-        .successful_access_i (mem_successful_access_i),
-        .successful_rd_i     (mem_successful_rd_i    ),
-        .successful_wr_i     (mem_successful_wr_i    ),
-        .data_i              (mem_data_i             ),
-        .rd_req_o            (mem_rd_req_o           ),
-        .wr_en_o             (mem_wr_en_o            ),
-        .addr_o              (mem_addr_o             ),
-        .data_o              (mem_data_o             ),
-        .DAT_I               (S_DAT_I                ),
-        .ADR_I               (S_ADR_I                ),
-        .DAT_O               (S_DAT_O                ),
-        .WE_I                (S_WE_I                 ),
-        .SEL_I               (S_SEL_I                ),
-        .STB_I               (S_STB_I                ),
-        .ACK_O               (S_ACK_O                ),
-        .CYC_I               (S_CYC_I                )
-    );
-
-    assign M_DAT_I = S_DAT_O;
-    assign M_ACK_I = S_ACK_O;
-
-    assign S_DAT_I = M_DAT_O;
-    assign S_ADR_I = M_ADR_O;
-    assign S_WE_I  = M_WE_O;
-    assign S_SEL_I = M_SEL_O;
-    assign S_STB_I = M_STB_O;
-    assign S_CYC_I = M_CYC_O;
-
 
 endmodule
