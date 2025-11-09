@@ -71,7 +71,7 @@ module wb_interconnect
 
 
     // FSM: Next state synchronization.
-    always_ff @(posedge clk_i, negedge rst_i) begin
+    always_ff @(posedge clk_i, posedge rst_i) begin
         if (rst_i) PS <= IDLE;
         else       PS <= NS;
     end
@@ -118,12 +118,12 @@ module wb_interconnect
         S0_STB_I = 'd0;
         S0_CYC_I = 'd0;
         // Slave 1: UART.
-        S0_DAT_I = 'd0;
-        S0_ADR_I = 'd0;
-        S0_WE_I  = 'd0;
-        S0_SEL_I = 'd0;
-        S0_STB_I = 'd0;
-        S0_CYC_I = 'd0;
+        S1_DAT_I = 'd0;
+        S1_ADR_I = 'd0;
+        S1_WE_I  = 'd0;
+        S1_SEL_I = 'd0;
+        S1_STB_I = 'd0;
+        S1_CYC_I = 'd0;
 
         case (PS)
             SLV0: begin
@@ -163,12 +163,12 @@ module wb_interconnect
                 S0_STB_I = 'd0;
                 S0_CYC_I = 'd0;
                 // Slave 1: UART.
-                S0_DAT_I = 'd0;
-                S0_ADR_I = 'd0;
-                S0_WE_I  = 'd0;
-                S0_SEL_I = 'd0;
-                S0_STB_I = 'd0;
-                S0_CYC_I = 'd0;
+                S1_DAT_I = 'd0;
+                S1_ADR_I = 'd0;
+                S1_WE_I  = 'd0;
+                S1_SEL_I = 'd0;
+                S1_STB_I = 'd0;
+                S1_CYC_I = 'd0;
             end
         endcase
     end
